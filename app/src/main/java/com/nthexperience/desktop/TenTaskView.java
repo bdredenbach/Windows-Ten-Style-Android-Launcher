@@ -10,7 +10,7 @@ import java.util.*;
 final class TenTaskView {
  final Activity activity;final FrameLayout host;final TenDesktops desktops;final Runnable refresh;FrameLayout overlay;final List<Bitmap> images=new ArrayList<>();int safeLeft,safeRight,safeTop;
  TenTaskView(Activity a,FrameLayout host,TenDesktops desktops,Runnable refresh){activity=a;this.host=host;this.desktops=desktops;this.refresh=refresh;}
- void safeInsets(int l,int r,int t){safeLeft=l;safeRight=r;safeTop=t;if(overlay!=null)overlay.setPadding(l,t,r,0);}
+ void safeInsets(int l,int r,int t){safeLeft=l;safeRight=r;safeTop=t;if(overlay!=null&&(overlay.getPaddingLeft()!=l||overlay.getPaddingTop()!=t||overlay.getPaddingRight()!=r||overlay.getPaddingBottom()!=0))overlay.setPadding(l,t,r,0);}
  boolean dismiss(){if(overlay==null)return false;host.removeView(overlay);overlay=null;for(Bitmap b:images)b.recycle();images.clear();return true;}
  private int dp(int n){return Aero.dp(activity,n);}private TextView darkButton(String text,Runnable action){TextView v=TenStyle.command(activity,text,action);v.setTextColor(Color.WHITE);return v;}
  void show(List<DesktopWindow> windows,List<String> external,java.util.function.Function<String,String> label,java.util.function.Consumer<String> open){dismiss();desktops.sync();overlay=new FrameLayout(activity);overlay.setElevation(dp(40));overlay.setPadding(safeLeft,safeTop,safeRight,0);overlay.setContentDescription("Task View");overlay.setBackgroundColor(0xee171717);overlay.setClickable(true);LinearLayout body=Aero.column(activity);body.setPadding(dp(12),dp(8),dp(12),dp(8));overlay.addView(body,new FrameLayout.LayoutParams(-1,-1));
