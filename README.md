@@ -21,7 +21,7 @@ Ten installs alongside Seven and Vista. Android apps use Android tasks; Nth wind
 
 ## Build and checks
 
-Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs both Ten native suites on Android 11 and 16. APKs and screenshots are workflow artifacts.
+Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs both Ten native suites on Android 11 and 16. APKs and screenshots are workflow artifacts. See the [0.2.0 validation record](docs/TEN_0_2_VALIDATION.md) for the successful run and tested scope.
 
 `checks/TenTileLayoutCheck.java` exercises 9,600 mixed-size tile placements and opt-in rules. `checks/TenPolishCheck.java` adds 19,200 placements across narrow/wide groups, Settings catalog checks and writing/fallback policies. `TenSmoke` and `TenPolishSmoke` check the separate package, Start search and tile persistence, assistant opt-in and local save using a synthetic reply, Settings, Explorer ribbon, Task View, Action Center, backup and both orientations. Native tests do not call the live AI endpoint. Fake-backend unit tests cover model preparation gating and late-reply cancellation; a separate synthetic live gateway check verifies cloud response.
 
