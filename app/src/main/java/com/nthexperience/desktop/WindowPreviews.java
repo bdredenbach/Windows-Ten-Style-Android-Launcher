@@ -251,7 +251,7 @@ final class WindowPreviews {
             LinearLayout.LayoutParams size=new LinearLayout.LayoutParams(cardWidth,-1);size.rightMargin=gap;row.addView(card,size);
         }
         if(sticky){
-            TextView options=Aero.text(context,"Window commands  ▸",11,Color.WHITE);
+            TextView options=Aero.text(context,"Window commands  ▸",11,TenStyle.text(context));
             options.setGravity(Gravity.CENTER);options.setContentDescription("Taskbar item commands");
             options.setOnClickListener(v->{dismiss();if(anchor.isAttachedToWindow())commands.run();});
             shell.addView(options,new LinearLayout.LayoutParams(-1,Aero.dp(context,29)));
