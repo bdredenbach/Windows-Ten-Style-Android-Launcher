@@ -117,7 +117,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         if(Build.VERSION.SDK_INT>=28){WindowManager.LayoutParams attributes=getWindow().getAttributes();attributes.layoutInDisplayCutoutMode=Build.VERSION.SDK_INT>=30?WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS:WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;getWindow().setAttributes(attributes);}
         if(Build.VERSION.SDK_INT>=30)getWindow().setDecorFitsSystemWindows(false);
         else getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        brightness=new BrightnessControl(this);brightness.apply();previews=new WindowPreviews(this,new WindowPreviews.Host(){public List<DesktopWindow> windows(){return orderedWindows();}public List<String> external(){List<String> ids=new ArrayList<>();for(String id:ExternalTasks.list())if(entries.containsKey(id))ids.add(id);return ids;}public String label(String id){return MainActivity.this.label(id);}public void open(String id){MainActivity.this.open(id);}public void preparePreview(){startMenu.hide();if(tray!=null)tray.dismiss();}public View wallpaper(){return wallpaper;}public void showDesktop(){if(desktopHidden.isEmpty())MainActivity.this.showDesktop();}});
+        brightness=new BrightnessControl(this);brightness.apply();previews=new WindowPreviews(this,new WindowPreviews.Host(){public List<DesktopWindow> windows(){return orderedWindows();}public List<String> external(){List<String> ids=new ArrayList<>();for(String id:ExternalTasks.list())if(entries.containsKey(id))ids.add(id);return ids;}public String label(String id){return MainActivity.this.label(id);}public void open(String id){MainActivity.this.open(id);}public void preparePreview(){if(tenNews!=null)tenNews.dismiss();startMenu.hide();if(tray!=null)tray.dismiss();}public View wallpaper(){return wallpaper;}public void showDesktop(){if(desktopHidden.isEmpty())MainActivity.this.showDesktop();}});
         buildDesktop();weatherLocation=new WeatherLocation(this,store,sidebar.weather,()->store.gadgets().contains("weather"),this::updateWeatherSummary);applySystemChrome();String backupStatus=getIntent().getStringExtra("backup_status");if(backupStatus!=null){getIntent().removeExtra("backup_status");main.post(()->toast(backupStatus));}
         handleRequestedTool();
         if(saved!=null&&saved.containsKey("desktop_session")){
@@ -312,7 +312,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             if(target.toolId.equals("@recycle"))button.setOnDragListener(this::recycleDrop);
             boolean pinnedExplorerFamily=folderSlot!=null&&explorerIds.contains(target.toolId)&&explorerIds.size()==group.size();
             ContextMenus.Open commands=(x,y)->{
-                previews.dismiss();startMenu.hide();tray.dismiss();
+                previews.dismiss();startMenu.hide();tray.dismiss();if(tenNews!=null)tenNews.dismiss();
                 if(!grouped&&!(pinnedExplorerFamily&&folderPins.size()>1)){target.showSystemMenu(button,x,y);return;}
                 DesktopContextMenu menu=new DesktopContextMenu(this,"Folder group commands");
                 menu.item("Open new Explorer window","files",()->newExplorer("libraries"));
@@ -326,7 +326,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             };
             if(hasJumpList(target.toolId))ContextMenus.bindJumpList(button,(x,y)->showJumpList(button,target.toolId,x,y));
             else ContextMenus.bind(button,commands);
-            if(!grouped)button.setOnClickListener(v->{previews.dismiss();startMenu.hide();tray.dismiss();if(target.getVisibility()==View.VISIBLE&&!target.minimizing()&&target.active())target.minimize();else target.restore();});
+            if(!grouped)button.setOnClickListener(v->{previews.dismiss();startMenu.hide();tray.dismiss();if(tenNews!=null)tenNews.dismiss();if(target.getVisibility()==View.VISIBLE&&!target.minimizing()&&target.active())target.minimize();else target.restore();});
             previews.bindTask(button,members,mousePreviews,()->ContextMenus.centered(button,commands));
             LinearLayout.LayoutParams size=new LinearLayout.LayoutParams(showLabels&&grouped?dp(112):buttonWidth,dp(48));
             size.rightMargin=gap;
@@ -848,7 +848,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     private void startOrbMenu(View anchor,float x,float y){if(desktopMenu!=null)desktopMenu.dismiss();startMenu.hide();if(tenNews!=null)tenNews.dismiss();if(tray!=null)tray.dismiss();desktopMenu=new DesktopContextMenu(this,"Start button context menu");for(String[] row:new String[][]{{"Apps and features","ten-setting:apps"},{"Power options","ten-setting:power"},{"System","ten-setting:about"},{"Network connections","ten-setting:network"},{"Task Manager","@taskmanager"},{"Settings","@settings"},{"File Explorer","@files"},{"Search","@search"},{"Nth Nota","@nota"},{"Shut down or sign out","@power"},{"Desktop","desktop"}}){desktopMenu.item(row[0],"programs",()->{if(row[1].equals("desktop"))showDesktop();else open(row[1]);});}ContextMenus.show(desktopMenu,anchor,x,y);}
 
     private void showStart(boolean search){if(tenNews!=null)tenNews.dismiss();if(previews!=null)previews.dismiss();if(tray!=null)tray.dismiss();startMenu.show(search);}
-    private void showDesktop(){
+    private void showDesktop(){if(tenNews!=null)tenNews.dismiss();
         if(tray!=null)tray.dismiss();((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(workspace.getWindowToken(),0);startMenu.hide();
         if(!desktopHidden.isEmpty()){for(Map.Entry<String,DesktopWindow> item:new ArrayList<>(desktopHidden.entrySet())){DesktopWindow window=item.getValue();if(windows.get(item.getKey())==window&&window.getParent()!=null)window.restore();}desktopHidden.clear();}
         else for(DesktopWindow window:orderedWindows()){if(window.getVisibility()==View.VISIBLE&&!window.minimizing()){desktopHidden.put(window.toolId,window);window.dismissSystemMenu();window.settle();window.setVisibility(View.GONE);}}
