@@ -33,7 +33,7 @@ final class StepRecorder {
 
     void start(){
         steps.clear();started=SystemClock.elapsedRealtime();recording=true;
-        record("Started recording Nth Desktop Seven");
+        record("Started recording Nth Desktop Ten");
     }
     void stop(){
         record("Stopped recording");
@@ -84,9 +84,9 @@ final class StepRecorder {
         return content;
     }
     byte[] export(){
-        StringBuilder html=new StringBuilder("<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><title>Nth Desktop Seven Steps</title>")
+        StringBuilder html=new StringBuilder("<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><title>Nth Desktop Ten Steps</title>")
                 .append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><style>body{font:16px system-ui;margin:2em;max-width:60em}li{margin:1em 0}img{display:block;max-width:100%;height:auto;margin:.5em 0}</style>")
-                .append("<h1>Nth Desktop Seven Steps</h1><ol>");
+                .append("<h1>Nth Desktop Ten Steps</h1><ol>");
         for(Step step:steps){
             html.append("<li><b>").append(step.seconds).append("s</b> ").append(escape(step.description));
             if(step.image!=null)html.append("<img alt=\"Desktop screenshot\" src=\"data:image/jpeg;base64,")
