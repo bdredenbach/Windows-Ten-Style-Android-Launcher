@@ -11,7 +11,7 @@ android {
         targetSdk 36
         versionCode 1
         versionName '0.1.0'
-        testInstrumentationRunner 'com.nthexperience.desktop.StorageSmoke'
+        testInstrumentationRunner 'com.nthexperience.desktop.TenSmoke'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
