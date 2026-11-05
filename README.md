@@ -21,9 +21,9 @@ Ten installs alongside Seven and Vista. Android apps use Android tasks; Nth wind
 
 ## Build and checks
 
-Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs the Ten smoke suite on Android 11 and 16. APKs and screenshots are workflow artifacts.
+Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs both Ten native suites on Android 11 and 16. APKs and screenshots are workflow artifacts.
 
-`checks/TenTileLayoutCheck.java` exercises 9,600 mixed-size tile placements and opt-in rules. `TenSmoke` and `TenPolishSmoke` check the separate package, Start search and tile persistence, assistant opt-in and local save using a synthetic reply, Settings, Explorer ribbon, Task View, Action Center, backup and both orientations. Native tests do not call the live AI endpoint. Fake-backend unit tests cover model preparation gating and late-reply cancellation; a separate synthetic live gateway check verifies cloud response.
+`checks/TenTileLayoutCheck.java` exercises 9,600 mixed-size tile placements and opt-in rules. `checks/TenPolishCheck.java` adds 19,200 placements across narrow/wide groups, Settings catalog checks and writing/fallback policies. `TenSmoke` and `TenPolishSmoke` check the separate package, Start search and tile persistence, assistant opt-in and local save using a synthetic reply, Settings, Explorer ribbon, Task View, Action Center, backup and both orientations. Native tests do not call the live AI endpoint. Fake-backend unit tests cover model preparation gating and late-reply cancellation; a separate synthetic live gateway check verifies cloud response.
 
 Inherited Seven test drivers remain available as reference. They include Seven appearance assertions and do not constitute a green Ten regression suite. The original baseline's known Android 11 issues are recorded in [the baseline notes](docs/SEVEN_BASELINE.md).
 
