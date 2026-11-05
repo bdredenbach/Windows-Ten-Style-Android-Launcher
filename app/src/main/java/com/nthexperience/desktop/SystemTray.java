@@ -37,7 +37,7 @@ final class SystemTray extends LinearLayout {
     private final ConnectivityManager.NetworkCallback networkChanged=new ConnectivityManager.NetworkCallback(){public void onAvailable(Network n){refresh();}public void onLost(Network n){refresh();}public void onCapabilitiesChanged(Network n,NetworkCapabilities caps){refresh();}};
     private final Runnable tick=new Runnable(){public void run(){if(!running||cover==null)return;update();main.postDelayed(this,1000);}};
     SystemTray(Context c,FrameLayout workspace,AeroWallpaper wallpaper,Host host){
-        super(c);notices=c.getSharedPreferences("seven_action_center",0);prefs=c.getSharedPreferences("desktop",0);expanded=prefs.getBoolean("tray_expanded",false);brightness=new BrightnessControl((android.app.Activity)c);this.workspace=workspace;this.wallpaper=wallpaper;this.host=host;connections=c.getSystemService(ConnectivityManager.class);audio=c.getSystemService(AudioManager.class);power=c.getSystemService(PowerManager.class);setGravity(Gravity.CENTER_VERTICAL);
+        super(c);notices=c.getSharedPreferences("seven_action_center",0);prefs=c.getSharedPreferences("desktop",0);expanded=getResources().getConfiguration().screenWidthDp>=720;brightness=new BrightnessControl((android.app.Activity)c);this.workspace=workspace;this.wallpaper=wallpaper;this.host=host;connections=c.getSystemService(ConnectivityManager.class);audio=c.getSystemService(AudioManager.class);power=c.getSystemService(PowerManager.class);setGravity(Gravity.CENTER_VERTICAL);
         String[] names={"Battery status","Network status","Volume control","Brightness control"};String[] pages={"battery","network","volume","brightness"};
         for(int i=0;i<names.length;i++){TrayIcon icon=new TrayIcon(c,i);icon.setContentDescription(names[i]);icon.setFocusable(true);icon.setBackground(Aero.selection(c));String target=pages[i];icon.setOnClickListener(v->show(target));addView(icon,new LayoutParams(dp(44),dp(48)));icons.add(icon);}
         taskManager = new AeroIcon(c, "taskmanager");
@@ -55,7 +55,7 @@ final class SystemTray extends LinearLayout {
         actionCenter.setBackground(Aero.selection(c));
         actionCenter.setOnClickListener(v->show("actioncenter"));
         actionCenter.setVisibility(GONE);
-        compactStatus=Aero.text(c,"⌃",21,TenStyle.text(c));compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(Aero.selection(c));compactStatus.setOnClickListener(v->{expanded=!expanded;prefs.edit().putBoolean("tray_expanded",expanded).apply();updateIconVisibility();host.layout();});compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
+        compactStatus=Aero.text(c,"⌃",21,TenStyle.text(c));compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(Aero.selection(c));compactStatus.setOnClickListener(v->show("controls"));compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
     }
     @Override protected void onMeasure(int widthSpec,int heightSpec){
         sizeIcons();
@@ -70,7 +70,7 @@ final class SystemTray extends LinearLayout {
         int width = Math.min(dp(44), Math.max(dp(24), (workspaceWidth - dp(200)) / getChildCount()));
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
-            int childWidth = !expanded && child == compactStatus ? dp(44) : width;
+            int childWidth = child == compactStatus ? dp(28) : dp(28);
             ViewGroup.LayoutParams params = child.getLayoutParams();
             if (params.width != childWidth) {
                 params.width = childWidth;
@@ -82,12 +82,12 @@ final class SystemTray extends LinearLayout {
             taskManager.setPadding(horizontalPadding, dp(10), horizontalPadding, dp(10));
         }
     }
-    void clockNow(){if(compactStatus!=null){compactStatus.setTextSize(20);compactStatus.setText(expanded?"›":"‹");compactStatus.setTooltipText(expanded?"Hide notification icons":"Show hidden notification icons");}}
+    void clockNow(){if(compactStatus!=null){compactStatus.setTextSize(20);compactStatus.setText("⌃");compactStatus.setTooltipText("Show hidden notification icons");}}
     private void updateIconVisibility() {
-        taskManager.setVisibility(expanded ? VISIBLE : GONE);
+        taskManager.setVisibility(GONE);
         actionCenter.setVisibility(GONE);
         for (TrayIcon icon : icons) {
-            icon.setVisibility(expanded ? VISIBLE : GONE);
+            icon.setVisibility(expanded && icons.indexOf(icon)<3 ? VISIBLE : GONE);
         }
         clockNow();
     }
@@ -117,6 +117,7 @@ final class SystemTray extends LinearLayout {
                 }
                 button(body,"Open Action Center",()->{dismiss();host.open("@actioncenter");});break;
             case "controls":
+                button(body,"Task Manager",()->{dismiss();host.open("@taskmanager");});
                 for(String[] choice:new String[][]{{"Battery status","battery"},{"Network status","network"},{"Volume control","volume"},{"Brightness control","brightness"},{"Clock and calendar","calendar"}}){TextView link=Aero.button(getContext(),choice[0],()->show(choice[1]));link.setContentDescription(choice[0]);body.addView(link,new LayoutParams(-1,dp(48)));}break;
             case "brightness":brightness.content(body);break;
             case "battery":button(body,"Power settings",()->host.action("android:battery"));break;

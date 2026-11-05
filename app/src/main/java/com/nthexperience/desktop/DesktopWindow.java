@@ -50,7 +50,7 @@ final class DesktopWindow extends LinearLayout {
     private final AeroGlass glass;
     private final TextView minimizeButton,closeButton;
     private boolean active=true,minimizing,peeking;private int beforePeekAccessibility;
-    private int transition;
+    private int transition;private Runnable askNota=()->{};private java.util.function.Supplier<android.graphics.PointF> taskAnchor;
     private DesktopContextMenu systemMenu;
     private static final int LEFT=1, RIGHT=2, TOP=4, BOTTOM=8;
     private static final int MAX_SAVED_SIZE=2000;
@@ -59,7 +59,7 @@ final class DesktopWindow extends LinearLayout {
     private int resizeCorner;
     private float resizeDownX,resizeDownY;
     DesktopWindow(Context context, FrameLayout host, String title, View body, AeroWallpaper wallpaper,Runnable changed,DesktopStore store,String toolId,String layoutKey) {
-        super(context);this.body=body; this.host=host; this.changed=changed;this.store=store;this.toolId=toolId;orientationKey=layoutKey;geometryKey="window_"+layoutKey+"_"+toolId;
+        super(context);this.body=body; this.host=host;taskAnchor=()->new android.graphics.PointF(20,host.getHeight()+20); this.changed=changed;this.store=store;this.toolId=toolId;orientationKey=layoutKey;geometryKey="window_"+layoutKey+"_"+toolId;
         touchSlop=ViewConfiguration.get(context).getScaledTouchSlop();
         snapEdge=Aero.dp(context,24);
         snapMinWidth=Aero.dp(context,AeroSnap.MIN_SIDE_WIDTH_DP);
@@ -73,6 +73,7 @@ final class DesktopWindow extends LinearLayout {
         String icon=toolId.equals("@nota")?"notes":toolId.equals("@settings")?"control":FolderLinks.id(toolId)||toolId.startsWith("@explorer:")?"files":toolId.equals("@recycle")?"recycle":toolId.equals("@taskmanager")?"taskmanager":toolId.equals("@welcome")?"orb":(toolId.startsWith("folder:")||toolId.startsWith("@organizer:"))?"folderapps":toolId.equals("@backup")?"drive":toolId.equals("@organize")||toolId.equals("@quicklaunch")?"folderapps":toolId.equals("@control")?"control":toolId.equals("@appearance")?"appearance":toolId.equals("@files")?"files":toolId.equals("@filemanagers")?"folderapps":toolId.equals("@computer")||toolId.equals("@system")?"computer":toolId.equals("@notes")?"notes":toolId.equals("@photos")?"pictures":toolId.equals(MediaLibrary.PLAYER)?"mediaplayer":toolId.equals("@browser")?"browser":GadgetCatalog.toolIcon(toolId);LinearLayout.LayoutParams iconParams=new LinearLayout.LayoutParams(Aero.dp(context,32),Aero.dp(context,32));iconParams.leftMargin=Aero.dp(context,1);bar.addView(new AeroIcon(context,icon),iconParams);
         TextView label=Aero.text(context,title,13,0xff111b22);titleLabel=label;label.setSingleLine();label.setEllipsize(android.text.TextUtils.TruncateAt.END);label.setLayerType(View.LAYER_TYPE_SOFTWARE,null);label.setShadowLayer(0,0,0,0); label.setPadding(Aero.dp(context,8),0,0,0);
         bar.addView(label,new LayoutParams(0,Aero.dp(context,44),1));
+        if(!toolId.equals("@nota")){TenStyle.Glyph nota=new TenStyle.Glyph(context,"nota",TenStyle.ACCENT);nota.setContentDescription("Ask Nth Nota about this window");nota.setTooltipText("Ask Nth Nota");nota.setFocusable(true);nota.setBackground(TenStyle.hover(context,Color.TRANSPARENT));nota.setOnClickListener(v->askNota.run());bar.addView(nota,new LayoutParams(Aero.dp(context,32),Aero.dp(context,40)));}
         TextView minimize=chrome("—",this::minimize);minimizeButton=minimize;
         maximizeButton=chrome("□",this::toggleMaximize);
         TextView close=chrome("×",this::closeWindow);closeButton=close;
@@ -149,11 +150,11 @@ final class DesktopWindow extends LinearLayout {
     private boolean fitted(){return effectivePlacement()!=Placement.FLOATING;}
     void maximize(){if(!maximized())place(Placement.MAXIMIZED);restore();}
     void restoreDown(){settle();setVisibility(VISIBLE);bringToFront();place(Placement.FLOATING);}
-    void closeWindow(){if(getParent()==null)return;dismissSystemMenu();settle();hideKeyboard();if(body instanceof VistaShell)((VistaShell)body).close();if(body instanceof WeatherPanel)((WeatherPanel)body).close();if(body instanceof BrowserPanel)((BrowserPanel)body).close();if(body instanceof PhotoGallery)((PhotoGallery)body).close();if(body instanceof TaskManagerPanel)((TaskManagerPanel)body).close();if(body instanceof RecyclePanel)((RecyclePanel)body).close();host.removeView(this);changed.run();}
+    void closeWindow(){if(getParent()==null)return;dismissSystemMenu();settle();hideKeyboard();if(!(body instanceof BrowserPanel)||!((BrowserPanel)body).hasPrivateTabs())TenWindowMotion.closing(this,host);if(body instanceof VistaShell)((VistaShell)body).close();if(body instanceof WeatherPanel)((WeatherPanel)body).close();if(body instanceof BrowserPanel)((BrowserPanel)body).close();if(body instanceof PhotoGallery)((PhotoGallery)body).close();if(body instanceof TaskManagerPanel)((TaskManagerPanel)body).close();if(body instanceof RecyclePanel)((RecyclePanel)body).close();host.removeView(this);changed.run();}
     void showSystemMenu(View anchor,float x,float y){dismissSystemMenu();systemMenu=new DesktopContextMenu(getContext(),"Window commands");systemMenu.item("Restore","empty",fitted()||getVisibility()!=VISIBLE||minimizing,()->{if(getVisibility()!=VISIBLE||minimizing)restore();else if(fitted())restoreDown();});systemMenu.item("Minimize","empty",getVisibility()==VISIBLE&&!minimizing,this::minimize);systemMenu.item("Maximize","empty",!maximized(),this::maximize);systemMenu.item("Snap left","empty",canSplit(),()->{restore();snap(Placement.LEFT);});
         systemMenu.item("Snap right","empty",canSplit(),()->{restore();snap(Placement.RIGHT);});
         systemMenu.item("Minimize or restore other windows","empty",shake);
-        systemMenu.separator();systemMenu.item("Close","close",this::closeWindow);ContextMenus.show(systemMenu,anchor,x,y);}
+        if(!toolId.equals("@nota"))systemMenu.item("Ask Nth Nota","notes",()->askNota.run());systemMenu.separator();systemMenu.item("Close","close",this::closeWindow);ContextMenus.show(systemMenu,anchor,x,y);}
     void dismissSystemMenu(){if(systemMenu!=null){systemMenu.dismiss();systemMenu=null;}}
     void arrange(int x,int y,int width,int height){settle();placement=Placement.FLOATING;normalW=Math.max(1,width);normalH=Math.max(1,height);positionX=DesktopGeometry.fraction(x,hostWidth()-normalW);positionY=DesktopGeometry.fraction(y,host.getHeight()-safeTop-normalH);fitToHost();saveGeometry();}
     String caption(){return titleLabel.getText().toString();}
@@ -314,15 +315,18 @@ final class DesktopWindow extends LinearLayout {
         FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(Math.max(1,width),Math.max(1,height));
         normalW=width;normalH=height;host.addView(this,lp); setX((hostWidth()-width)/2f); setY(safeTop+Math.max(margin,(host.getHeight()-safeTop-height)/3f));
         if((toolId.equals("@nota")||toolId.equals("@settings")||toolId.equals("@browser")||toolId.equals("@photos")||toolId.equals(MediaLibrary.PLAYER))&&!store.prefs.contains(geometryKey))placement=Placement.MAXIMIZED;
-        readGeometry(null);fitToHost();changed.run();
+        readGeometry(null);fitToHost();changed.run();if(Aero.motion(getContext())){setAlpha(0);setScaleX(.96f);setScaleY(.96f);int token=++transition;animate().alpha(1).scaleX(1).scaleY(1).setDuration(170).withEndAction(()->{if(token==transition)settle();}).start();}
     }
     private void hideKeyboard(){
         ((android.view.inputmethod.InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(getWindowToken(),0);
         clearFocus();
     }
     void settle(){peek(false);cancelResize();cancelCaptionDrag();transition++;animate().withEndAction(null).cancel();minimizing=false;setAlpha(1);setScaleX(1);setScaleY(1);setPivotX(getWidth()/2f);setPivotY(getHeight()/2f);}
-    void minimize(){dismissSystemMenu();hideKeyboard();settle();if(!Aero.motion(getContext())){setVisibility(GONE);changed.run();return;}minimizing=true;int token=++transition;setPivotX(getWidth()*.2f);setPivotY(host.getHeight()-getY()+Aero.dp(getContext(),20));changed.run();animate().scaleX(.15f).scaleY(.15f).alpha(0).setDuration(180).withEndAction(()->{if(token!=transition)return;setVisibility(GONE);settle();changed.run();}).start();}
-    void restore(){boolean hidden=getVisibility()!=VISIBLE||minimizing;settle();setVisibility(VISIBLE);bringToFront();changed.run();if(hidden&&Aero.motion(getContext())){int token=++transition;setPivotX(getWidth()*.2f);setPivotY(host.getHeight()-getY()+Aero.dp(getContext(),20));setScaleX(.18f);setScaleY(.18f);setAlpha(0);animate().scaleX(1).scaleY(1).alpha(1).setDuration(190).withEndAction(()->{if(token==transition)settle();}).start();}}
+    void nota(Runnable action){askNota=action;}
+    void taskAnchor(java.util.function.Supplier<android.graphics.PointF> anchor){taskAnchor=anchor;}
+    private void pivotToTask(){android.graphics.PointF point=taskAnchor.get();setPivotX((point.x-getX()-.1f*getWidth()/2f)/.9f);setPivotY((point.y-getY()-.1f*getHeight()/2f)/.9f);}
+    void minimize(){dismissSystemMenu();hideKeyboard();settle();if(!Aero.motion(getContext())){setVisibility(GONE);changed.run();return;}minimizing=true;int token=++transition;pivotToTask();changed.run();animate().scaleX(.1f).scaleY(.1f).alpha(0).setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator()).setDuration(180).withEndAction(()->{if(token!=transition)return;setVisibility(GONE);settle();changed.run();}).start();}
+    void restore(){boolean hidden=getVisibility()!=VISIBLE||minimizing;settle();setVisibility(VISIBLE);bringToFront();changed.run();if(hidden&&Aero.motion(getContext())){int token=++transition;pivotToTask();setScaleX(.1f);setScaleY(.1f);setAlpha(0);animate().scaleX(1).scaleY(1).alpha(1).setInterpolator(new android.view.animation.DecelerateInterpolator()).setDuration(190).withEndAction(()->{if(token==transition)settle();}).start();}}
     @Override protected void onDetachedFromWindow(){dismissSystemMenu();settle();super.onDetachedFromWindow();}
     private void beginCaptionDrag(MotionEvent e){
         captionTracking=true;

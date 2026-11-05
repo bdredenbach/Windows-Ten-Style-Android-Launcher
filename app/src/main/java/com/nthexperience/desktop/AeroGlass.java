@@ -40,10 +40,11 @@ final class AeroGlass extends Drawable {
         rect.set(getBounds());rect.top+=insetTop;if(rect.isEmpty())return;float d=getCallback() instanceof View?((View)getCallback()).getResources().getDisplayMetrics().density:1;
         boolean light=prefs.getBoolean("ten_light",false);int color=style==WINDOW?0xfff7f7f7:light?0xffededed:0xff202020;
         boolean over=hot||pressed||focused;
-        if(style==TASKBUTTON){if(idle&&!over&&progress<-1)return;color=over?(light?0xffcccccc:0xff4d4d4d):active?(light?0xffd6d6d6:0xff3a3a3a):(light?0xffe5e5e5:0xff282828);}
+        if(style==TASKBUTTON){if(idle&&!over&&progress<-1)return;color=over?(light?0xffcccccc:0xff4d4d4d):active?(light?0xffd6d6d6:0xff3a3a3a):(light?0xffededed:0xff202020);}
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setColor(color);p.setAlpha(drawableAlpha);c.drawRect(rect,p);
         if(style==WINDOW){p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(d);p.setColor(active?prefs.getInt("ten_accent",TenStyle.ACCENT):0xffb7b7b7);c.drawRect(rect.left+d/2,rect.top+d/2,rect.right-d/2,rect.bottom-d/2,p);p.setStyle(Paint.Style.FILL);}
-        if(style==TASKBUTTON&&!idle){p.setColor(prefs.getInt("ten_accent",TenStyle.ACCENT));c.drawRect(rect.left+4*d,rect.bottom-3*d,rect.right-4*d,rect.bottom,p);}
+        if(style==TASKBUTTON&&!idle){p.setColor(prefs.getInt("ten_accent",TenStyle.ACCENT));c.drawRect(rect.left+(active?0:8*d),rect.bottom-2*d,rect.right-(active?0:8*d),rect.bottom,p);}
+        if(style==TASKBUTTON&&stacked){p.setColor(light?0xff999999:0xff777777);c.drawRect(rect.right-3*d,rect.top+5*d,rect.right-d,rect.bottom-5*d,p);}
         if(style==TASKBUTTON&&progress>=-1){p.setColor(0xff60b947);float part=progress<0?1:Math.max(.04f,Math.min(1,progress/100f));c.drawRect(rect.left,rect.bottom-5*d,rect.left+rect.width()*part,rect.bottom,p);}
         if(style==WINDOW&&peek){p.setColor(0xfff7f7f7);p.setAlpha(120);c.drawRect(rect,p);}
     }

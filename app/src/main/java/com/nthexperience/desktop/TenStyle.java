@@ -24,6 +24,7 @@ final class TenStyle {
                 case "taskview":canvas.drawRect(8,7,24,25,p);canvas.drawLine(3,11,3,21,p);canvas.drawLine(29,11,29,21,p);break;
                 case "nota":canvas.drawRoundRect(5,5,27,25,2,2,p);canvas.drawLine(10,25,10,29,p);canvas.drawLine(10,29,16,25,p);canvas.drawLine(10,12,22,12,p);canvas.drawLine(10,18,18,18,p);break;
                 case "actions":canvas.drawRect(6,6,26,24,p);canvas.drawLine(6,24,6,28,p);canvas.drawLine(6,28,12,24,p);canvas.drawLine(10,11,22,11,p);canvas.drawLine(10,16,22,16,p);break;
+                case "news":canvas.drawRoundRect(3,5,29,27,2,2,p);canvas.drawRect(7,10,15,17,p);canvas.drawLine(19,10,25,10,p);canvas.drawLine(19,15,25,15,p);canvas.drawLine(7,22,25,22,p);break;
                 case "menu":for(int y=9;y<=23;y+=7)canvas.drawLine(7,y,25,y,p);break;
                 case "apps":for(int y=8;y<24;y+=10)for(int x=8;x<24;x+=10)canvas.drawRect(x,y,x+6,y+6,p);break;
                 case "account":case "accounts":canvas.drawCircle(16,10,5,p);canvas.drawArc(6,16,26,31,180,180,false,p);break;

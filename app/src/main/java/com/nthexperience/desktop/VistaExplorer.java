@@ -398,13 +398,23 @@ final class VistaExplorer extends VistaShell {
     private List<DocumentOps.Ref> targets(DocumentOps.Ref reference){return selected.containsKey(reference.uri.toString())?new ArrayList<>(selected.values()):Collections.singletonList(reference);}
     private DesktopContextMenu menu(String description){if(contextMenu!=null)contextMenu.dismiss();contextMenu=new DesktopContextMenu(getContext(),description);return contextMenu;}
     private void show(DesktopContextMenu menu,View anchor,float x,float y){ContextMenus.show(menu,anchor,x,y);}
+    private boolean notaText(DocumentOps.Ref ref){String mime=ref.item.mime,name=ref.item.name.toLowerCase(java.util.Locale.ROOT);return !ref.item.directory()&&(mime.startsWith("text/")||mime.equals("application/json")||name.endsWith(".md")||name.endsWith(".txt"));}
+    void askNota(){if(picker!=null)return;List<DocumentOps.Ref> refs=new ArrayList<>(selected.values());if(refs.size()!=1||!notaText(refs.get(0))){Toast.makeText(getContext(),"Select one text file, or hold its name and choose Ask Nth Nota",Toast.LENGTH_LONG).show();return;}nota(refs.get(0));}
+    private void nota(DocumentOps.Ref ref){
+        if(!(getContext() instanceof MainActivity)||!notaText(ref))return;
+        if(ref.item.size>65536){Toast.makeText(getContext(),"Choose a text file under 64 KB",Toast.LENGTH_LONG).show();return;}
+        worker.execute(()->{String passage;try(java.io.InputStream in=getContext().getContentResolver().openInputStream(ref.uri);java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream()){
+            if(in==null)throw new java.io.IOException();byte[] chunk=new byte[4096];int count;while((count=in.read(chunk))!=-1){if(out.size()+count>65536)throw new java.io.IOException();out.write(chunk,0,count);}passage=out.toString(java.nio.charset.StandardCharsets.UTF_8.name());
+        }catch(Exception unavailable){main.post(()->{if(!closed)Toast.makeText(getContext(),"Could not read this text file. Check its access and size (64 KB maximum).",Toast.LENGTH_LONG).show();});return;}
+        String text=passage;main.post(()->{if(!closed)((MainActivity)getContext()).nota(new TenNotaContext(ref.item.name,text,false));});});
+    }
     private void fileMenu(View anchor,DocumentOps.Ref reference,float x,float y){
         String folder=null;
         if(reference.item.directory())try{folder=DocumentFolders.childPage(page(),reference.item);}catch(JSONException invalid){}
         fileMenu(anchor,reference,x,y,folder);
     }
     private void fileMenu(View anchor,DocumentOps.Ref reference,float x,float y,String directoryPage){
-        List<DocumentOps.Ref> targets=targets(reference);DesktopContextMenu menu=menu("File context menu");
+        List<DocumentOps.Ref> targets=targets(reference);DesktopContextMenu menu=menu("File context menu");if(picker==null&&notaText(reference))menu.item("Ask Nth Nota about this text","notes",()->nota(reference));
         if(picker==null&&reference.item.directory()&&directoryPage!=null)menu.item("Include in library…","files",()->chooseLibrary(directoryPage));menu.item("Open",icon(reference.item.mime,reference.item.directory()),targets.size()==1,()->{if(directoryPage!=null)navigate(directoryPage);else activateOpen(reference);});if(reference.item.directory()&&picker==null){menu.item("Open in new window","files",()->folderLink(reference,directoryPage,false));menu.item("Add desktop shortcut","shortcut",()->folderLink(reference,directoryPage,true));}if(!reference.item.directory()&&picker==null)menu.item("Open with…","programs",targets.size()==1,()->openWith(reference));menu.separator();
         menu.item("Cut","cut",!busy&&targets.stream().allMatch(r->DocumentOps.writable(getContext(),r.uri,DocumentsContract.Document.FLAG_SUPPORTS_DELETE,r.item)),()->copy(targets,true));menu.item("Copy","copy",!busy,()->copy(targets,false));Uri destination=reference.item.directory()?reference.uri:parent();boolean create=DocumentOps.writable(getContext(),destination,DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE,reference.item.directory()?reference.item:parentInfo);menu.item("Paste","paste",!busy&&create&&!ExplorerClipboard.files.isEmpty(),()->pasteInto(destination));menu.separator();
         menu.item("Delete…","delete",!busy&&targets.stream().allMatch(r->DocumentOps.writable(getContext(),r.uri,DocumentsContract.Document.FLAG_SUPPORTS_DELETE,r.item)),()->confirmDelete(targets));menu.item("Rename…","notes",!busy&&targets.size()==1&&DocumentOps.writable(getContext(),reference.uri,DocumentsContract.Document.FLAG_SUPPORTS_RENAME,reference.item),()->rename(reference));

@@ -31,6 +31,7 @@
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
+        <activity android:name=".NotaTextActivity" android:label="Ask Nth Nota" android:exported="true" android:noHistory="true"><intent-filter><action android:name="android.intent.action.SEND"/><action android:name="android.intent.action.PROCESS_TEXT"/><category android:name="android.intent.category.DEFAULT"/><data android:mimeType="text/plain"/></intent-filter></activity>
         <provider android:name=".ThemePictures" android:authorities="${applicationId}.theme-pictures" android:exported="false" />
         <service android:name=".TenNotifications" android:label="Nth Desktop Ten Action Center" android:exported="true" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"><intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter></service>
         <provider android:name=".DeviceDocumentsProvider" android:authorities="${applicationId}.storage" android:exported="true" android:grantUriPermissions="true" android:permission="android.permission.MANAGE_DOCUMENTS" />
