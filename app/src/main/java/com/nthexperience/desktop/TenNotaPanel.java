@@ -29,5 +29,6 @@ final class TenNotaPanel extends LinearLayout {
  void foreground(boolean active){cloud.foreground(active);}
  void close(){closed=true;cloud.close();}
  @Override protected void onWindowVisibilityChanged(int visible){super.onWindowVisibilityChanged(visible);if(cloud!=null)cloud.foreground(visible==VISIBLE);}
+ @Override public void onVisibilityAggregated(boolean visible){super.onVisibilityAggregated(visible);if(cloud!=null)cloud.foreground(visible);}
  @Override protected void onDetachedFromWindow(){super.onDetachedFromWindow();close();}
 }

@@ -54,8 +54,8 @@ final class SystemTray extends LinearLayout {
         actionCenter.setTooltipText("Action Center");
         actionCenter.setBackground(Aero.selection(c));
         actionCenter.setOnClickListener(v->show("actioncenter"));
-        addView(actionCenter,new LayoutParams(dp(44),dp(48)));
-        compactStatus=Aero.text(c,"⌃",21,Color.WHITE);compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(Aero.selection(c));compactStatus.setOnClickListener(v->{expanded=!expanded;prefs.edit().putBoolean("tray_expanded",expanded).apply();updateIconVisibility();host.layout();});compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
+        actionCenter.setVisibility(GONE);
+        compactStatus=Aero.text(c,"⌃",21,TenStyle.text(c));compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(Aero.selection(c));compactStatus.setOnClickListener(v->{expanded=!expanded;prefs.edit().putBoolean("tray_expanded",expanded).apply();updateIconVisibility();host.layout();});compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
     }
     @Override protected void onMeasure(int widthSpec,int heightSpec){
         sizeIcons();
@@ -85,7 +85,7 @@ final class SystemTray extends LinearLayout {
     void clockNow(){if(compactStatus!=null){compactStatus.setTextSize(20);compactStatus.setText(expanded?"›":"‹");compactStatus.setTooltipText(expanded?"Hide notification icons":"Show hidden notification icons");}}
     private void updateIconVisibility() {
         taskManager.setVisibility(expanded ? VISIBLE : GONE);
-        actionCenter.setVisibility(expanded ? VISIBLE : GONE);
+        actionCenter.setVisibility(GONE);
         for (TrayIcon icon : icons) {
             icon.setVisibility(expanded ? VISIBLE : GONE);
         }
@@ -161,7 +161,7 @@ final class SystemTray extends LinearLayout {
     private final class TrayIcon extends View {
         final int kind;final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
         TrayIcon(Context c,int kind){super(c);this.kind=kind;}
-        @Override protected void onDraw(Canvas original){super.onDraw(original);int save=original.save();original.translate((getWidth()-dp(22))/2f,(getHeight()-dp(22))/2f);original.scale(dp(22)/24f,dp(22)/24f);Canvas c=original;paint.setColor(Color.WHITE);paint.setStrokeWidth(1.5f);paint.setStyle(Paint.Style.STROKE);
+        @Override protected void onDraw(Canvas original){super.onDraw(original);int save=original.save();original.translate((getWidth()-dp(22))/2f,(getHeight()-dp(22))/2f);original.scale(dp(22)/24f,dp(22)/24f);Canvas c=original;paint.setColor(TenStyle.text(getContext()));paint.setStrokeWidth(1.5f);paint.setStyle(Paint.Style.STROKE);
             if(kind==0){paint.setStyle(Paint.Style.FILL);paint.setShader(new LinearGradient(3,4,20,18,new int[]{0xfff7fbff,0xffa6bac7,0xff536c7c},null,Shader.TileMode.CLAMP));c.drawRoundRect(3,5,20,20,2,2,paint);paint.setShader(null);paint.setColor(0xff394d5a);c.drawRect(9,3,14,5,paint);c.drawRect(5,7,18,18,paint);int level=percent();paint.setShader(new LinearGradient(0,8,0,18,level>=0&&level<15?0xffff9470:0xffb9ed7f,level>=0&&level<15?0xffac3020:0xff3b872c,Shader.TileMode.CLAMP));if(level>=0)c.drawRect(6,17-9*level/100f,17,17,paint);paint.setShader(null);if(charging()){paint.setColor(0xffffdf69);Path bolt=new Path();bolt.moveTo(13,6);bolt.lineTo(8,13);bolt.lineTo(12,13);bolt.lineTo(10,20);bolt.lineTo(17,11);bolt.lineTo(13,11);bolt.close();c.drawPath(bolt,paint);}}
             else if(kind==1){paint.setStyle(Paint.Style.FILL);paint.setColor(0xffc6d9e6);c.drawRoundRect(1,3,14,13,1,1,paint);paint.setColor(0xff377fc0);c.drawRect(3,5,12,10,paint);paint.setColor(0xff6f8fa5);c.drawRect(6,13,9,16,paint);paint.setColor(0xffeff5fa);c.drawRoundRect(10,10,23,20,1,1,paint);paint.setColor(0xff347bb3);c.drawRect(12,12,21,17,paint);paint.setColor(0xff92ae86);c.drawRect(2,19,13,21,paint);paint.setColor(network().equals("Not connected")?0xffce4a33:0xff78bc55);c.drawCircle(19,20,3,paint);}
             else if(kind==3){paint.setStyle(Paint.Style.FILL);paint.setShader(new RadialGradient(11,10,7,new int[]{0xfffff6b3,0xffffd355,0xffcb8d20},null,Shader.TileMode.CLAMP));c.drawCircle(12,12,5,paint);paint.setShader(null);paint.setColor(0xffffd75c);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(1.8f);for(int i=0;i<8;i++){double angle=i*Math.PI/4;c.drawLine(12+7*(float)Math.cos(angle),12+7*(float)Math.sin(angle),12+10*(float)Math.cos(angle),12+10*(float)Math.sin(angle),paint);}}
