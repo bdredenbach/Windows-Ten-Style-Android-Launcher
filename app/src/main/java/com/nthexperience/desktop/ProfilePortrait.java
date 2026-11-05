@@ -40,7 +40,7 @@ final class ProfilePortrait {
         try{byte[] bytes=Base64.decode(text,Base64.NO_WRAP);BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;BitmapFactory.decodeByteArray(bytes,0,bytes.length,bounds);return bounds.outWidth==SIZE&&bounds.outHeight==SIZE;}catch(IllegalArgumentException ex){return false;}
     }
     static View view(Context c,DesktopStore store){
-        FrameLayout frame=new FrameLayout(c);frame.setBackground(Aero.panel(c,0xffecf8ff,0xff6c8eab,5,0xffb6d5e8));int pad=Aero.dp(c,3);frame.setPadding(pad,pad,pad,pad);
+        FrameLayout frame=new FrameLayout(c);frame.setBackground(Aero.panel(c,0xff232323,0xff111111,4,0xff555555));int pad=Aero.dp(c,3);frame.setPadding(pad,pad,pad,pad);
         String value=store.prefs.getString("profile_portrait","");Bitmap bitmap=null;
         if(!value.isEmpty()&&valid(value))try{byte[] bytes=Base64.decode(value,Base64.NO_WRAP);bitmap=BitmapFactory.decodeByteArray(bytes,0,bytes.length);}catch(IllegalArgumentException ignored){}
         View image;if(bitmap==null)image=new AeroIcon(c,"orb");else{ImageView photo=new ImageView(c);photo.setImageBitmap(bitmap);photo.setScaleType(ImageView.ScaleType.CENTER_CROP);image=photo;}

@@ -18,7 +18,6 @@ final class AeroIcon extends View {
         canvas.save(); canvas.translate((getWidth()-64*s)/2,(getHeight()-64*s)/2); canvas.scale(s,s);
         p.setShader(null); p.setStyle(Paint.Style.FILL); p.setAlpha(255);
         if(TenIcons.draw(canvas,kind)){canvas.restore();return;}
-        if (kind.equals("orb")) {p.setColor(TenStyle.accent(getContext()));canvas.drawRect(7,7,57,57,p);p.setColor(Color.WHITE);Path n=new Path();n.moveTo(18,48);n.lineTo(18,16);n.lineTo(25,16);n.lineTo(40,37);n.lineTo(40,16);n.lineTo(47,16);n.lineTo(47,48);n.lineTo(40,48);n.lineTo(25,27);n.lineTo(25,48);n.close();canvas.drawPath(n,p);canvas.restore();return;}
         if (orb != null) {
             orb.draw(canvas);
             canvas.restore();

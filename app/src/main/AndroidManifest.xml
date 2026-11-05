@@ -29,6 +29,7 @@
         android:requestLegacyExternalStorage="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
         <activity android:name=".NotaTextActivity" android:label="Ask Nth Nota" android:exported="true" android:noHistory="true"><intent-filter><action android:name="android.intent.action.SEND"/><action android:name="android.intent.action.PROCESS_TEXT"/><category android:name="android.intent.category.DEFAULT"/><data android:mimeType="text/plain"/></intent-filter></activity>

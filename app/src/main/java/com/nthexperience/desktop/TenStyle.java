@@ -10,7 +10,9 @@ final class TenStyle {
     static final int ACCENT=0xff0078d7,DARK=0xff202020;
     static int accent(Context c){return c.getSharedPreferences("desktop",0).getInt("ten_accent",ACCENT);}
     static boolean light(Context c){return c.getSharedPreferences("desktop",0).getBoolean("ten_light",false);}
-    static int surface(Context c){return light(c)?0xfff2f2f2:DARK;}
+    static int surface(Context c){android.content.SharedPreferences prefs=c.getSharedPreferences("desktop",0);if(light(c))return 0xfff2f2f2;if(TenThemes.aero(prefs))return mix(0xff102030,AeroGlass.TINTS[Math.max(0,Math.min(7,prefs.getInt("aero_color",0)))],.28f);return prefs.getBoolean("ten_accent_shell",false)?mix(DARK,accent(c),.64f):DARK;}
+    static int mix(int a,int b,float t){return Color.rgb(Math.round(Color.red(a)*(1-t)+Color.red(b)*t),Math.round(Color.green(a)*(1-t)+Color.green(b)*t),Math.round(Color.blue(a)*(1-t)+Color.blue(b)*t));}
+    static int titleText(Context c,boolean active){android.content.SharedPreferences prefs=c.getSharedPreferences("desktop",0);if(active&&!TenThemes.aero(prefs)&&prefs.getBoolean("ten_accent_titles",false)){int color=accent(c);return (Color.red(color)*.2126+Color.green(color)*.7152+Color.blue(color)*.0722)>160?0xff111111:Color.WHITE;}return active?0xff111b22:0xff465563;}
     static int text(Context c){return light(c)?0xff171717:Color.WHITE;}
     static StateListDrawable hover(Context c,int base){StateListDrawable d=new StateListDrawable();for(int s:new int[]{android.R.attr.state_pressed,android.R.attr.state_hovered,android.R.attr.state_focused})d.addState(new int[]{s},new ColorDrawable(light(c)?0xffd6d6d6:0xff454545));d.addState(new int[]{},new ColorDrawable(base));return d;}
     static TextView command(Context c,String label,Runnable action){TextView v=Aero.text(c,label,13,text(c));v.setGravity(Gravity.CENTER);v.setFocusable(true);v.setMinHeight(Aero.dp(c,44));v.setBackground(hover(c,Color.TRANSPARENT));v.setContentDescription(label);v.setOnClickListener(w->action.run());return v;}
@@ -19,7 +21,7 @@ final class TenStyle {
         Glyph(Context c,String kind,int color){super(c);this.kind=kind;this.color=color;setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
         @Override protected void onDraw(Canvas canvas){super.onDraw(canvas);int save=canvas.save();float s=Math.min(getWidth()-getPaddingLeft()-getPaddingRight(),getHeight()-getPaddingTop()-getPaddingBottom())/32f;canvas.translate(getPaddingLeft()+(getWidth()-getPaddingLeft()-getPaddingRight()-32*s)/2,getPaddingTop()+(getHeight()-getPaddingTop()-getPaddingBottom()-32*s)/2);canvas.scale(s,s);p.setColor(color);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.6f);
             switch(kind){
-                case "start":p.setStyle(Paint.Style.FILL);path.reset();path.moveTo(7,25);path.lineTo(7,7);path.lineTo(11,7);path.lineTo(21,21);path.lineTo(21,7);path.lineTo(25,7);path.lineTo(25,25);path.lineTo(21,25);path.lineTo(11,11);path.lineTo(11,25);path.close();canvas.drawPath(path,p);break;
+                case "start":android.graphics.drawable.Drawable logo=getContext().getDrawable(R.drawable.ic_launcher);logo.setBounds(0,0,32,32);logo.draw(canvas);break;
                 case "search":canvas.drawCircle(14,13,7,p);canvas.drawLine(19,19,26,26,p);break;
                 case "taskview":canvas.drawRect(8,7,24,25,p);canvas.drawLine(3,11,3,21,p);canvas.drawLine(29,11,29,21,p);break;
                 case "nota":canvas.drawRoundRect(5,5,27,25,2,2,p);canvas.drawLine(10,25,10,29,p);canvas.drawLine(10,29,16,25,p);canvas.drawLine(10,12,22,12,p);canvas.drawLine(10,18,18,18,p);break;

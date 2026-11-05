@@ -3,7 +3,7 @@ set -euo pipefail
 launcher=com.nthexperience.desktop.ten
 collect() {
   mkdir -p screenshots
-  for name in ten-nota ten-settings ten-explorer ten-task-view ten-action-center ten-start-portrait ten-start-landscape ten-failure ten-polish-settings-home ten-polish-settings-sidebar ten-polish-desktop-research ten-polish-task-view ten-polish-explorer ten-polish-recycle ten-polish-start-landscape ten-polish-start-portrait ten-polish-notifications ten-polish-browser ten-polish-failure ten-shell-taskbar-portrait ten-shell-taskbar-landscape ten-shell-news-portrait ten-shell-news-landscape ten-shell-nota-context ten-shell-window-lifecycle ten-shell-failure; do
+  for name in ten-nota ten-settings ten-explorer ten-task-view ten-action-center ten-start-portrait ten-start-landscape ten-failure ten-polish-settings-home ten-polish-settings-sidebar ten-polish-desktop-research ten-polish-task-view ten-polish-explorer ten-polish-recycle ten-polish-start-landscape ten-polish-start-portrait ten-polish-notifications ten-polish-browser ten-polish-failure ten-shell-taskbar-portrait ten-shell-taskbar-landscape ten-shell-news-portrait ten-shell-news-landscape ten-shell-nota-context ten-shell-window-lifecycle ten-shell-failure ten4-start-brand ten4-brand-toast ten4-themes-ten ten4-aero-start ten4-colors ten4-themes-saved ten4-run ten4-performance ten4-failure; do
     adb exec-out run-as "$launcher" cat "files/$name.png" > "screenshots/$name.png" 2>/dev/null || true
   done
   adb logcat -d -t 500 > screenshots/device-log.txt || true
@@ -22,4 +22,5 @@ run_suite() {
 run_suite TenSmoke ten-smoke.txt
 run_suite TenPolishSmoke ten-polish-smoke.txt
 run_suite TenShellSmoke ten-shell-smoke.txt
+run_suite TenThemeSmoke ten-theme-smoke.txt
 exit "$failed"

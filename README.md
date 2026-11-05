@@ -1,5 +1,8 @@
 # Nth Desktop Ten
 
+**0.4.0 — N¹⁰ branding and complete theme selection.** Uses a new black glass N-to-the-tenth mark throughout the shell and Android icon resources. Personalization includes eight Ten presets, nine Aero presets from Seven, live color/transparency controls and native saved-theme links. Adds Run, updates performance-graph colors and preserves newer settings in backups. See the [0.4 audit](docs/TEN_0_4_AUDIT.md).
+
+
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 

@@ -128,9 +128,8 @@ final class StartupExperience {
         }
 
         @Override protected void onDraw(Canvas canvas) {
-            canvas.drawColor(0xff071827);if(radius<=0)return;
-            float alpha=ease(progress/.3f);paint.setShader(null);paint.setStyle(Paint.Style.FILL);paint.setColor(0xff0078d7);paint.setAlpha(Math.round(255*alpha));canvas.drawRect(centerX-radius,centerY-radius,centerX+radius,centerY+radius,paint);
-            paint.setColor(Color.WHITE);paint.setAlpha(Math.round(255*alpha));paint.setTextAlign(Paint.Align.CENTER);paint.setTypeface(Aero.strong(getContext()));paint.setTextSize(radius*1.5f);canvas.drawText("N",centerX,centerY+radius*.54f,paint);
+            canvas.drawColor(0xff090a0c);if(radius<=0)return;
+            float alpha=ease(progress/.3f);pearl.setAlpha(Math.round(255*alpha));pearl.draw(canvas);paint.setShader(null);paint.setColor(Color.WHITE);
             float y=centerY+radius*1.7f;for(int i=0;i<5;i++){float phase=(progress*3+i*.12f)%1;paint.setAlpha(Math.round(90+165*(1-phase)));canvas.drawCircle(centerX+(i-2)*radius*.22f,y,radius*.035f,paint);}paint.setAlpha(255);
         }
 

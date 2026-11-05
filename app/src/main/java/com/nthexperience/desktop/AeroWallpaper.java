@@ -41,7 +41,7 @@ final class AeroWallpaper extends View {
     @Override protected void onDraw(Canvas c) {
         float w = getWidth(), h = getHeight();
         if(photo!=null&&!photo.isRecycled()){drawPhoto(c,w,h);return;}
-        if(theme==11){drawTen(c,w,h);return;}
+        if(theme>=11&&theme<=14){drawTen(c,w,h);return;}
         if(theme==SEVEN){drawSeven(c,w,h);return;}
         if(theme>SEVEN&&theme<DesktopBackgrounds.NAMES.length){scenery.draw(c,w,h,theme);return;}
         if(artwork!=null){
@@ -70,7 +70,7 @@ final class AeroWallpaper extends View {
         for(int i=0;i<24;i++) { float x=((i*167+41)%997)/997f*w, y=((i*107+73)%997)/997f*h; c.drawCircle(x,y,1+(i%3),paint); }
     }
     private void drawTen(Canvas c,float w,float h){
-        paint.setShader(new LinearGradient(0,0,w,h,new int[]{0xff001833,0xff004a83,0xff087eb8},null,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,paint);
+        int[] colors=theme==12?new int[]{0xffdfeefa,0xff76b8e3,0xffeff8ff}:theme==13?new int[]{0xff040b12,0xff11283b,0xff1d4d68}:theme==14?new int[]{0xff0e0631,0xff5b2d84,0xff14548f}:new int[]{0xff001833,0xff004a83,0xff087eb8};paint.setShader(new LinearGradient(0,0,w,h,colors,null,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,paint);
         paint.setShader(new RadialGradient(w*.76f,h*.42f,Math.max(w,h)*.62f,new int[]{0x7764d5ff,0x00004178},null,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,paint);paint.setShader(null);
         float x=w*.70f,y=h*.34f,r=Math.min(w,h)*.25f;
         path.reset();path.moveTo(0,h*.1f);path.lineTo(x-r,y);path.lineTo(x-r,y+r);path.lineTo(0,h*.95f);path.close();paint.setColor(0x1454c5ff);c.drawPath(path,paint);

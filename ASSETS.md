@@ -35,3 +35,7 @@ The 0.7.0 battery, network and media icons are original Canvas paths. Profile pi
 The 0.9.0 individual gadget faces and Compass/Tile Puzzle caption icons are original Android Canvas artwork. The added Network Meter and game category were inspired by gadget categories in the reference galleries, without importing their artwork or code. Compass uses Android SensorManager; network readings use TrafficStats. No new bitmap assets or permissions are required.
 
 The Explorer Cut, Copy, Paste and Delete menu icons are original native Canvas artwork in `AeroIcon.java`; no Windows icon files were imported.
+
+## Ten 0.4 branding
+
+The black glass N¹⁰ mark in `app/src/main/res/drawable-nodpi/nth_ten_mark.png` was generated specifically for this project from a new N-to-the-tenth / black-square brief on November 5, 2026. Legacy launcher-density images are resized from that mark. The adaptive foreground uses the same mark with safe insets; the monochrome layer is an original deterministic path drawing for Android themed icons. The superscript remains inside circular mask bounds. No Microsoft logo or personal screenshots are included.

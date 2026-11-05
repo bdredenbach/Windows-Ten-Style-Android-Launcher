@@ -2,6 +2,7 @@
     <instrumentation android:name="com.nthexperience.desktop.TenSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.TenPolishSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.TenShellSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
+    <instrumentation android:name="com.nthexperience.desktop.TenThemeSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <application>
         <activity android:name="com.nthexperience.desktop.ShareProbeActivity" android:exported="true" android:label="Nth send test receiver" android:theme="@android:style/Theme.Material.Light.NoActionBar"><intent-filter><action android:name="android.intent.action.SEND"/><action android:name="android.intent.action.SEND_MULTIPLE"/><category android:name="android.intent.category.DEFAULT"/><data android:mimeType="*/*"/></intent-filter></activity>
         <activity android:name="com.nthexperience.desktop.FileViewActivity" android:exported="true" android:label="Nth file test viewer" android:theme="@android:style/Theme.Material.Light.NoActionBar">
