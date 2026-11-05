@@ -27,7 +27,7 @@ import org.json.*;
 
 @androidx.media3.common.util.UnstableApi
 public final class MainActivity extends Activity implements StartMenu.Actions,GadgetSidebar.Actions {
-    private DesktopStore store;
+    private DesktopStore store;private TenDesktops tenDesktops;
     private TenTaskView tenTasks;private TenActionCenter tenActions;
     private String layoutKey;
     private JSONObject pausedSession;
@@ -98,8 +98,9 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     private final Runnable clockTick=new Runnable(){public void run(){updateClock();main.postDelayed(this,60000-System.currentTimeMillis()%60000);}};
 
     @Override public void onCreate(Bundle saved){
-        super.onCreate(saved);store=new DesktopStore(this);
+        super.onCreate(saved);store=new DesktopStore(this);tenDesktops=new TenDesktops(store,windows,this::desktopChangedTen);
         if(!store.prefs.getBoolean("ten_initialized",false)){store.prefs.edit().putBoolean("ten_initialized",true).putInt("wallpaper",11).putBoolean("sidebar_portrait",false).putBoolean("sidebar_landscape",false).putBoolean("sidebar_visible",false).putBoolean("show_sidebar",false).apply();store.startPins(Arrays.asList("@nota","@browser","@files","@calendar","@photos","@settings"));}
+        if(!store.prefs.getBoolean("ten_v2_defaults",false)){List<String> pins=new ArrayList<>(store.quickLaunch());if(!pins.contains("@nota")&&pins.size()<DesktopStore.MAX_QUICK)pins.add("@nota");store.quickLaunch(pins);store.prefs.edit().putBoolean("ten_v2_defaults",true).apply();}
         if(!store.prefs.getBoolean("seven_taskbar_grouping_set",false))store.prefs.edit().putString("taskbar_grouping","Always").putBoolean("seven_taskbar_grouping_set",true).apply();
         storageSetup=new StorageSetup(this);storageAllowed=StorageAccess.has(this);restoreStorageSetup=saved!=null&&saved.getBoolean("storage_setup_open");layoutKey=getResources().getConfiguration().orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE?"landscape":"portrait";
         if(saved!=null){
@@ -156,13 +157,13 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         desktop.setOnGenericMotionListener((v,event)->{if(event.getActionMasked()==MotionEvent.ACTION_BUTTON_PRESS&&event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)){desktopOptions(event.getRawX(),event.getRawY());return true;}return false;});
         workspace.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->layoutWorkspace());
         buildTaskbar();
-        tenTasks=new TenTaskView(this,workspace);tenActions=new TenActionCenter(this,workspace,store,this::open);
+        tenTasks=new TenTaskView(this,workspace,tenDesktops,this::showTenTasks);tenActions=new TenActionCenter(this,workspace,store,this::open);
         startMenu=new StartMenu(this,this,store,wallpaper);startMenu.setFocusableInTouchMode(true);startMenu.setVisibility(View.GONE);
         FrameLayout.LayoutParams menuParams=new FrameLayout.LayoutParams(dp(390),dp(520),Gravity.BOTTOM|Gravity.START);menuParams.setMargins(0,dp(4),0,0);workspace.addView(startMenu,menuParams);
         setContentView(root);shell.requestApplyInsets();renderDesktop();refreshRecycleIcon();
     }
     private void layoutWorkspace(){
-        if(destroyed||workspace==null||workspace.getWidth()==0)return;int width=workspace.getWidth(),height=workspace.getHeight();if(tray!=null){tray.fitWidth(width);tray.bounds(desktopCutoutLeft,desktopCutoutRight,windowTopInset);}
+        if(destroyed||workspace==null||workspace.getWidth()==0)return;int width=workspace.getWidth(),height=workspace.getHeight();if(tray!=null){tray.fitWidth(width);tray.bounds(desktopCutoutLeft,desktopCutoutRight,windowTopInset);}if(tenTasks!=null)tenTasks.safeInsets(desktopCutoutLeft,desktopCutoutRight,windowTopInset);if(tenActions!=null)tenActions.safeInsets(desktopCutoutLeft,desktopCutoutRight,windowTopInset);
             WindowInsets current=root.getRootWindowInsets();java.util.List<android.graphics.Rect> holes=new ArrayList<>();
             if(current!=null&&Build.VERSION.SDK_INT>=28&&current.getDisplayCutout()!=null)holes.addAll(current.getDisplayCutout().getBoundingRects());
             desktop.configure(dp(store.tileWidth()),dp(store.tileHeight()),holes);desktop.viewport(Math.max(1,height-desktopScroll.getPaddingTop()-desktopScroll.getPaddingBottom()));
@@ -173,9 +174,10 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             if (startMenu != null) {
                 boolean portrait = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT;
                 int available = Math.max(1, height - windowTopInset - dp(8));
-                int menuHeight = Math.min(dp(portrait ? 680 : 540), available);
-                int menuWidth = Math.min(dp(760), Math.max(1, width - dp(12)));
+                int menuHeight = store.prefs.getBoolean("ten_full_start",false)?available:Math.min(dp(portrait?600:520),available);
+                int menuWidth = Math.min(store.prefs.getBoolean("ten_full_start",false)?width:dp(640), Math.max(1,width-desktopCutoutLeft-desktopCutoutRight));
                 FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) startMenu.getLayoutParams();
+                params.leftMargin=desktopCutoutLeft;params.rightMargin=desktopCutoutRight;params.topMargin=windowTopInset;params.bottomMargin=0;
                 if (params.height != menuHeight || params.width != menuWidth) {
                     params.height = menuHeight;
                     params.width = menuWidth;
@@ -187,7 +189,9 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         shell.setClipChildren(false);shell.setClipToPadding(false);
         LinearLayout taskbar=new LinearLayout(this);taskbar.setContentDescription("Desktop taskbar");taskbar.setGravity(Gravity.CENTER_VERTICAL);taskbar.setClipChildren(false);taskbar.setPadding(dp(3),0,dp(3),0);taskbar.setBackground(new AeroGlass(wallpaper,AeroGlass.TASKBAR));taskbar.setElevation(dp(5));
         TenStyle.Glyph orb=new TenStyle.Glyph(this,"start",TenStyle.text(this));orb.setContentDescription("Start menu");orb.setFocusable(true);orb.setOnClickListener(v->{if(startMenu.getVisibility()==View.VISIBLE)startMenu.hide();else showStart(false);});ContextMenus.bind(orb,(x,y)->startOrbMenu(orb,x,y));taskbar.addView(orb,new LinearLayout.LayoutParams(dp(44),dp(48)));
-        for(String[] shortcut:new String[][]{{"search","Search","@search"},{"taskview","Task View","@taskview"}}){TenStyle.Glyph command=new TenStyle.Glyph(this,shortcut[0],TenStyle.text(this));command.setContentDescription(shortcut[1]);command.setTooltipText(shortcut[1]);command.setFocusable(true);command.setBackground(TenStyle.hover(this,Color.TRANSPARENT));command.setOnClickListener(v->open(shortcut[2]));taskbar.addView(command,new LinearLayout.LayoutParams(dp(40),dp(48)));}
+        String searchMode=store.prefs.getString("ten_search_mode","Auto");if(!searchMode.equals("Hidden")){boolean box=searchMode.equals("Auto")&&getResources().getConfiguration().screenWidthDp>=640;View searchButton;if(box){LinearLayout field=new LinearLayout(this);field.setGravity(Gravity.CENTER_VERTICAL);field.setBackgroundColor(0xfff2f2f2);TenStyle.Glyph symbol=new TenStyle.Glyph(this,"search",Aero.INK);field.addView(symbol,new LinearLayout.LayoutParams(dp(36),dp(38)));TextView hint=Aero.text(this,"Type here to search",12,0xff555555);field.addView(hint);searchButton=field;}else searchButton=new TenStyle.Glyph(this,"search",TenStyle.text(this));searchButton.setContentDescription("Search");searchButton.setFocusable(true);searchButton.setOnClickListener(v->open("@search"));taskbar.addView(searchButton,new LinearLayout.LayoutParams(dp(box?180:40),dp(44)));}
+        TenStyle.Glyph taskViewButton=new TenStyle.Glyph(this,"taskview",TenStyle.text(this));taskViewButton.setContentDescription("Task View");taskViewButton.setTooltipText("Task View");taskViewButton.setFocusable(true);taskViewButton.setBackground(TenStyle.hover(this,Color.TRANSPARENT));taskViewButton.setOnClickListener(v->open("@taskview"));taskbar.addView(taskViewButton,new LinearLayout.LayoutParams(dp(40),dp(44)));
+
         HorizontalScrollView strip=new HorizontalScrollView(this){
             private float downX,downY;
             @Override public boolean onInterceptTouchEvent(MotionEvent event){
@@ -648,13 +652,13 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         if(id.equals("@nota"))return new TenStyle.Glyph(MainActivity.this,"nota",TenStyle.accent(MainActivity.this));
         AppCatalog.Entry entry=entries.get(id);
         if(entry!=null){ImageView image=new ImageView(this);image.setImageDrawable(entry.icon);image.setScaleType(ImageView.ScaleType.FIT_CENTER);image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);return image;}
-        return new AeroIcon(this,FolderLinks.id(id)?"files":id.equals("@recycle")?(recycleFull?"recycle-full":"recycle"):id.startsWith("@gadget:")?GadgetCatalog.icon(id.substring(8)):store.isFolder(id)||id.startsWith("@organizer:")||id.equals("@filemanagers")||id.equals("@organize")?"folderapps":id.equals("@welcome")?"orb":id.equals("@backup")?"drive":id.equals("@quicklaunch")?"programs":id.equals("@photos")?"pictures":id.equals(MediaLibrary.PLAYER)?"mediaplayer":id.equals(MediaLibrary.CENTER)?"mediacenter":id.startsWith("@")?id.substring(1):"apps");
+        return new AeroIcon(this,FolderLinks.id(id)?"files":id.equals("@recycle")?(recycleFull?"recycle-full":"recycle"):id.startsWith("@gadget:")?GadgetCatalog.icon(id.substring(8)):store.isFolder(id)||id.startsWith("@organizer:")||id.equals("@filemanagers")||id.equals("@organize")?"folderapps":id.equals("@welcome")?"orb":id.equals("@backup")?"drive":id.equals("@quicklaunch")?"programs":id.equals("@photos")?"pictures-app":id.equals(MediaLibrary.PLAYER)?"mediaplayer":id.equals(MediaLibrary.CENTER)?"mediacenter":id.startsWith("@")?id.substring(1):"apps");
     }
     private String label(String id){return store.name(id,defaultLabel(id));}
     private String defaultLabel(String id){
         JSONObject location=FolderLinks.get(store,id);if(location!=null)return location.optString("title","Folder");
         if(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8)))return GadgetCatalog.title(id.substring(8));
-        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Control Panel";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "Gadget Gallery";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "Files";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
+        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "Gadget Gallery";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "Files";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
     }
     @Override public void open(String id){
         if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();
@@ -667,9 +671,10 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             }
         }
         startMenu.hide();if(tray!=null)tray.dismiss();
+        if(id.startsWith("ten-setting:")){open("@settings");DesktopWindow settings=windows.get("@settings");if(settings!=null&&settings.body instanceof TenSettings)((TenSettings)settings.body).navigate(id.substring(12));return;}
         if(FolderLinks.id(id)){JSONObject link=FolderLinks.get(store,id);if(link==null){toast("This folder shortcut is unavailable.");return;}explorer(id,link.optString("page","home"));return;}
         if(validExplorerId(id)){explorer(id,"home");return;}
-        if(id.startsWith("setting:")){String destination=id.substring(8);if(destination.startsWith("page:")){open("@control");DesktopWindow control=windows.get("@control");if(control!=null&&control.body instanceof VistaControlPanel)((VistaControlPanel)control.body).navigate(destination.substring(5));}else if(destination.startsWith("open:"))open(destination.substring(5));else vistaAction(destination);return;}
+        if(id.startsWith("setting:")){String destination=id.substring(8);if(destination.startsWith("page:")){open("@legacycontrol");DesktopWindow control=windows.get("@legacycontrol");if(control!=null&&control.body instanceof VistaControlPanel)((VistaControlPanel)control.body).navigate(destination.substring(5));}else if(destination.startsWith("open:"))open(destination.substring(5));else vistaAction(destination);return;}
         if(id.startsWith("start-search:")){explorer("@files","search-all");DesktopWindow folder=windows.get("@files");if(folder!=null&&folder.body instanceof VistaExplorer){VistaExplorer view=(VistaExplorer)folder.body;view.navigate("search-all");view.search.setText(Uri.decode(id.substring(13)));}return;}
         if(id.startsWith("web-search:")){open("@browser");DesktopWindow browser=windows.get("@browser");if(browser!=null&&browser.body instanceof BrowserPanel)((BrowserPanel)browser.body).navigate("https://www.bing.com/search?q="+Uri.encode(Uri.decode(id.substring(11))));return;}
         if(id.startsWith("favorite-web:")){String url=id.substring(13);if(BrowserUrls.web(url)){open("@browser");DesktopWindow browser=windows.get("@browser");if(browser!=null&&browser.body instanceof BrowserPanel)((BrowserPanel)browser.body).navigate(url);}return;}
@@ -678,9 +683,11 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         if(store.isFolder(id)){organizer(id,"contents:"+id);return;}
         switch(id){
             case "@search":showStart(true);return;
+            case "@battery":vistaAction("android:battery");return;
             case "@power":Aero.dialog(this).setTitle("Power").setItems(new String[]{"Show desktop","Restart Nth Desktop","Android power settings"},(d,w)->{if(w==0)showDesktop();else if(w==1)vistaAction("restart-desktop");else vistaAction("android:battery");}).show();return;
             case "@settings":if(!restoreTool(id))window(id,"Settings",new TenSettings(this,store,this::open));return;
             case "@nota":if(!restoreTool(id))window(id,"Nth Nota",new TenNotaPanel(this,store));return;
+            case "@news":if(!restoreTool(id))window(id,"News and interests",new TenNews(this,store,this::open));return;
             case "@tenactions":tenActions.show();return;
             case "@taskview":case "@flip3d":showTenTasks();return;
             case "@switcher":previews.show();return;
@@ -694,8 +701,9 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             case "@organize":organizer("@organize","desktop");return;
             case "@quicklaunch":organizer("@quicklaunch","quick");return;
             case "@backup":backupPanel(false);return;
-            case "@control":controlPanel("@control","Control Panel","home");return;
-            case "@system":controlPanel("@system","System","system");return;
+            case "@control":open("@settings");return;
+            case "@legacycontrol":controlPanel("@legacycontrol","Advanced Desktop Settings","home");return;
+            case "@system":open("ten-setting:about");return;
             case "@filemanagers":explorer("@filemanagers","managers");return;
             case "@gadgets":gadgetGallery();return;
             case "@clock":clockOptions();return;
@@ -711,7 +719,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
                 return;
             case "@computer":computer();return;
             case "@notes":notes();return;
-            case "@appearance":appearance();return;
+            case "@appearance":open("ten-setting:background");return;
             case "@photos":photoGallery();return;
             case MediaLibrary.PLAYER:mediaPlayer();return;
             case MediaLibrary.CENTER:openMediaCenter();return;
@@ -846,7 +854,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         }
         owner.restore();
     }
-    private List<DesktopWindow> orderedWindows(){List<DesktopWindow> result=new ArrayList<>();for(int i=0;i<workspace.getChildCount();i++)if(workspace.getChildAt(i) instanceof DesktopWindow)result.add((DesktopWindow)workspace.getChildAt(i));return result;}
+    private List<DesktopWindow> orderedWindows(){List<DesktopWindow> result=new ArrayList<>();for(int i=0;i<workspace.getChildCount();i++)if(workspace.getChildAt(i) instanceof DesktopWindow&&windows.containsValue(workspace.getChildAt(i)))result.add((DesktopWindow)workspace.getChildAt(i));return result;}
     private void taskbarMenu(View anchor,float x,float y){
         previews.dismiss();
         if(desktopMenu!=null)desktopMenu.dismiss();startMenu.hide();if(tray!=null)tray.dismiss();desktopMenu=new DesktopContextMenu(this,"Taskbar context menu");
@@ -871,7 +879,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     private void undoArrangement(){for(Map.Entry<DesktopWindow,JSONObject> item:arrangementUndo.entrySet())if(item.getKey().getParent()!=null){item.getKey().restoreGeometry(item.getValue());item.getKey().saveGeometry();}arrangementUndo.clear();renderTaskbar();}
     private void showWorkspaces(){
         if(workspaceDialog!=null)workspaceDialog.dismiss();((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(root.getWindowToken(),0);startMenu.hide();tray.dismiss();LinearLayout body=Aero.column(this);Aero.pad(body,12);paragraph(body,"Save up to six named Nth window layouts. Reopening a layout minimizes other windows, keeps current note contents, and uses current folder permissions. Android apps and private browser sessions are not saved.");
-        addAction(body,"Save current workspace…",()->{EditText name=new EditText(this);name.setSingleLine();name.setContentDescription("Workspace name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});AlertDialog dialog=Aero.dialog(this).setTitle("Save workspace").setView(name).setPositiveButton("Save",null).setNegativeButton("Cancel",null).create();dialog.setOnShowListener(d->{Aero.styleDialog(this,dialog);dialog.getButton(-1).setOnClickListener(v->{try{WorkspacePresets.save(store,name.getText().toString(),captureSession(),sidebar.getVisibility()==View.VISIBLE,layoutKey);dialog.dismiss();toast("Workspace saved");DesktopSounds.play(this,"notice");}catch(JSONException ex){name.setError(ex.getMessage());}});});dialog.show();});
+        addAction(body,"Save current workspace…",()->{EditText name=new EditText(this);name.setSingleLine();name.setContentDescription("Workspace name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});AlertDialog dialog=Aero.dialog(this).setTitle("Save workspace").setView(name).setPositiveButton("Save",null).setNegativeButton("Cancel",null).create();dialog.setOnShowListener(d->{Aero.styleDialog(this,dialog);dialog.getButton(-1).setOnClickListener(v->{try{WorkspacePresets.save(store,name.getText().toString(),captureCurrentSession(),sidebar.getVisibility()==View.VISIBLE,layoutKey);dialog.dismiss();toast("Workspace saved");DesktopSounds.play(this,"notice");}catch(JSONException ex){name.setError(ex.getMessage());}});});dialog.show();});
         JSONArray items=WorkspacePresets.list(store);for(int i=0;i<items.length();i++){JSONObject item=items.optJSONObject(i);if(item==null)continue;String name=item.optString("name");paragraph(body,name+" · "+item.optString("orientation"));addAction(body,"Open "+name,()->applyWorkspace(item));addAction(body,"Delete "+name+"…",()->Aero.dialog(this).setTitle("Delete saved workspace?").setMessage(name+". Your open windows and documents are kept.").setPositiveButton("Delete",(d,w)->{WorkspacePresets.remove(store,name);toast("Saved workspace removed");}).setNegativeButton("Cancel",null).show());}
         ScrollView scroll=new ScrollView(this);scroll.addView(body);workspaceDialog=Aero.dialog(this).setTitle("Saved Workspaces").setView(scroll).setNegativeButton("Close",null).show();
     }
@@ -896,7 +904,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     }
     private void window(String id,String title,View body){
         DesktopWindow current=windows.get(id);if(current!=null&&current.getParent()!=null){if(body instanceof VistaShell)((VistaShell)body).close();current.restore();return;}
-        DesktopWindow next=new DesktopWindow(this,workspace,title,body,wallpaper,this::renderTaskbar,store,id,layoutKey);next.safeTop(windowTopInset);next.onShake(()->shake(next));next.onPlacement(value->{if(recordableDesktop())steps.record("Window placement: "+value);});windows.put(id,next);
+        DesktopWindow next=new DesktopWindow(this,workspace,title,body,wallpaper,this::renderTaskbar,store,id,layoutKey);next.desktopScope(tenDesktops.current());next.safeTop(windowTopInset);next.onShake(()->shake(next));next.onPlacement(value->{if(recordableDesktop())steps.record("Window placement: "+value);});windows.put(id,next);tenDesktops.register(next);
         if(workspace.getWidth()>0){next.open();renderTaskbar();}else workspace.post(()->{if(!destroyed&&next.getParent()==null){next.open();renderTaskbar();}});
     }
     private void notes(){
@@ -969,6 +977,9 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
         };
         window(id,id.equals("@computer")?"Computer":id.equals("@filemanagers")?"File Managers":"Files",new VistaExplorer(this,store,vistaActions,files,()->new ArrayList<>(entries.values()),page));
     }
+    private void rebuildTenTaskbar(){if(tray!=null)tray.stop();if(taskbarReorder!=null)taskbarReorder.close();if(previews!=null)previews.dismiss();if(shell.getChildCount()>1)shell.removeViewAt(shell.getChildCount()-1);taskViewportWidth=0;buildTaskbar();if(tray!=null)tray.start();}
+    void refreshTen(){if(root==null)return;layoutWorkspace();renderDesktop();renderTaskbar();}
+    private void desktopChangedTen(){if(root==null)return;desktopHidden.clear();arrangementUndo.clear();if(previews!=null)previews.dismiss();for(DesktopWindow w:windows.values())if(w.getParent()!=null){w.orientation(layoutKey);w.safeTop(windowTopInset);}renderTaskbar();}
     private void showTenTasks(){startMenu.hide();previews.dismiss();tray.dismiss();List<String> apps=new ArrayList<>();for(String id:ExternalTasks.list())if(entries.containsKey(id))apps.add(id);tenTasks.show(orderedWindows(),apps,this::label,this::open);}
     private void actionCenter(){
         if(restoreTool("@actioncenter")){
@@ -1171,6 +1182,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
             case "android:defaults":action=Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS;break;case "android:security":action=Settings.ACTION_SECURITY_SETTINGS;break;case "android:privacy":action=Settings.ACTION_PRIVACY_SETTINGS;break;
             case "android:storage":action=Settings.ACTION_INTERNAL_STORAGE_SETTINGS;break;case "android:battery":action=Settings.ACTION_BATTERY_SAVER_SETTINGS;break;case "android:accounts":action=Settings.ACTION_SYNC_SETTINGS;break;
             case "android:accessibility":action=Settings.ACTION_ACCESSIBILITY_SETTINGS;break;case "android:date":action=Settings.ACTION_DATE_SETTINGS;break;case "android:language":action=Settings.ACTION_LOCALE_SETTINGS;break;case "android:device":action=Settings.ACTION_DEVICE_INFO_SETTINGS;break;
+            case "android:print":action=Settings.ACTION_PRINT_SETTINGS;break;case "android:input":action=Settings.ACTION_INPUT_METHOD_SETTINGS;break;case "android:connected":action=Settings.ACTION_WIRELESS_SETTINGS;break;case "android:airplane":action=Settings.ACTION_AIRPLANE_MODE_SETTINGS;break;case "android:vpn":action=Settings.ACTION_VPN_SETTINGS;break;case "android:speech":action="com.android.settings.TTS_SETTINGS";break;case "android:notifications":action=Settings.ACTION_SOUND_SETTINGS;break;case "android:permissions":launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",getPackageName(),null)));return;
             default:action=Settings.ACTION_SETTINGS;
         }
         try{startActivity(new Intent(action));}catch(ActivityNotFoundException|SecurityException ex){launchSystem(new Intent(Settings.ACTION_SETTINGS));}
@@ -1334,13 +1346,14 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     private void applyWallpaperImport(List<String> photos){
         if(destroyed||restoringBackup)return;
         if(photos.isEmpty()){toast("No accessible pictures were found.");return;}
+        DesktopWindow tenSettings=windows.get("@settings");if(tenSettings!=null&&tenSettings.getParent()!=null&&tenSettings.body instanceof TenSettings&&((TenSettings)tenSettings.body).page.equals("background")){android.content.SharedPreferences.Editor edit=store.prefs.edit();DesktopBackgrounds.choose(edit,photos,11);edit.apply();wallpaper.reload();((TenSettings)tenSettings.body).navigate("background");return;}
         List<DesktopWindow> ordered=orderedWindows();Collections.reverse(ordered);
         for(DesktopWindow window:ordered)if(window.getVisibility()==View.VISIBLE&&window.body instanceof VistaControlPanel){
             VistaControlPanel panel=(VistaControlPanel)window.body;
             if(panel.page().equals("background")){panel.wallpaperChosen(photos);return;}
         }
         open("setting:page:background");
-        DesktopWindow panel=windows.get("@control");
+        DesktopWindow panel=windows.get("@legacycontrol");
         if(panel!=null&&panel.body instanceof VistaControlPanel)((VistaControlPanel)panel.body).wallpaperChosen(photos);
     }
     private void chooseProfilePicture(){chooseDocument("image/*",15);}
@@ -1588,7 +1601,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     }
     @Override public boolean dispatchKeyEvent(KeyEvent event){
         if(event.getAction()==KeyEvent.ACTION_DOWN&&event.getRepeatCount()==0&&videoOverlay==null&&!restoringBackup){
-            int key=event.getKeyCode();if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_A){open("@tenactions");return true;}if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_I){open("@settings");return true;}if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_TAB){showTenTasks();return true;}if(event.isAltPressed()&&key==KeyEvent.KEYCODE_TAB){previews.show();return true;}if(event.isCtrlPressed()&&event.isShiftPressed()&&key==KeyEvent.KEYCODE_ESCAPE){open("@taskmanager");return true;}
+            int key=event.getKeyCode();if(event.isMetaPressed()&&event.isCtrlPressed()){if(key==KeyEvent.KEYCODE_DPAD_LEFT||key==KeyEvent.KEYCODE_DPAD_RIGHT){tenDesktops.adjacent(key==KeyEvent.KEYCODE_DPAD_LEFT?-1:1);return true;}if(key==KeyEvent.KEYCODE_D){String created=tenDesktops.create();if(created!=null)tenDesktops.select(created);return true;}}if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_A){open("@tenactions");return true;}if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_I){open("@settings");return true;}if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_TAB){showTenTasks();return true;}if(event.isAltPressed()&&key==KeyEvent.KEYCODE_TAB){previews.show();return true;}if(event.isCtrlPressed()&&event.isShiftPressed()&&key==KeyEvent.KEYCODE_ESCAPE){open("@taskmanager");return true;}
             if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_D){showDesktop();return true;}
             if(event.isMetaPressed()&&key==KeyEvent.KEYCODE_E){open("@files");return true;}
             DesktopWindow front=null;for(DesktopWindow window:orderedWindows())if(window.getVisibility()==View.VISIBLE&&!window.minimizing())front=window;
@@ -1642,31 +1655,34 @@ public final class MainActivity extends Activity implements StartMenu.Actions,Ga
     @Override public void onConfigurationChanged(android.content.res.Configuration config){
         super.onConfigurationChanged(config);if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();if(previews!=null)previews.dismiss();String next=config.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE?"landscape":"portrait";
         if(!next.equals(layoutKey)){arrangementUndo.clear();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null){tool.dismissSystemMenu();tool.settle();tool.orientation(next);}layoutKey=next;desktop.orientation(next);sidebar.orientation(next);}
-        if(startup!=null){startup.pause();startup.resume();}if(desktopMenu!=null)desktopMenu.dismiss();if(tray!=null)tray.dismiss();pausedSession=null;applySystemChrome();workspace.post(()->{layoutWorkspace();renderTaskbar();});
+        rebuildTenTaskbar();if(startup!=null){startup.pause();startup.resume();}if(desktopMenu!=null)desktopMenu.dismiss();if(tray!=null)tray.dismiss();pausedSession=null;applySystemChrome();workspace.post(()->{layoutWorkspace();renderTaskbar();});
     }
     @Override protected void onSaveInstanceState(Bundle state){super.onSaveInstanceState(state);state.putBoolean("storage_setup_open",storageSetup!=null&&storageSetup.showing());state.putBoolean("home_request_in_flight",homeRequestInFlight);state.putInt("usage_settings_request",usageSettingsRequest);state.putBoolean("usage_settings_left",usageSettingsLeft);state.putString("pending_theme_export",pendingThemeExport);state.putString("folder_window",pendingFolderWindow);if(!restoringBackup)state.putString("desktop_session",(pausedSession==null?captureSession():pausedSession).toString());}
-    private JSONObject captureSession(){
+    private JSONObject captureSession(){return captureSession(true);}
+    private JSONObject captureCurrentSession(){return captureSession(false);}
+    private JSONObject captureSession(boolean allDesktops){
         JSONObject session=new JSONObject();JSONArray tools=new JSONArray();
         if(workspace==null)return session;
-        for(int i=0;i<workspace.getChildCount();i++)if(workspace.getChildAt(i) instanceof DesktopWindow){
-            DesktopWindow tool=(DesktopWindow)workspace.getChildAt(i);tool.saveGeometry();JSONObject item=new JSONObject();GadgetLayout.put(item,"id",tool.toolId);GadgetLayout.put(item,"visible",tool.getVisibility()==View.VISIBLE&&!tool.minimizing());GadgetLayout.put(item,"geometry",tool.geometry());if(tool.body instanceof TenSettings)GadgetLayout.put(item,"ten_page",((TenSettings)tool.body).page);GadgetLayout.put(item,"ui",ToolViewState.capture(tool));tools.put(item);
+        if(allDesktops)GadgetLayout.put(session,"desktops",tenDesktops.metadata());
+        for(DesktopWindow tool:allDesktops?tenDesktops.all():orderedWindows()){tool.saveGeometry();JSONObject item=new JSONObject();GadgetLayout.put(item,"id",tool.toolId);GadgetLayout.put(item,"desktop",tenDesktops.owner(tool));GadgetLayout.put(item,"visible",tenDesktops.visibility(tool));GadgetLayout.put(item,"geometry",tool.geometry());if(tool.body instanceof TenSettings)GadgetLayout.put(item,"ten_page",((TenSettings)tool.body).page);GadgetLayout.put(item,"ui",ToolViewState.capture(tool));tools.put(item);
         }
         GadgetLayout.put(session,"desktopHidden",new JSONArray(desktopHidden.keySet()));GadgetLayout.put(session,"tools",tools);GadgetLayout.put(session,"start",startMenu.state());GadgetLayout.put(session,"desktopScroll",desktopScroll.getScrollY());return session;
     }
     private void restoreSession(String saved){
         if(destroyed||saved==null)return;
         try{
-            JSONObject session=new JSONObject(saved);JSONArray tools=session.optJSONArray("tools");
+            JSONObject session=new JSONObject(saved);JSONObject desktopMetadata=session.optJSONObject("desktops");if(desktopMetadata!=null&&tenDesktops.all().isEmpty())tenDesktops.load(desktopMetadata);String activeDesktop=desktopMetadata==null?tenDesktops.current():desktopMetadata.optString("current",tenDesktops.current());JSONArray tools=session.optJSONArray("tools");
             if(tools!=null)for(int i=0;i<tools.length();i++){
-                JSONObject item=tools.optJSONObject(i);if(item==null)continue;String id=item.optString("id");
-                if(!id.startsWith("@organizer:")&&!id.startsWith("folder:")&&!validExplorerId(id)&&!FolderLinks.id(id)&&!(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8)))&&!Arrays.asList("@nota","@settings","@notes","@sticky","@calendar","@gadgets","@clock","@weather","@appearance","@computer","@control","@system","@files","@documents","@pictures","@music","@filemanagers","@organize","@quicklaunch","@backup","@welcome","@browser","@photos","@taskmanager","@recycle","@recent","@actioncenter",MediaLibrary.PLAYER).contains(id)&&!store.isFolder(id))continue;
+                JSONObject item=tools.optJSONObject(i);if(item==null)continue;String targetDesktop=item.optString("desktop",tenDesktops.current());if(!tenDesktops.desks.containsKey(targetDesktop))continue;tenDesktops.select(targetDesktop);String id=item.optString("id");
+                if(!id.startsWith("@organizer:")&&!id.startsWith("folder:")&&!validExplorerId(id)&&!FolderLinks.id(id)&&!(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8)))&&!Arrays.asList("@legacycontrol","@news","@nota","@settings","@notes","@sticky","@calendar","@gadgets","@clock","@weather","@appearance","@computer","@control","@system","@files","@documents","@pictures","@music","@filemanagers","@organize","@quicklaunch","@backup","@welcome","@browser","@photos","@taskmanager","@recycle","@recent","@actioncenter",MediaLibrary.PLAYER).contains(id)&&!store.isFolder(id))continue;
                 if(id.startsWith("@organizer:")||(id.startsWith("folder:")&&!store.isFolder(id)))organizer(id,"desktop");else open(id);DesktopWindow tool=windows.get(id);if(tool==null)continue;if(tool.body instanceof TenSettings)((TenSettings)tool.body).navigate(item.optString("ten_page","home"));tool.readGeometry(item.optJSONObject("geometry"));tool.setVisibility(item.optBoolean("visible",true)?View.VISIBLE:View.GONE);ToolViewState.restore(tool,item.optJSONObject("ui"));
             }
+            tenDesktops.select(activeDesktop);
             JSONArray hidden=session.optJSONArray("desktopHidden");if(hidden!=null)for(int i=0;i<hidden.length();i++){String id=hidden.optString(i);DesktopWindow tool=windows.get(id);if(tool!=null&&tool.getVisibility()!=View.VISIBLE)desktopHidden.put(id,tool);}
             desktopScroll.post(()->desktopScroll.scrollTo(0,session.optInt("desktopScroll")));startMenu.restore(session.optJSONObject("start"));renderTaskbar();
         }catch(JSONException ignored){}
     }
-    @Override protected void onDestroy(){destroyed=true;if(taskbarReorder!=null)taskbarReorder.close();if(usageGuide!=null){usageGuide.dismiss();usageGuide=null;}if(playback!=null)playback.release();if(wallpaper!=null)wallpaper.close();if(previews!=null)previews.dismiss();DesktopSounds.stop();if(storageSetup!=null)storageSetup.close();if(weatherLocation!=null)weatherLocation.close();if(tray!=null)tray.stop();if(startup!=null)startup.close();main.removeCallbacksAndMessages(null);worker.shutdownNow();for(DesktopWindow tool:windows.values()){if(tool.body instanceof VistaShell)((VistaShell)tool.body).close();if(tool.body instanceof WeatherPanel)((WeatherPanel)tool.body).close();if(tool.body instanceof BrowserPanel)((BrowserPanel)tool.body).close();if(tool.body instanceof PhotoGallery)((PhotoGallery)tool.body).close();if(tool.body instanceof TaskManagerPanel)((TaskManagerPanel)tool.body).close();if(tool.body instanceof RecyclePanel)((RecyclePanel)tool.body).close();}if(sidebar!=null)sidebar.close();if(weatherLocation!=null)weatherLocation.pause();if(receiverRegistered){unregisterReceiver(packages);unregisterReceiver(timeChanged);}if(Build.VERSION.SDK_INT>=33&&backCallback!=null)getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);super.onDestroy();}
+    @Override protected void onDestroy(){destroyed=true;if(taskbarReorder!=null)taskbarReorder.close();if(usageGuide!=null){usageGuide.dismiss();usageGuide=null;}if(playback!=null)playback.release();if(wallpaper!=null)wallpaper.close();if(previews!=null)previews.dismiss();DesktopSounds.stop();if(storageSetup!=null)storageSetup.close();if(weatherLocation!=null)weatherLocation.close();if(tray!=null)tray.stop();if(startup!=null)startup.close();main.removeCallbacksAndMessages(null);worker.shutdownNow();for(DesktopWindow tool:tenDesktops.all()){if(tool.body instanceof VistaShell)((VistaShell)tool.body).close();if(tool.body instanceof WeatherPanel)((WeatherPanel)tool.body).close();if(tool.body instanceof BrowserPanel)((BrowserPanel)tool.body).close();if(tool.body instanceof PhotoGallery)((PhotoGallery)tool.body).close();if(tool.body instanceof TaskManagerPanel)((TaskManagerPanel)tool.body).close();if(tool.body instanceof RecyclePanel)((RecyclePanel)tool.body).close();}if(sidebar!=null)sidebar.close();if(weatherLocation!=null)weatherLocation.pause();if(receiverRegistered){unregisterReceiver(packages);unregisterReceiver(timeChanged);}if(Build.VERSION.SDK_INT>=33&&backCallback!=null)getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);super.onDestroy();}
 
     void enterBrowserFullscreen(View video){enterFullscreen(video,"Fullscreen video");}
     private void enterFullscreen(View video,String description){

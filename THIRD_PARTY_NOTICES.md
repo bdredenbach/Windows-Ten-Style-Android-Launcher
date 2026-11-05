@@ -23,3 +23,7 @@ Nth Media Player and Nth Media Center use AndroidX Media3 ExoPlayer 1.10.1 and i
 ## Nth Desktop Ten lineage
 
 Ten is derived from the owner's Nth Desktop Seven and adapts the Nth Nota cloud writing client. The Nth tile icon, blue light wallpaper and Ten launch animation are original code-drawn Nth artwork. Existing license notices continue to apply.
+
+## ML Kit direct model access
+
+Ten 0.2 uses Google ML Kit GenAI Prompt API 1.0.0-beta4 and Android AICore on supported devices. Model preparation and SDK diagnostics may contact Google. On-device inference and user-authorized cloud fallback are separate processing paths. Google ML Kit terms and Android data disclosures apply: https://developers.google.com/ml-kit/terms and https://developers.google.com/ml-kit/android-data-disclosure . The client integration is adapted from the owner's Nth Nota source.

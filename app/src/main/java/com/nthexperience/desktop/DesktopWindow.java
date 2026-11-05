@@ -34,7 +34,7 @@ final class DesktopWindow extends LinearLayout {
     private int normalW, normalH,safeTop,safeRight;
     private float positionX=.5f,positionY=.33f;
     private final DesktopStore store;
-    private String geometryKey,captionKind="";
+    private String geometryKey,captionKind="",orientationKey,desktopSuffix="";
     final String toolId;
     private final GradientDrawable snapOutline = new GradientDrawable();
     private final int[] hostLocation = new int[2];
@@ -59,7 +59,7 @@ final class DesktopWindow extends LinearLayout {
     private int resizeCorner;
     private float resizeDownX,resizeDownY;
     DesktopWindow(Context context, FrameLayout host, String title, View body, AeroWallpaper wallpaper,Runnable changed,DesktopStore store,String toolId,String layoutKey) {
-        super(context);this.body=body; this.host=host; this.changed=changed;this.store=store;this.toolId=toolId;geometryKey="window_"+layoutKey+"_"+toolId;
+        super(context);this.body=body; this.host=host; this.changed=changed;this.store=store;this.toolId=toolId;orientationKey=layoutKey;geometryKey="window_"+layoutKey+"_"+toolId;
         touchSlop=ViewConfiguration.get(context).getScaledTouchSlop();
         snapEdge=Aero.dp(context,24);
         snapMinWidth=Aero.dp(context,AeroSnap.MIN_SIDE_WIDTH_DP);
@@ -72,13 +72,13 @@ final class DesktopWindow extends LinearLayout {
         LinearLayout bar=new LinearLayout(context); bar.setGravity(Gravity.CENTER_VERTICAL);
         String icon=toolId.equals("@nota")?"notes":toolId.equals("@settings")?"control":FolderLinks.id(toolId)||toolId.startsWith("@explorer:")?"files":toolId.equals("@recycle")?"recycle":toolId.equals("@taskmanager")?"taskmanager":toolId.equals("@welcome")?"orb":(toolId.startsWith("folder:")||toolId.startsWith("@organizer:"))?"folderapps":toolId.equals("@backup")?"drive":toolId.equals("@organize")||toolId.equals("@quicklaunch")?"folderapps":toolId.equals("@control")?"control":toolId.equals("@appearance")?"appearance":toolId.equals("@files")?"files":toolId.equals("@filemanagers")?"folderapps":toolId.equals("@computer")||toolId.equals("@system")?"computer":toolId.equals("@notes")?"notes":toolId.equals("@photos")?"pictures":toolId.equals(MediaLibrary.PLAYER)?"mediaplayer":toolId.equals("@browser")?"browser":GadgetCatalog.toolIcon(toolId);LinearLayout.LayoutParams iconParams=new LinearLayout.LayoutParams(Aero.dp(context,32),Aero.dp(context,32));iconParams.leftMargin=Aero.dp(context,1);bar.addView(new AeroIcon(context,icon),iconParams);
         TextView label=Aero.text(context,title,13,0xff111b22);titleLabel=label;label.setSingleLine();label.setEllipsize(android.text.TextUtils.TruncateAt.END);label.setLayerType(View.LAYER_TYPE_SOFTWARE,null);label.setShadowLayer(0,0,0,0); label.setPadding(Aero.dp(context,8),0,0,0);
-        bar.addView(label,new LayoutParams(0,Aero.dp(context,48),1));
+        bar.addView(label,new LayoutParams(0,Aero.dp(context,44),1));
         TextView minimize=chrome("—",this::minimize);minimizeButton=minimize;
         maximizeButton=chrome("□",this::toggleMaximize);
         TextView close=chrome("×",this::closeWindow);closeButton=close;
         close.setTextColor(Aero.INK);
         bar.addView(minimize); bar.addView(maximizeButton); bar.addView(close);
-        addView(bar,new LayoutParams(-1,Aero.dp(context,48)));
+        addView(bar,new LayoutParams(-1,Aero.dp(context,44)));
         body.setBackgroundColor(0xfff7f8f9); addView(body,new LayoutParams(-1,0,1));
         bindCaptionIcon(bar.getChildAt(0));
         bar.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{
@@ -313,7 +313,7 @@ final class DesktopWindow extends LinearLayout {
         int height=Math.min(Aero.dp(getContext(),490),host.getHeight()-safeTop-margin*2);
         FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(Math.max(1,width),Math.max(1,height));
         normalW=width;normalH=height;host.addView(this,lp); setX((hostWidth()-width)/2f); setY(safeTop+Math.max(margin,(host.getHeight()-safeTop-height)/3f));
-        if((toolId.equals("@browser")||toolId.equals("@photos")||toolId.equals(MediaLibrary.PLAYER))&&!store.prefs.contains(geometryKey))placement=Placement.MAXIMIZED;
+        if((toolId.equals("@nota")||toolId.equals("@settings")||toolId.equals("@browser")||toolId.equals("@photos")||toolId.equals(MediaLibrary.PLAYER))&&!store.prefs.contains(geometryKey))placement=Placement.MAXIMIZED;
         readGeometry(null);fitToHost();changed.run();
     }
     private void hideKeyboard(){
@@ -360,7 +360,7 @@ final class DesktopWindow extends LinearLayout {
         }
         setX(clamp(x-gripX,0,Math.max(0,hostWidth()-floatingWidth())));
         setY(clamp(y-gripY,safeTop,Math.max(safeTop,host.getHeight()-floatingHeight())));
-        showSnapPreview(AeroSnap.target(x,y,hostWidth(),safeTop,host.getHeight(),snapEdge,snapMinWidth,snapMinHeight));
+        showSnapPreview(store.prefs.getBoolean("ten_snap",true)?AeroSnap.target(x,y,hostWidth(),safeTop,host.getHeight(),snapEdge,snapMinWidth,snapMinHeight):Placement.FLOATING);
     }
 
     private boolean detectShake(float x,float y,long time){
@@ -488,7 +488,8 @@ final class DesktopWindow extends LinearLayout {
         return result;
     }
     void saveGeometry(){store.prefs.edit().putString(geometryKey,geometry().toString()).apply();}
-    void orientation(String key){saveGeometry();JSONObject previous=geometry();geometryKey="window_"+key+"_"+toolId;readGeometry(previous);}
+    void desktopScope(String id){desktopSuffix=id.equals("desktop-1")?"":"_desktop_"+id;geometryKey="window_"+orientationKey+"_"+toolId+desktopSuffix;}
+    void orientation(String key){saveGeometry();JSONObject previous=geometry();orientationKey=key;geometryKey="window_"+key+"_"+toolId+desktopSuffix;readGeometry(previous);}
     void readGeometry(JSONObject fallback){
         JSONObject value=fallback;String saved=store.prefs.getString(geometryKey,null);if(saved!=null)try{value=new JSONObject(saved);}catch(JSONException ignored){}
         if(value==null)return;
