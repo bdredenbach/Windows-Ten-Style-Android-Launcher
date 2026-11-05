@@ -17,7 +17,7 @@ final class TenStyle {
     static final class Glyph extends View {
         final String kind;final Paint p=new Paint(3);final Path path=new Path();final int color;
         Glyph(Context c,String kind,int color){super(c);this.kind=kind;this.color=color;setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
-        @Override protected void onDraw(Canvas canvas){super.onDraw(canvas);int save=canvas.save();float s=Math.min(getWidth(),getHeight())/32f;canvas.translate((getWidth()-32*s)/2,(getHeight()-32*s)/2);canvas.scale(s,s);p.setColor(color);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.6f);
+        @Override protected void onDraw(Canvas canvas){super.onDraw(canvas);int save=canvas.save();float s=Math.min(getWidth()-getPaddingLeft()-getPaddingRight(),getHeight()-getPaddingTop()-getPaddingBottom())/32f;canvas.translate(getPaddingLeft()+(getWidth()-getPaddingLeft()-getPaddingRight()-32*s)/2,getPaddingTop()+(getHeight()-getPaddingTop()-getPaddingBottom()-32*s)/2);canvas.scale(s,s);p.setColor(color);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.6f);
             switch(kind){
                 case "start":p.setStyle(Paint.Style.FILL);path.reset();path.moveTo(7,25);path.lineTo(7,7);path.lineTo(11,7);path.lineTo(21,21);path.lineTo(21,7);path.lineTo(25,7);path.lineTo(25,25);path.lineTo(21,25);path.lineTo(11,11);path.lineTo(11,25);path.close();canvas.drawPath(path,p);break;
                 case "search":canvas.drawCircle(14,13,7,p);canvas.drawLine(19,19,26,26,p);break;
