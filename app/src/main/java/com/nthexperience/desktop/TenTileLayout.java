@@ -1,6 +1,6 @@
 package com.nthexperience.desktop;
 import java.util.*;
-/** First-fit placement on a four-cell tile grid. */
+/** First-fit placement on responsive four- or six-cell tile grids. */
 final class TenTileLayout {
     static final int COLUMNS=6;
     static final String[] SIZES={"Small","Medium","Wide","Large"};
