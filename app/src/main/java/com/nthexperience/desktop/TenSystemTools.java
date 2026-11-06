@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 final class TenSystemTools {
  static final ArrayDeque<String> EVENTS=new ArrayDeque<>();
  static void record(String id){if(id==null||!id.startsWith("@"))return;while(EVENTS.size()>=80)EVENTS.removeFirst();EVENTS.addLast(new java.text.SimpleDateFormat("HH:mm:ss",Locale.getDefault()).format(new Date())+"   Opened "+id.substring(1));}
+ static boolean tool(String id){return Arrays.asList("@events","@devices","@management","@powershell","@powershell-admin").contains(id);}
  static String title(String id){switch(id){case "@events":return "Event Viewer";case "@devices":return "Device Manager";case "@management":return "Computer Management";default:return "Nth PowerShell";}}
  static View content(Context c,DesktopStore store,String id,Consumer<String> open){if(id.startsWith("@powershell"))return console(c,store,id.endsWith("-admin"),open);LinearLayout body=Aero.column(c);Aero.pad(body,18);body.addView(Aero.text(c,title(id),23,Aero.INK));
   if(id.equals("@events")){body.addView(Aero.text(c,"Launcher events from this session",13,0xff666666));List<String> events=new ArrayList<>(EVENTS);Collections.reverse(events);for(String event:events)body.addView(Aero.text(c,event,12,Aero.INK));}

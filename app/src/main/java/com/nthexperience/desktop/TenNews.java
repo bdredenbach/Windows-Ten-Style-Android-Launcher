@@ -25,7 +25,7 @@ final class TenNews extends LinearLayout {
         toolbar.addView(command("×","Close news and interests",()->{if(onClose!=null)onClose.run();}),new LayoutParams(dp(38),dp(44)));addView(toolbar);
         status=text("",11,0xffbdbdbd);status.setPadding(dp(16),dp(4),dp(12),dp(8));status.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);addView(status);
         ScrollView scroll=new ScrollView(c);scroll.setFillViewport(true);cards=new LinearLayout(c);cards.setOrientation(HORIZONTAL);cards.setPadding(dp(8),0,dp(8),dp(12));scroll.addView(cards);addView(scroll,new LayoutParams(-1,0,1));
-        addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{int next=r-l>=dp(750)?3:r-l>=dp(510)?2:1;if(next!=columns){columns=next;render();}});render();
+        addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{int next=r-l>=dp(680)?3:r-l>=dp(480)?2:1;if(next!=columns){columns=next;render();}});render();
     }
     private int dp(int n){return Aero.dp(getContext(),n);}
     private TextView text(String s,int size,int color){return Aero.text(getContext(),s,size,color);}
