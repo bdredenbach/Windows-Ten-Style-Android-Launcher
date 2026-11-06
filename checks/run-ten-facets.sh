@@ -28,6 +28,13 @@ facet() {
   if ! grep -q 'PASS:' "$output" || grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$output"; then failed=1; fi
   collect_facet "$name"
 }
+# Repeat one failing engine without changing the normal full regression.
+if [[ "${TEN_FACET_ONLY:-}" == "photos" ]]; then
+  fresh
+  adb shell appops set --uid "$launcher" MANAGE_EXTERNAL_STORAGE allow
+  facet photos PhotoSmoke
+  exit "$failed"
+fi
 fresh
 facet browser BrowserSmoke
 fresh
