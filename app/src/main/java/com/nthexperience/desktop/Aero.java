@@ -16,14 +16,9 @@ final class Aero {
     static final int INK=0xff18232c;
     private static Typeface regular,semibold;
     static int dp(Context c,float value){return Math.round(value*c.getResources().getDisplayMetrics().density);}
-    static Typeface face(Context c){
-        if(regular==null){try{regular=Typeface.createFromAsset(c.getAssets(),"fonts/selawk.ttf");}catch(RuntimeException e){regular=Typeface.create("sans-serif",Typeface.NORMAL);}}
-        return regular;
-    }
-    static Typeface strong(Context c){
-        if(semibold==null){try{semibold=Typeface.createFromAsset(c.getAssets(),"fonts/selawksb.ttf");}catch(RuntimeException e){semibold=Typeface.create(face(c),Typeface.BOLD);}}
-        return semibold;
-    }
+    static void resetFont(){regular=null;semibold=null;}
+    static Typeface face(Context c){if(regular==null)regular=TenFonts.face(c,c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik"),false);return regular;}
+    static Typeface strong(Context c){if(semibold==null)semibold=TenFonts.face(c,c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik"),true);return semibold;}
     static final class ThemePanel extends GradientDrawable {
         final Context context;final int[] colors;final float radius;final int stroke;boolean appThemed;boolean previousDark,previousAero,previousThemed;int previousAccent;boolean drawn;
         ThemePanel(Context c,int[] colors,float radius,int stroke){super(Orientation.TOP_BOTTOM,new int[]{colors[0],colors[0]});context=c;this.colors=colors.clone();this.radius=radius;this.stroke=stroke;}

@@ -1,0 +1,25 @@
+package com.nthexperience.desktop;
+import android.content.*;
+import android.content.pm.*;
+import android.graphics.Color;
+import android.hardware.*;
+import android.os.Build;
+import android.view.*;
+import android.widget.*;
+import java.util.*;
+import java.util.function.Consumer;
+
+/** Honest Android counterparts for the Win+X destinations. */
+final class TenSystemTools {
+ static final ArrayDeque<String> EVENTS=new ArrayDeque<>();
+ static void record(String id){if(id==null||!id.startsWith("@"))return;while(EVENTS.size()>=80)EVENTS.removeFirst();EVENTS.addLast(new java.text.SimpleDateFormat("HH:mm:ss",Locale.getDefault()).format(new Date())+"   Opened "+id.substring(1));}
+ static String title(String id){switch(id){case "@events":return "Event Viewer";case "@devices":return "Device Manager";case "@management":return "Computer Management";default:return "Nth PowerShell";}}
+ static View content(Context c,DesktopStore store,String id,Consumer<String> open){if(id.startsWith("@powershell"))return console(c,store,id.endsWith("-admin"),open);LinearLayout body=Aero.column(c);Aero.pad(body,18);body.addView(Aero.text(c,title(id),23,Aero.INK));
+  if(id.equals("@events")){body.addView(Aero.text(c,"Launcher events from this session",13,0xff666666));List<String> events=new ArrayList<>(EVENTS);Collections.reverse(events);for(String event:events)body.addView(Aero.text(c,event,12,Aero.INK));}
+  else if(id.equals("@devices")){body.addView(Aero.text(c,Build.MANUFACTURER+" "+Build.MODEL,15,Aero.INK));body.addView(Aero.text(c,"Input devices",17,Aero.INK));for(int key:InputDevice.getDeviceIds()){InputDevice device=InputDevice.getDevice(key);if(device!=null)body.addView(Aero.text(c,device.getName(),12,Aero.INK));}body.addView(Aero.text(c,"Sensors",17,Aero.INK));SensorManager sensors=c.getSystemService(SensorManager.class);if(sensors!=null)for(Sensor sensor:sensors.getSensorList(Sensor.TYPE_ALL))body.addView(Aero.text(c,sensor.getName()+"\n"+sensor.getVendor(),12,Aero.INK));body.addView(Aero.text(c,"System features",17,Aero.INK));List<String> features=new ArrayList<>();for(FeatureInfo f:c.getPackageManager().getSystemAvailableFeatures())if(f.name!=null)features.add(f.name.replace("android.hardware.",""));Collections.sort(features);for(String name:features)body.addView(Aero.text(c,name,12,Aero.INK));}
+  else {body.addView(Aero.text(c,"Manage this phone and your Nth desktop",13,0xff666666));for(String[] row:new String[][]{{"Device specifications","ten-setting:about"},{"Device Manager","@devices"},{"Event Viewer","@events"},{"Disk Management","ten-setting:storage"},{"Task Manager","@taskmanager"},{"Apps and Features","ten-setting:installed"},{"Backup and recovery","ten-setting:backup"}})body.addView(Aero.button(c,row[0],()->open.accept(row[1])));}
+  ScrollView scroll=new ScrollView(c);scroll.addView(body);return scroll;
+ }
+ private static View console(Context c,DesktopStore store,boolean admin,Consumer<String> open){LinearLayout panel=Aero.column(c);panel.setBackgroundColor(0xff012456);Aero.pad(panel,12);TenAppearance.preserve(panel);TextView output=Aero.text(c,"Nth PowerShell\nCommands run inside Nth Desktop Ten with Android app permissions.\n"+(admin?"Elevated Windows administrator access is unavailable on Android.\n":"")+"Type help to see available commands.\n",12,Color.WHITE);output.setTypeface(android.graphics.Typeface.MONOSPACE);output.setTextIsSelectable(true);ScrollView scroll=new ScrollView(c);scroll.addView(output);panel.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));EditText input=new EditText(c);input.setSingleLine();input.setTextColor(Color.WHITE);input.setHintTextColor(0xffbbd4f2);input.setHint("PS Nth:\\>");input.setContentDescription("Nth PowerShell command");panel.addView(input,new LinearLayout.LayoutParams(-1,Aero.dp(c,48)));Runnable submit=()->{String command=input.getText().toString().trim(),key=command.toLowerCase(Locale.ROOT);input.setText("");if(key.equals("clear")||key.equals("cls")){output.setText("");return;}String response;switch(key){case "help":response="help · Get-ComputerInfo · Get-Date · explorer · settings · taskmgr · calc · clear";break;case "get-computerinfo":response=Build.MANUFACTURER+" "+Build.MODEL+"\nAndroid "+Build.VERSION.RELEASE+" · API "+Build.VERSION.SDK_INT+"\n"+String.join(", ",Build.SUPPORTED_ABIS);break;case "get-date":response=new Date().toString();break;case "explorer":open.accept("@files");response="Opened File Explorer";break;case "settings":open.accept("@settings");response="Opened Settings";break;case "taskmgr":open.accept("@taskmanager");response="Opened Task Manager";break;case "calc":open.accept("@gadget:calculator");response="Opened Calculator";break;default:response="Command not available. Type help.";}String next=output.getText()+"\nPS Nth:\\> "+command+"\n"+response+"\n";output.setText(next.length()>16000?next.substring(next.length()-16000):next);scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN));};input.setOnEditorActionListener((v,a,e)->{submit.run();return true;});TextView run=TenStyle.command(c,"Run command",submit);run.setTextColor(Color.WHITE);panel.addView(run);return panel;}
+ private TenSystemTools(){}
+}
