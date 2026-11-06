@@ -421,7 +421,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         previews.dismiss();
         DesktopWindow active=windows.get(id);
         boolean folders=folderTask(id,active);
-        String title=folders?"Nth Explorer":label(id);
+        String title=folders?"File Explorer":label(id);
         DesktopContextMenu menu=new DesktopContextMenu(this,title+" Jump List",34,264);
         jumpMenu=menu;
         if(folders){
@@ -677,10 +677,12 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(TenSystemTools.tool(id))return TenSystemTools.title(id);
         JSONObject location=FolderLinks.get(store,id);if(location!=null)return location.optString("title","Folder");
         if(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8)))return GadgetCatalog.title(id.substring(8));
-        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@run":return "Run";case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "News and interests";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "Files";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
+        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@run":return "Run";case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "News and interests";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "File Explorer";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
     }
     @Override public void open(String id){
         if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();if(tenNews!=null&&!id.equals("@news"))tenNews.dismiss();
+        if(id.equals("start-menu:")){showStart(false);return;}
+        if(id.startsWith("app-info:")){launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",id.substring(9),null)));return;}
         if(steps.active()&&recordableDesktop()){
             switch(id){
                 case "@files":case "@computer":case "@control":case "@appearance":case "@notes":
@@ -836,7 +838,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         desktopMenu.item("Control Panel","control",()->open("@control"));
         desktopMenu.item("Recycle Bin","delete",()->open("@recycle"));
         desktopMenu.item("Saved Workspaces…","computer",this::showWorkspaces);
-        desktopMenu.item("Flip 3D","appearance",()->open("@flip3d"));
+        desktopMenu.item("Task View","appearance",()->open("@taskview"));
         desktopMenu.item("Manage desktop shortcuts","computer",this::manageShortcuts);
         showDesktopMenu(x,y);
     }
@@ -1068,7 +1070,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             java.io.FileOutputStream stream=staged.startWrite();
             try{stream.write(steps.export());staged.finishWrite(stream);}
             catch(java.io.IOException failed){staged.failWrite(stream);throw failed;}
-            pickSupportDocument(Intent.ACTION_CREATE_DOCUMENT,"text/html","Nth-Desktop-Seven-Steps.html",EXPORT_STEPS);
+            pickSupportDocument(Intent.ACTION_CREATE_DOCUMENT,"text/html","Nth-Desktop-Ten-Steps.html",EXPORT_STEPS);
         }catch(Exception unavailable){staged.delete();toast("The report could not be prepared.");}
     }
     private void stepsResult(int result,Intent data){
@@ -1237,7 +1239,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case "android:defaults":action=Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS;break;case "android:security":action=Settings.ACTION_SECURITY_SETTINGS;break;case "android:privacy":action=Settings.ACTION_PRIVACY_SETTINGS;break;
             case "android:storage":action=Settings.ACTION_INTERNAL_STORAGE_SETTINGS;break;case "android:battery":action=Settings.ACTION_BATTERY_SAVER_SETTINGS;break;case "android:accounts":action=Settings.ACTION_SYNC_SETTINGS;break;
             case "android:accessibility":action=Settings.ACTION_ACCESSIBILITY_SETTINGS;break;case "android:date":action=Settings.ACTION_DATE_SETTINGS;break;case "android:language":action=Settings.ACTION_LOCALE_SETTINGS;break;case "android:device":action=Settings.ACTION_DEVICE_INFO_SETTINGS;break;
-            case "android:print":action=Settings.ACTION_PRINT_SETTINGS;break;case "android:input":action=Settings.ACTION_INPUT_METHOD_SETTINGS;break;case "android:connected":action=Settings.ACTION_WIRELESS_SETTINGS;break;case "android:airplane":action=Settings.ACTION_AIRPLANE_MODE_SETTINGS;break;case "android:vpn":action=Settings.ACTION_VPN_SETTINGS;break;case "android:speech":action="com.android.settings.TTS_SETTINGS";break;case "android:notifications":action=Settings.ACTION_SOUND_SETTINGS;break;case "android:permissions":launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",getPackageName(),null)));return;
+            case "android:print":action=Settings.ACTION_PRINT_SETTINGS;break;case "android:input":action=Settings.ACTION_INPUT_METHOD_SETTINGS;break;case "android:cast":action=Settings.ACTION_CAST_SETTINGS;break;case "android:wallpaper":action=Intent.ACTION_SET_WALLPAPER;break;case "android:connected":action="android.settings.CONNECTION_DEVICE_SETTINGS";break;case "android:airplane":action=Settings.ACTION_AIRPLANE_MODE_SETTINGS;break;case "android:vpn":action=Settings.ACTION_VPN_SETTINGS;break;case "android:speech":action="com.android.settings.TTS_SETTINGS";break;case "android:notifications":action="android.settings.NOTIFICATION_SETTINGS";break;case "android:permissions":launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",getPackageName(),null)));return;
             default:action=Settings.ACTION_SETTINGS;
         }
         try{startActivity(new Intent(action));}catch(ActivityNotFoundException|SecurityException ex){launchSystem(new Intent(Settings.ACTION_SETTINGS));}

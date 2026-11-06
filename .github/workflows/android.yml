@@ -13,7 +13,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
     strategy:
       fail-fast: false
       matrix:
@@ -38,12 +38,12 @@ jobs:
           java -cp build/ten-checks com.nthexperience.desktop.TenPolishCheck
           javac -d build/ten-checks app/src/main/java/com/nthexperience/desktop/TenSettingsCatalog.java app/src/main/java/com/nthexperience/desktop/TenNotaActions.java checks/TenNotaActionsCheck.java
           java -cp build/ten-checks com.nthexperience.desktop.TenNotaActionsCheck
-      - run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :fixture:assembleDebug --no-daemon
+      - run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :fixture:assembleDebug :installprobe:assembleDebug --no-daemon
       - name: Check packaged runners and notification permission
         run: python3 checks/CheckTenManifest.py
       - uses: actions/upload-artifact@v4
         with:
-          name: Nth-Desktop-Ten-0.11.0-api-${{ matrix.api }}
+          name: Nth-Desktop-Ten-0.12.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Enable emulator acceleration
         run: |
@@ -77,5 +77,7 @@ jobs:
             ten-commands-smoke.txt
             ten-accent-smoke.txt
             ten-reference-smoke.txt
+            ten-audit-smoke.txt
+            ten-facet-*.txt
             app/build/test-results/testDebugUnitTest/
             screenshots/

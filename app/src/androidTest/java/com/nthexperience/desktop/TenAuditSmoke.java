@@ -1,0 +1,37 @@
+package com.nthexperience.desktop;
+import android.app.*;
+import android.content.*;
+import android.content.pm.ActivityInfo;
+import android.os.*;
+import android.view.*;
+import android.widget.*;
+import java.util.*;
+
+/** Full catalog navigation and regression for gaps found in the 49-image reference audit. */
+public final class TenAuditSmoke extends TenThemeSmoke {
+ @Override public void onStart(){Bundle result=new Bundle();try{
+  store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).commit();TenThemes.TEN.get(0).apply(store);
+  getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+  home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Shell ready");
+  Set<String> ids=new HashSet<>();for(TenSettingsCatalog.Page page:TenSettingsCatalog.PAGES)check(ids.add(page.id),"Unique Settings page: "+page.id);
+  for(int orientation:new int[]{ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE}){
+   boolean portrait=orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;ui(()->home.setRequestedOrientation(orientation));await(()->portrait?root.getHeight()>root.getWidth():root.getWidth()>root.getHeight(),"Orientation ready");String suffix=portrait?"portrait":"landscape";
+   for(boolean dark:new boolean[]{false,true}){
+    ui(()->{store.prefs.edit().putBoolean("ten_apps_dark",dark).commit();home.applyTenAppearance();});
+    for(TenSettingsCatalog.Page page:TenSettingsCatalog.PAGES){ui(()->{home.open("ten-setting:"+page.id);TenSettings settings=(TenSettings)windows().get("@settings").body;check(settings.page.equals(page.id)&&settings.body.getChildCount()>0,"Page renders: "+page.id);check(settings.nav.getVisibility()==View.VISIBLE,"Sidebar retained for "+page.id);});}
+   }
+   ui(()->{store.prefs.edit().putBoolean("ten_apps_dark",false).commit();home.applyTenAppearance();home.open("ten-setting:components");});await(()->TenSmoke.find(root,TenDeviceFeatures.class)!=null,"Components inventory visible");shot("ten12-components-"+suffix);
+   ui(()->home.open("ten-setting:optional"));shot("ten12-features-"+suffix);ui(()->home.open("ten-setting:lock"));shot("ten12-lock-"+suffix);
+  }
+  ui(()->{
+   List<String> routes=new ArrayList<>();TenDeviceFeatures components=new TenDeviceFeatures(home,false,routes::add);check(!components.entries.isEmpty(),"Actual system components available");components.query.setText("__no_such_component_971__");check(components.rows.getChildCount()==1&&((TextView)components.rows.getChildAt(0)).getText().toString().equals("No matching items"),"Component search filters");components.query.setText(components.entries.get(0).app.packageName);components.rows.getChildAt(0).performClick();check(routes.size()==1&&routes.get(0).startsWith("app-info:"),"Component opens its own App info");
+   TenDeviceFeatures features=new TenDeviceFeatures(home,true,routes::add);check(!features.entries.isEmpty(),"Actual Android features reported");for(TenDeviceFeatures.Entry entry:features.entries)check(home.getPackageManager().hasSystemFeature(entry.title),"Inventory feature exists: "+entry.title);features.query.setText("__none__");check(features.rows.getChildCount()==1,"Feature search filters");
+   TenSettings settings=new TenSettings(home,store,routes::add);for(String id:new String[]{"lock","projecting","shared"}){settings.navigate(id);for(int i=0;i<settings.body.getChildCount();i++){View child=settings.body.getChildAt(i);if(child.hasOnClickListeners())child.performClick();}}check(routes.contains("setting:android:wallpaper")&&routes.contains("setting:android:security")&&routes.contains("setting:android:cast")&&routes.contains("setting:android:connected"),"Reference pages expose correct Android destinations");
+   home.open("start-menu:");StartMenu start=TenSmoke.find(root,StartMenu.class);check(start!=null&&!start.searchMode,"Open Start opens Start, not Search");home.open("@search");check(start.searchMode,"Search retains its own landing page");
+  });
+  for(boolean light:new boolean[]{false,true})for(int accent:TenAccent.COLORS){ui(()->{store.prefs.edit().putBoolean("ten_light",light).putInt("ten_accent",accent).putBoolean("ten_focus",true).putBoolean("ten_full_start",true).commit();home.open("@tenactions");for(String name:new String[]{"Focus assist","Tablet mode"}){LinearLayout tile=(LinearLayout)TenSmoke.description(root,name);check(tile!=null&&tile.isSelected(),"Quick action selected: "+name);TextView text=(TextView)tile.getChildAt(1);TenStyle.Glyph glyph=(TenStyle.Glyph)tile.getChildAt(0);check(TenAccent.contrast(text.getCurrentTextColor(),accent)>=4.5&&TenAccent.contrast(glyph.color,accent)>=4.5,"Quick action text and icon readable: "+name+" / "+Integer.toHexString(accent));}TenSmoke.description(root,"Focus assist").performClick();check(!store.prefs.getBoolean("ten_focus",true),"Quick action changes saved focus state");});}
+  ui(()->{store.prefs.edit().putInt("ten_accent",0xffffffff).putBoolean("ten_light",false).putBoolean("ten_focus",true).putBoolean("ten_full_start",false).commit();home.open("@tenactions");});shot("ten12-actions-white");
+  ui(()->{store.prefs.edit().putInt("ten_accent",0xff0078d7).putBoolean("ten_focus",false).commit();home.open("@notes");});
+  result.putString("stream","PASS: all "+TenSettingsCatalog.PAGES.size()+" Settings pages in both orientations and both app modes; reference sidebar continuity; real searchable system components and hardware/software feature inventory; correct Android lock-screen, Cast and sharing destinations; distinct Start/Search entry points; selected quick action text and icons in all 24 accents and both shell modes, with working focus toggle.\n");finish(Activity.RESULT_OK,result);
+ }catch(Throwable e){try{shot("ten12-failure");}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(e));finish(Activity.RESULT_CANCELED,result);}}
+}
