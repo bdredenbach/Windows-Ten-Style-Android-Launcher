@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.11.0 — open apps directly from Nth Nota.** Send a clear request such as “open Audible” to launch one matching installed app or Nth tool immediately. Ambiguous names show large, bold shortcuts with actual app icons. Settings and other desktop actions keep clear, explicit shortcut instructions. See [0.11 behavior](docs/TEN_0_11_NOTA_OPENING.md).
+
 **0.10.0 — reference Search, Task View, News and Win+X layouts, device specifications and Fonts.** Adds dimensional yellow folder artwork, a Search landing page and working category filters, wallpaper-backed window thumbnails, a lead-story news layout and grouped Start hold menu. About uses real Android hardware/build metadata with Copy and a local device name. Personalization → Fonts adds searchable previews, custom sample text and a saved launcher typeface. See [0.10 behavior](docs/TEN_0_10_REFERENCE_LAYOUTS.md).
 
 **0.9.0 — stable accent colors, a reference-style Calculator and portrait Start columns.** Adds 24 named accent choices, including white and black. Ordinary app-folder labels keep their normal readable foreground; semantic accent text uses a separate contrast-safe color. Dynamic adapter cells are themed before drawing and repeated passes retain stable text state. Calculator now has the large display, blue memory row, orange Clear, wide zero and tall green equals from the reference. Normal portrait Start displays apps beside tiles. See [0.9 behavior](docs/TEN_0_9_POLISH.md).
@@ -18,7 +20,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.10.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.11.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 

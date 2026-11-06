@@ -753,12 +753,19 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8))){gadgetPanel(id.substring(8));return;}
         ComponentName component=ComponentName.unflattenFromString(id);
         if(component==null){toast("This shortcut is unavailable. Hold its Start menu entry to remove it.");return;}
+        launchInstalledApp(component);
+    }
+    private boolean launchInstalledApp(ComponentName component){
+        if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();if(tenNews!=null)tenNews.dismiss();startMenu.hide();if(tray!=null)tray.dismiss();
         try{
             Intent launch=Intent.makeMainActivity(component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-            if(Aero.motion(this))startActivity(launch,android.app.ActivityOptions.makeCustomAnimation(this,R.anim.ten_app_open,R.anim.ten_shell_exit).toBundle());else startActivity(launch);ExternalTasks.opened(component.flattenToString());store.launched(component.flattenToString());renderTaskbar();
+            if(Aero.motion(this))startActivity(launch,android.app.ActivityOptions.makeCustomAnimation(this,R.anim.ten_app_open,R.anim.ten_shell_exit).toBundle());else startActivity(launch);ExternalTasks.opened(component.flattenToString());store.launched(component.flattenToString());renderTaskbar();return true;
         }catch(ActivityNotFoundException|SecurityException e){
-            Aero.dialog(this).setTitle("App unavailable").setMessage("This app may have been removed or disabled.").setPositiveButton("Remove shortcut",(d,w)->{List<String> ids=store.desktop();ids.remove(id);store.desktop(ids);renderDesktop();}).setNegativeButton("Keep",null).show();scanApps();
+            Aero.dialog(this).setTitle("App unavailable").setMessage("This app may have been removed or disabled.").setPositiveButton("Remove shortcut",(d,w)->{List<String> ids=store.desktop();ids.remove(component.flattenToString());store.desktop(ids);renderDesktop();}).setNegativeButton("Keep",null).show();scanApps();return false;
         }
+    }
+    View notaActionIcon(TenNotaActions.Action action){
+        switch(action.kind){case OPEN:return action.value.startsWith("setting:")||action.value.startsWith("ten-setting:")?new AeroIcon(this,"settings"):icon(action.value,32);case WEB_SEARCH:case WEBSITE:return new AeroIcon(this,"browser");case FILE_SEARCH:return new AeroIcon(this,"files");default:return new TenStyle.Glyph(this,"taskview",TenAppearance.ink(this));}
     }
     List<TenNotaActions.Target> notaAppTargets(){List<TenNotaActions.Target> apps=new ArrayList<>();for(AppCatalog.Entry app:entries.values())apps.add(new TenNotaActions.Target(store.name(app.id,app.label),app.id,app.label));return apps;}
     String performNotaAction(TenNotaActions.Action action){
@@ -769,7 +776,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case DESKTOP:showDesktop();return "Desktop shown; restore windows from the taskbar";
             case NEW_DESKTOP:String id=tenDesktops.create();if(id==null)return "Desktop limit reached. Use Task View to manage desktops.";tenDesktops.select(id);return "Created "+tenDesktops.name();
             case NEXT_DESKTOP:case PREVIOUS_DESKTOP:String before=tenDesktops.current();tenDesktops.adjacent(action.kind==TenNotaActions.Kind.NEXT_DESKTOP?1:-1);return before.equals(tenDesktops.current())?"No desktop in that direction. Open Task View to create one.":"Switched to "+tenDesktops.name();
-            case OPEN:open(action.value);return "Opening "+action.label.replaceFirst("^Open ","");
+            case OPEN:String title=action.label.replaceFirst("^Open ","");ComponentName component=ComponentName.unflattenFromString(action.value);if(component!=null){if(!launchInstalledApp(component))return "Could not open "+title+". The app may have been removed or disabled.";}else open(action.value);return "Opening "+title;
             default:return "This action is unavailable";
         }
     }

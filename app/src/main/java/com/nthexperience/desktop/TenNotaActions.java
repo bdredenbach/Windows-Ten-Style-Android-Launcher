@@ -17,9 +17,10 @@ final class TenNotaActions {
         Action action(){return new Action("Open "+title,Kind.OPEN,route);}
     }
     static final class Plan {
-        final String message;final List<Action> actions;
-        Plan(String message,Action...actions){this.message=message;this.actions=Arrays.asList(actions);}
-        Plan(String message,List<Action> actions){this.message=message;this.actions=actions;}
+        final String message;final List<Action> actions;final boolean autoOpen;
+        Plan(String message,Action...actions){this(message,Arrays.asList(actions),false);}
+        Plan(String message,List<Action> actions){this(message,actions,false);}
+        Plan(String message,List<Action> actions,boolean autoOpen){this.message=message;this.actions=actions;this.autoOpen=autoOpen&&actions.size()==1&&app(actions.get(0));}
     }
     static final String[] EXAMPLES={"Open Nth Browser","Open Themes","Open Wi-Fi settings","Create a new desktop","What can you do?"};
     static List<Target> builtins(){List<Target> out=new ArrayList<>();
@@ -36,7 +37,7 @@ final class TenNotaActions {
         for(TenSettingsCatalog.Page p:TenSettingsCatalog.PAGES)out.add(new Target(p.title+" settings","ten-setting:"+p.id,p.title));
         return out;
     }
-    static Plan help(){return new Plan("I can open Nth tools and installed phone apps, jump to Settings pages, search the web or linked files, show your desktop, and create or switch virtual desktops. These commands stay on this device and work without an AI model. Tap a named action to run it.\n\nTry: “Open Nth Browser”, “Open Themes”, “Open Wi-Fi settings”, “Search the web for Android tips”, “Find files named budget”, or “Create a new desktop”. Android settings open for you to change their switches. I can also draft, proofread, polish and summarize with writing assistance.",new Action("Open Nth Browser",Kind.OPEN,"@browser"),new Action("Open Themes",Kind.OPEN,"ten-setting:themes"),new Action("Open Wi-Fi settings",Kind.OPEN,"setting:android:wifi"),new Action("Open Task View",Kind.OPEN,"@taskview"));}
+    static Plan help(){return new Plan("I can open Nth tools and installed phone apps, jump to Settings pages, search the web or linked files, show your desktop, and create or switch virtual desktops. These commands stay on this device and work without an AI model. Send a clear app-opening request to open it automatically. If more than one app matches, click the shortcut you want. Other desktop actions use the named shortcuts.\n\nTry: “Open Nth Browser”, “Open Themes”, “Open Wi-Fi settings”, “Search the web for Android tips”, “Find files named budget”, or “Create a new desktop”. Android settings open for you to change their switches. I can also draft, proofread, polish and summarize with writing assistance.",new Action("Open Nth Browser",Kind.OPEN,"@browser"),new Action("Open Themes",Kind.OPEN,"ten-setting:themes"),new Action("Open Wi-Fi settings",Kind.OPEN,"setting:android:wifi"),new Action("Open Task View",Kind.OPEN,"@taskview"));}
     static Plan resolve(String input,Collection<Target> installed){
         if(input==null||input.length()>1500||input.indexOf('\n')>=0||input.indexOf('\r')>=0)return null;
         String text=input.trim().replaceAll("[?!.]+$","").trim();
@@ -57,8 +58,10 @@ final class TenNotaActions {
         String name=key(target);List<Action> matches=target(name,installed);if(matches.isEmpty())matches=target(name.replaceFirst("^(?:the|my) ",""),installed);
         if(matches.isEmpty())return new Plan("I couldn't find “"+target+"”. Try the app's full name, or open Start to find it. Ask “What can you do?” for examples.",new Action("Find an app in Start",Kind.OPEN,"@search"));
         if(matches.size()>1){List<Action> identified=new ArrayList<>();for(Action action:matches)identified.add(new Action(action.label+" · "+(action.value.startsWith("@")||action.value.startsWith("ten-setting:")||action.value.startsWith("setting:")?"Nth Desktop":action.value.split("/")[0]),action.kind,action.value));matches=identified;}
-        return new Plan(matches.size()==1?"Ready when you are. Tap the named shortcut.":"Several apps use that name. Choose the one you want.",matches);
+        boolean auto=matches.size()==1&&app(matches.get(0));
+        return new Plan(matches.size()==1?(auto?"Opening "+matches.get(0).label.replaceFirst("^Open ","")+"…":"Found the shortcut. Click the shortcut above."):"Found matching apps. Click the shortcut you want above.",matches,auto);
     }
+    private static boolean app(Action action){return action.kind==Kind.OPEN&&(action.value.startsWith("@")||action.value.matches("[^\\s/:]+/[^\\s/:]+"));}
     private static Plan query(String query,boolean web){query=query.trim();if(query.isEmpty()||query.length()>512)return new Plan("Use a search of up to 512 characters.");return new Plan(web?"Search the web in Nth Browser. Your search is sent to the search engine when you tap the button.":"Search the files and folders you've linked to Nth Desktop. File permissions still apply.",new Action(web?"Search web: "+query:"Find files: "+query,web?Kind.WEB_SEARCH:Kind.FILE_SEARCH,query));}
     private static List<Action> target(String name,Collection<Target> installed){List<Action> known=matches(name,builtins()),apps=matches(name,installed),out=new ArrayList<>();if(!known.isEmpty())out.add(known.get(0));for(Action app:apps)if(out.stream().noneMatch(a->a.value.equals(app.value))&&out.size()<8)out.add(app);return out;}
     private static List<Action> matches(String name,Collection<Target> targets){List<Action> actions=new ArrayList<>();Set<String> seen=new HashSet<>();if(targets!=null)for(Target target:targets)if(target.names.contains(name)&&seen.add(target.route)&&actions.size()<8)actions.add(target.action());return actions;}
