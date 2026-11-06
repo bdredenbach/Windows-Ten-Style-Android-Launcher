@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.14.0 — Action Center toggle and original Windows icon artwork.** The Action Center taskbar button now closes its open panel on a second tap. Matching desktop, folder, Explorer, Recycle Bin, drive, file and menu icons use the owner-supplied build 10125 originals. Nth branding and installed-app icons remain their own. See [the interaction and artwork changes](docs/TEN_0_14_ACTION_CENTER_AND_ICONS.md).
+
 **0.11.0 — open apps directly from Nth Nota.** Send a clear request such as “open Audible” to launch one matching installed app or Nth tool immediately. Ambiguous names show large, bold shortcuts with actual app icons. Settings and other desktop actions keep clear, explicit shortcut instructions. See [0.11 behavior](docs/TEN_0_11_NOTA_OPENING.md).
 
 **0.10.0 — reference Search, Task View, News and Win+X layouts, device specifications and Fonts.** Adds dimensional yellow folder artwork, a Search landing page and working category filters, wallpaper-backed window thumbnails, a lead-story news layout and grouped Start hold menu. About uses real Android hardware/build metadata with Copy and a local device name. Personalization → Fonts adds searchable previews, custom sample text and a saved launcher typeface. See [0.10 behavior](docs/TEN_0_10_REFERENCE_LAYOUTS.md).
@@ -20,7 +22,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.13.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.14.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 

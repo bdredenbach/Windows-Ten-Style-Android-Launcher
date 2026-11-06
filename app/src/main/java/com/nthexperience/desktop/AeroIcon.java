@@ -4,12 +4,15 @@ import android.content.Context;
 import android.graphics.*;
 import android.view.View;
 
-/** A small original icon family drawn with Android primitives. */
+/** Shared shell icons: supplied Windows artwork first, original Nth fallbacks otherwise. */
 final class AeroIcon extends View {
     private final String kind;
     private final android.graphics.drawable.Drawable orb;
+    private final android.graphics.drawable.Drawable artwork;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     AeroIcon(Context c, String kind) { super(c); this.kind = kind;
+        artwork = TenIconAssets.drawable(c, kind);
+        if (artwork != null) artwork.setBounds(0, 0, 64, 64);
         orb = kind.equals("orb") ? c.getDrawable(R.drawable.ic_launcher) : null;
         if (orb != null) orb.setBounds(0, 0, 64, 64);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); }
@@ -17,6 +20,7 @@ final class AeroIcon extends View {
         float s = Math.min(getWidth()-getPaddingLeft()-getPaddingRight(),getHeight()-getPaddingTop()-getPaddingBottom())/64f;
         canvas.save(); canvas.translate((getWidth()-64*s)/2,(getHeight()-64*s)/2); canvas.scale(s,s);
         p.setShader(null); p.setStyle(Paint.Style.FILL); p.setAlpha(255);
+        if (artwork != null) { artwork.draw(canvas); canvas.restore(); return; }
         if(TenIcons.draw(canvas,kind)){canvas.restore();return;}
         if (orb != null) {
             orb.draw(canvas);

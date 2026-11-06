@@ -1,0 +1,400 @@
+{
+  "archive": "10125_icons.zip",
+  "archive_sha256": "1b5b3e8b504b4a090601e9a1e6554c7314eb1e7afc9bc310929c2256b7fd3999",
+  "conversion": "Largest supplied ICO frame converted losslessly to RGBA PNG; no artwork edits.",
+  "icons": [
+    {
+      "source": "imageres_4.ico",
+      "source_sha256": "b0ffadda40f7ffd30883bbe269cac0895d57c13caf53def7d03e2e249a29dda8",
+      "resource": "win10_folder",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "files",
+        "folderapps"
+      ],
+      "png_sha256": "9d6dc91f40b5b40733dec095d25571058526af2c160bebca3229b05ed6254aae"
+    },
+    {
+      "source": "imageres_1023.ico",
+      "source_sha256": "29fbd0c3464f6a60f3130c24b53f243233d72c4d246325263c5a53cb66300617",
+      "resource": "win10_explorer",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "file-explorer"
+      ],
+      "png_sha256": "1b4d919f0fda048f3b2a33f7de70d735a59fb4246385a170e55c57480283af00"
+    },
+    {
+      "source": "imageres_112.ico",
+      "source_sha256": "25a580418a56d33086ecc8f8fdc5c53fe521691af0d1a02c9be72863c9359ca3",
+      "resource": "win10_documents",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "documents"
+      ],
+      "png_sha256": "8238fbbbd0ed154ae210f03e2aa9d4ea43faf502a9d5aa0b79f64abdd69ec690"
+    },
+    {
+      "source": "imageres_113.ico",
+      "source_sha256": "87e1ece9b900b542e613a8846e3b7968f289070edc23c0a1fb3244fed8da4d5f",
+      "resource": "win10_pictures",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "pictures"
+      ],
+      "png_sha256": "02f6b07bbb3cf655d5de9ec4acad5e726c2dc1be10dbe51ff83a01e732e710ed"
+    },
+    {
+      "source": "imageres_108.ico",
+      "source_sha256": "3e36ec8d27b28547baa227871472c71553cfec2ad22a1c9af2a46875dcc24f59",
+      "resource": "win10_music",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "music"
+      ],
+      "png_sha256": "990ade92ac078db37b8ecaaafc5b1d045c7193ff0471ba7f9d31946086293b16"
+    },
+    {
+      "source": "imageres_189.ico",
+      "source_sha256": "53fb6a396c86c051c0c08a5166f9f15769fe562bdbebb4259d292c64d117b097",
+      "resource": "win10_videos",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "videos"
+      ],
+      "png_sha256": "42fd2e850707e7f10b975ce081e0095b896669b52e4e08b25e44885b9871c16b"
+    },
+    {
+      "source": "imageres_184.ico",
+      "source_sha256": "a989a6b72eb0836309f94db90f0c617e47ca57c4a47ecc6552c3447fc8f0aa4e",
+      "resource": "win10_downloads",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "downloads"
+      ],
+      "png_sha256": "86b838e54c726ac7536506175068d567d7c7469697fb891fc0e8fc86fecd527d"
+    },
+    {
+      "source": "imageres_109.ico",
+      "source_sha256": "6c44359f61f2b2b1b1083be0b786df3ad9044fcc9dce1e525c63342864c13d57",
+      "resource": "win10_computer",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "computer",
+        "system"
+      ],
+      "png_sha256": "c6a9b8455fb3bdd2c0fa51c432246a4611fb1d12a113cbf98fd3e77543d72d18"
+    },
+    {
+      "source": "imageres_25.ico",
+      "source_sha256": "3d7a10d9d4465416a0420d49dcd9fa14a209e748c639713486c853ac833f1fb7",
+      "resource": "win10_network",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "network"
+      ],
+      "png_sha256": "9ab33618f81b25d946587443ed252bbe3ba3f0ed8941588700b675e0cf79bf04"
+    },
+    {
+      "source": "imageres_55.ico",
+      "source_sha256": "7b4e6d7479775667c53320f6210be0a02fe4452c27f22f3c28a23214af7c902f",
+      "resource": "win10_recycle_empty",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "recycle"
+      ],
+      "png_sha256": "34f45043b7bb18e546d527f2c072a77d7ea04a7f9319a693bdea24a8826fb80f"
+    },
+    {
+      "source": "imageres_54.ico",
+      "source_sha256": "58eb5760a328abbaab2ad451754999ae9a48d5883496b63047345b7d4b6be023",
+      "resource": "win10_recycle_full",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "recycle-full"
+      ],
+      "png_sha256": "878957c037fcef6a16429b345bb2a7d9ae786b59a3476931f291d851fcb8e45f"
+    },
+    {
+      "source": "imageres_32.ico",
+      "source_sha256": "30377bf4f9d76d4528de4d461bbbd83ce6c75b0787a8cc3ad7a28e4fa1286a1e",
+      "resource": "win10_drive",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "drive"
+      ],
+      "png_sha256": "a16702db59d356e45af657af44d80c6a86ca3c32818281698bdd3b9d9ca2b8a8"
+    },
+    {
+      "source": "imageres_78.ico",
+      "source_sha256": "626837fbcdb2c43fe476c9587cf86d1a7227e672ba8b2f9be63cadf3f8b18759",
+      "resource": "win10_security",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "security"
+      ],
+      "png_sha256": "da7093f319529565fa95eb4f34308a2a00b5ecc15f9caafc346b45a5cb90311a"
+    },
+    {
+      "source": "imageres_79.ico",
+      "source_sha256": "76409b80d3a49447a9a4bb7a87667e6716ebeebd18e9bf71a0bd7eeefd96fe8b",
+      "resource": "win10_accounts",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "accounts"
+      ],
+      "png_sha256": "44b14ce4a2374c2bc64acdb9debdba73e7f4e2aade4d7962264f1363322db0a8"
+    },
+    {
+      "source": "shell32_22.ico",
+      "source_sha256": "5b7eaf4adfa1d3832c20cce158b125d31785571028c3258b8ab40b01b36926f6",
+      "resource": "win10_control_panel",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "control"
+      ],
+      "png_sha256": "7612d1460b454f5a76938764ca6e808497ccf657a1ca90cdecfb67fe7cac9f8a"
+    },
+    {
+      "source": "imageres_15.ico",
+      "source_sha256": "0f71ed87b41029fc99573d175f17b36d00cdbc5b6bb9c2c72b31d636c9e1b390",
+      "resource": "win10_application",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "programs",
+        "apps"
+      ],
+      "png_sha256": "41a2b2f07ce9e84a3c7a6fe1e6ecf7d0a461e497f262fde8ba3126ed30c45696"
+    },
+    {
+      "source": "shell32_2.ico",
+      "source_sha256": "9a25d03c7342402b15e9a1bc166c16f52510e1ff4b94fb864114660f85fbfb54",
+      "resource": "win10_document_file",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "documentfile"
+      ],
+      "png_sha256": "cd6d187aad5dcdcd4e1c12c14f9498d1ad46ed9de870047d6b647128ef3ae163"
+    },
+    {
+      "source": "imageres_132.ico",
+      "source_sha256": "2910c7480a8c2535afc2b2289df8274fb6ce1082b491688aefb96068569078cd",
+      "resource": "win10_picture_file",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "picturefile"
+      ],
+      "png_sha256": "f96a4ee4a1fbdb692090b1f52c8a92e86daebc4580d55b6c7f3d43e8e13623dd"
+    },
+    {
+      "source": "shell32_16824.ico",
+      "source_sha256": "96e9d5324430dfbc9e956f30a97949cf5caefa6d7003e8a2948a3feafd2aae3e",
+      "resource": "win10_music_file",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "musicfile"
+      ],
+      "png_sha256": "5a6a9f84962cdd6400b58d402f42beed850c11521a98c00798801891c37409ab"
+    },
+    {
+      "source": "imageres_133.ico",
+      "source_sha256": "fb358d2a10adaf3a863316b4a2afe384bd944377dd833ccf8eb4b17cb4f980a5",
+      "resource": "win10_video_file",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "videofile"
+      ],
+      "png_sha256": "2e0d1874dcb7c5f16af7570b6eaa2fc204df5492245542a0a9725177b419952c"
+    },
+    {
+      "source": "imageres_174.ico",
+      "source_sha256": "4de024a82638c7f39a4fb8d4e1575197d05e5e9bd62c00824ebd4fe8c22c8842",
+      "resource": "win10_archive",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "archivefile"
+      ],
+      "png_sha256": "30a1308f0a9d56ae8e92ec965ccccb25c5919f8ccffb2aeb726f26a8e9a7a905"
+    },
+    {
+      "source": "shell32_243.ico",
+      "source_sha256": "15120cce30e508d06d43d0a865fba8c3806429120aad452868f195ee922514d7",
+      "resource": "win10_copy",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "copy"
+      ],
+      "png_sha256": "2087b3ca8265af715fc1c72040901128dd1b0ad80854e850dfe5de579b45d876"
+    },
+    {
+      "source": "shell32_16763.ico",
+      "source_sha256": "3507e8df5b74a1ca6fd5dd0586edbf873834565a6d9a4e45eba74db4864a9555",
+      "resource": "win10_paste",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "paste"
+      ],
+      "png_sha256": "8072621025bbcdbb181ee0f7200edf4deb6d5ebb1eec584395d0d3509f915bd2"
+    },
+    {
+      "source": "shell32_16762.ico",
+      "source_sha256": "856286a11c3450a9e9fabcfcbd24424ade3a6a5a197a7e624e77de4ea4889037",
+      "resource": "win10_cut",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "cut"
+      ],
+      "png_sha256": "f5b41fd48e30c3ae6ba8deb5262d35e7a361ac2a2360b437f3af79540ff5dbcf"
+    },
+    {
+      "source": "imageres_5337.ico",
+      "source_sha256": "197c0347014883dfc689dedd30d65d248c95f2f471267b4666917c904bc641e1",
+      "resource": "win10_delete",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "delete"
+      ],
+      "png_sha256": "8f8da217d67dead9ca5eca85355f1f6cfd5427284e9448eece0a29103b58a5bd"
+    },
+    {
+      "source": "imageres_1025.ico",
+      "source_sha256": "5601a06718ffcd63c8ee564d70e598b7273c9d4bc93900a2b1cf588ecc174cd8",
+      "resource": "win10_search",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "search"
+      ],
+      "png_sha256": "2fa2fc480b38062c42a24601c57d5b5628f4e57c59f240e0f230babc4cd3ae9e"
+    },
+    {
+      "source": "imageres_5346.ico",
+      "source_sha256": "7bd1ec5af3b6617de7db2dcc2425e44b9b373d8b621c057cb6566236172ee402",
+      "resource": "win10_personalize",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "appearance"
+      ],
+      "png_sha256": "470b08a073072a961a782673f237f3eca2f65e61c3d5c34cc9152f0ed226d943"
+    },
+    {
+      "source": "imageres_176.ico",
+      "source_sha256": "8a0f4a7bdc782a65429030ee9411a816017a76d9f16fc73578d141d17c436517",
+      "resource": "win10_sound",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "sound"
+      ],
+      "png_sha256": "a6244d9b1842396041265c1a10721ca6e07f82debf1e188bead4250a78bd4efe"
+    },
+    {
+      "source": "imageres_14.ico",
+      "source_sha256": "85e8dc67ada009995e72cf5fad001a264b1421a132da92431d651a545ccadfd6",
+      "resource": "win10_games",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "puzzle"
+      ],
+      "png_sha256": "2394d5f8a20458881ecb221eaddd9092b8bd0f79d16f6bda32e08523b2f40d84"
+    },
+    {
+      "source": "imageres_124.ico",
+      "source_sha256": "03f4f6737381eef1d3cf9f4af0cdc00c458c4bfec43f65503d0de8b03d674a3b",
+      "resource": "win10_font",
+      "size": [
+        256,
+        256
+      ],
+      "kinds": [
+        "fonts"
+      ],
+      "png_sha256": "3d62e17c24d56fc206e5df643d02907c441531f4d673dfc08adf04ea0a679349"
+    }
+  ]
+}
