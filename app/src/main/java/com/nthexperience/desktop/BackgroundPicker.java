@@ -106,7 +106,7 @@ final class BackgroundPicker extends LinearLayout {
         for(int i=0;i<COLORS.length;i++){
             int index=i;
             TextView color=Aero.text(context,"",12,Aero.INK);
-            color.setBackground(Aero.panel(context,COLORS[i],COLORS[i],2,0xff8da9b9));
+            TenAppearance.preserve(color);color.setBackground(Aero.literal(context,new int[]{COLORS[i],COLORS[i]},2,0xff8da9b9));
             color.setContentDescription("Background colour "+(i+1));color.setFocusable(true);
             color.setOnClickListener(v->{put("background",index);showPreview();});
             LayoutParams size=new LayoutParams(0,dp(30),1);size.setMargins(dp(3),dp(3),dp(3),dp(6));colors.addView(color,size);

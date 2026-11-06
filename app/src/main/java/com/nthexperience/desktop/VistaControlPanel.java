@@ -71,17 +71,8 @@ final class VistaControlPanel extends VistaShell {
         smallIcons=small;store.prefs.edit().putBoolean("control_panel_small_icons",small).apply();selectView(true);
     }
     private void personalization(LinearLayout column){
-        panelHeading(column,"Change the visuals and sounds on your desktop");
-        section(column,"Aero Themes and Basic Themes");
-        column.addView(new SevenThemes(getContext(),store,columns(145,4),()->{actions.action("wallpaper");render();}));
-        section(column,"My Themes");
-        taskLink(column,"Save current theme…","theme-save");
-        taskLink(column,"Import an Nth theme…","theme-import");
-        JSONArray themes=ThemeProfiles.saved(store);
-        for(int i=0;i<themes.length();i++){
-            JSONObject theme=themes.optJSONObject(i);
-            if(theme!=null)taskLink(column,theme.optString("name","Saved theme"),"theme-preview:"+i);
-        }
+        panelHeading(column,"Nth Desktop Ten themes");
+        column.addView(new TenThemeGallery(getContext(),store,Math.max(dp(240),content.getWidth()-dp(32)),actions::open,()->{actions.action("wallpaper");render();}),new LayoutParams(-1,-2));
         section(column,"Desktop appearance");
         for(ControlPanelCatalog.Task task:ControlPanelCatalog.panel("personalization").tasks){
             ControlPanelCatalog.Panel owner=ControlPanelCatalog.owner(task.destination);
@@ -91,7 +82,7 @@ final class VistaControlPanel extends VistaShell {
     }
     private void panelHeading(LinearLayout parent,String title){TextView text=Aero.text(getContext(),title,17,0xff003399);text.setPadding(0,dp(5),0,dp(18));parent.addView(text);}
     private String iconFor(String destination,String fallback){switch(destination){case "page:colors":return "color";case "page:background":return "pictures";case "page:startup":return "sound";default:return fallback;}}
-    private void destination(String value){if(value.startsWith("page:"))navigate(value.substring(5));else if(value.startsWith("open:"))actions.open(value.substring(5));else actions.action(value);}
+    private void destination(String value){if(value.equals("page:personalization")||value.equals("page:colors")){actions.open("ten-setting:"+(value.endsWith("personalization")?"themes":"colors"));return;}if(value.startsWith("page:"))navigate(value.substring(5));else if(value.startsWith("open:"))actions.open(value.substring(5));else actions.action(value);}
     private TextView taskLink(LinearLayout parent,String title,String destination){TextView link=Aero.text(getContext(),title,12,0xff0066cc);link.setMinHeight(dp(32));link.setPadding(0,dp(4),dp(4),dp(4));link.setBackground(Aero.selection(getContext()));link.setFocusable(true);link.setContentDescription(title);link.setTag("control-destination:"+destination);link.setOnClickListener(v->destination(destination));parent.addView(link,new LayoutParams(-1,-2));return link;}
     private void taskRow(LinearLayout parent,String title,String description,String icon,String destination){task(parent,icon,title,description,()->destination(destination));View row=parent.getChildAt(parent.getChildCount()-1);row.setTag("control-destination:"+destination);}
     private void categoryHome(LinearLayout parent){
@@ -134,13 +125,10 @@ final class VistaControlPanel extends VistaShell {
     private void colors(LinearLayout column){
         heading(column,"Change your window colors","Color your glass independently of the desktop background.");
 
-        GridLayout choices=new GridLayout(getContext());choices.setColumnCount(4);int selected=store.prefs.getInt("aero_color",0);
-        for(int i=0;i<AeroGlass.TINTS.length;i++){final int value=i;LinearLayout tile=Aero.column(getContext());tile.setGravity(Gravity.CENTER);tile.setPadding(dp(3),dp(5),dp(3),dp(5));View swatch=new View(getContext());swatch.setBackground(Aero.gloss(getContext(),new int[]{0xfff0f8ff,AeroGlass.TINTS[i],AeroGlass.TINTS[i],0xffd9edf8},4,selected==i?0xff286c98:0xff96aab8));tile.addView(swatch,new LayoutParams(dp(43),dp(34)));TextView name=Aero.text(getContext(),(selected==i?"✓ ":"")+AeroGlass.COLOR_NAMES[i],11,Aero.INK);name.setGravity(Gravity.CENTER);tile.addView(name,new LayoutParams(-1,dp(27)));tile.setContentDescription("Glass color: "+AeroGlass.COLOR_NAMES[i]);tile.setBackground(Aero.selection(getContext()));tile.setFocusable(true);tile.setOnClickListener(v->{store.prefs.edit().putInt("aero_color",value).apply();actions.action("glass");render();});GridLayout.LayoutParams cell=new GridLayout.LayoutParams();cell.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);cell.width=0;choices.addView(tile,cell);}column.addView(choices);
+        column.addView(new TenAeroColors(getContext(),store,()->{actions.action("glass");render();}),new LayoutParams(-1,-2));
         CheckBox transparency=checkbox("Enable glass transparency",store.prefs.getBoolean("aero_transparency",true));column.addView(transparency);
-        LinearLayout opacity=Aero.column(getContext());opacity.setVisibility(transparency.isChecked()?VISIBLE:GONE);percentSlider(opacity,"Glass opacity","aero_opacity",AeroGlass.DEFAULT_OPACITY);column.addView(opacity);
-        transparency.setOnCheckedChangeListener((v,value)->{store.prefs.edit().putBoolean("aero_transparency",value).apply();opacity.setVisibility(value?VISIBLE:GONE);actions.action("glass");});
-        percentSlider(column,"Color intensity","aero_intensity",45);
-        link(column,"Restore default glass",()->{store.prefs.edit().remove("aero_color").remove("aero_intensity").remove("aero_transparency").remove("aero_opacity").apply();actions.action("glass");render();});link(column,"Choose a desktop background",()->navigate("background"));
+        transparency.setOnCheckedChangeListener((v,value)->{store.prefs.edit().putBoolean("aero_transparency",value).putBoolean("ten_transparency",value).putString("ten_shell_style","Aero").apply();actions.action("glass");});
+        link(column,"Restore default glass",()->{store.prefs.edit().putString("ten_shell_style","Aero").putInt("ten_accent",AeroGlass.TINTS[0]).putBoolean("ten_transparency",true).remove("aero_color").remove("aero_intensity").remove("aero_transparency").remove("aero_opacity").apply();actions.action("glass");render();});link(column,"Choose a desktop background",()->navigate("background"));
     }
     private void percentSlider(LinearLayout column,String title,String key,int fallback){
         TextView label=Aero.text(getContext(),title+": "+store.prefs.getInt(key,fallback)+"%",13,Aero.INK);column.addView(label,new LayoutParams(-1,dp(34)));

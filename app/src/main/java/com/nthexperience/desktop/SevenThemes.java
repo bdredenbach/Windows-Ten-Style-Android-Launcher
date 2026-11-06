@@ -34,11 +34,11 @@ final class SevenThemes extends GridLayout {
             card.setSelected(selected);
             card.setBackground(selected?Aero.panel(context,0xffe3f3ff,0xffcfe5f6,3,0xff72a8ce):Aero.selection(context));
 
-            FrameLayout preview=new FrameLayout(context);
+            FrameLayout preview=new FrameLayout(context);TenAppearance.preserve(preview);
             preview.addView(new AeroWallpaper(context,theme.wallpaper,false),new FrameLayout.LayoutParams(-1,-1));
             View window=new View(context);
             int tint=theme.glass?AeroGlass.TINTS[theme.color]:0xffa5aeb7;
-            window.setBackground(Aero.gloss(context,new int[]{0xfff4faff,tint,0xffd9e8f0},3,0xfff6fbff));
+            window.setBackground(Aero.literal(context,new int[]{0xfff4faff,tint,0xffd9e8f0},3,0xfff6fbff));
             FrameLayout.LayoutParams sample=new FrameLayout.LayoutParams(Aero.dp(context,39),Aero.dp(context,23),Gravity.BOTTOM|Gravity.START);
             sample.setMargins(Aero.dp(context,7),0,0,Aero.dp(context,7));
             preview.addView(window,sample);

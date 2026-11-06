@@ -1,0 +1,11 @@
+# Ten 0.6 theme routes and color samples
+
+The desktop context menu called an inherited `appearance()` helper that constructed a Seven Personalization window directly. The `@appearance` shortcut already opened native Ten Settings, so the two entry points disagreed. The desktop menu now opens Settings > Personalization > Themes. Older `setting:page:personalization` and `setting:page:colors` links use native Themes and Colors as well. A legacy Personalization page restored from saved UI state uses the same 17-preset gallery as native Settings.
+
+App surface styling was also changing color samples. Preview gradients used a shared chrome drawable that flattened them under Ten, and dark-app styling then recolored their light highlight. The result was black or identical swatches and tiny window samples. Literal preview drawables and preserved sample views now retain their supplied colors and finish. This covers Ten/Aero theme cards, legacy Seven preview cards, glass tints, native accent choices and background colors.
+
+Colors includes all eight Aero glass tints, glass opacity and color intensity when Aero finish is selected. Choosing a tint updates glass and accent together. Changing glass opacity/intensity correctly marks the appearance as Custom instead of claiming an untouched preset. Semantic accent text is adjusted for contrast on selected app surfaces; the chosen accent and literal samples keep their actual stored RGB values.
+
+The shipped catalog remains eight Nth Desktop Ten presets plus nine Aero/Basic presets. Dark/light app surfaces, window instances, note selection, browser contents, virtual desktops, theme imports and shared taskbar behavior retain the 0.5 model. External Android apps and system Settings keep their own theme controls.
+
+`TenThemeMatrixSmoke` checks the actual desktop Personalize callback, old route compatibility, all 17 gallery choices in landscape and portrait, 12 open built-in window instances, note text/selection, selected Settings label contrast, Start/taskbar glass, eight distinct tint samples, theme preview stability across active themes, tint controls and modified preset identity. It writes a 34-row result table and 17 landscape comparison sheets showing real rendered Notepad, Explorer, Settings, Start and taskbar views. The five earlier native suites remain part of the same regression run.
