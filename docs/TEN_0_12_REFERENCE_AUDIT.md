@@ -13,7 +13,9 @@ The launcher adapts the reference layout to a phone. Functionality below refers 
 - Selected Action Center tiles use a readable foreground on the literal selected accent. Focus assist and Tablet mode expose selected accessibility state. Both black and white accents remain literal choices.
 - Start settings opens the Start surface. Search keeps its separate landing page. File Explorer’s taskbar and Jump List use the same name. Desktop tools uses Task View instead of the inherited Flip 3D name. Exported Steps files use the Ten name.
 - Recycle Bin now shares the Ten File/Home/View/Manage ribbon style, with separate restore-all and selected-item commands. Disabled recovery commands remain disabled. Desktop menus use Display settings, All apps and Settings.
+- Settings section headings grow when their text wraps on narrow windows, preventing overlap with the following description.
 - Browser Home now remains reachable through Settings and more when the phone-width toolbar hides its dedicated button.
+- Explorer layout/command menus anchor to the visible Ten ribbon. Native regression exercises its actual Home commands as well as held file/folder menus.
 - Expanded native regression beyond the shell to the shared browser, media, photo, file picker, file opening, shared storage, setup, resizing and permission-recovery engines.
 
 ## Individual image review
