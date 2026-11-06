@@ -1031,7 +1031,16 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     android.graphics.drawable.Drawable tenShellSurface(){return new AeroGlass(wallpaper,AeroGlass.START);}
     void applyTenFont(){applyTenAppearance();TenFonts.apply(root);}
     void applyTenAppearance(){if(root==null)return;TenAppearance.context(this);wallpaper.theme(store.prefs.getInt("wallpaper",11));wallpaper.appearanceChanged();rebuildTenTaskbar();startMenu.appearanceChanged();for(DesktopWindow tool:tenDesktops.all()){if(tool.body instanceof TenSettings)((TenSettings)tool.body).refreshAppearance();TenAppearance.apply(tool.body);tool.active(tool.active());}renderDesktop();renderTaskbar();}
-    void refreshTen(){if(root==null)return;layoutWorkspace();renderDesktop();renderTaskbar();}
+    void refreshTen(){
+        if(root==null)return;
+        layoutWorkspace();renderDesktop();renderTaskbar();
+        DesktopWindow settings=windows.get("@settings"),advanced=windows.get("@legacycontrol");
+        if(settings!=null&&settings.getParent()!=null&&settings.body instanceof TenSettings
+                &&((TenSettings)settings.body).page.equals("desktop")
+                &&advanced!=null&&advanced.getParent()!=null&&advanced.body instanceof VistaControlPanel
+                &&((VistaControlPanel)advanced.body).page().equals("icons"))
+            ((VistaControlPanel)advanced.body).render();
+    }
     private void desktopChangedTen(){if(root==null)return;renderDesktop();desktopScroll.scrollTo(0,0);desktopHidden.clear();arrangementUndo.clear();if(previews!=null)previews.dismiss();for(DesktopWindow w:windows.values())if(w.getParent()!=null){w.orientation(layoutKey);w.safeTop(windowTopInset);}renderTaskbar();}
     private void showTenTasks(){if(tenNews!=null)tenNews.dismiss();startMenu.hide();previews.dismiss();tray.dismiss();List<String> apps=new ArrayList<>();for(String id:ExternalTasks.list())if(entries.containsKey(id))apps.add(id);tenTasks.show(orderedWindows(),apps,this::label,this::open);}
     private void actionCenter(){
@@ -1223,7 +1232,16 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case "restart-desktop":startMenu.hide();main.post(this::recreate);return;
             case "show-desktop":for(DesktopWindow w:windows.values())if(w.getParent()!=null&&w.getVisibility()==View.VISIBLE)w.minimize();startMenu.hide();return;
             case "storage-access":storageSetup.show(true);return;case "glass":applyTenAppearance();return;case "startup-preview":if(startup!=null)startup.preview();return;
-            case "chrome":applySystemChrome();return;case "desktop":renderDesktop();return;case "gadgets":services.setActive(true);services.refresh();return;case "wallpaper":applyTenAppearance();return;
+            case "chrome":applySystemChrome();return;
+            case "desktop":
+                renderDesktop();
+                DesktopWindow desktopSettingsWindow=windows.get("@settings");
+                if(desktopSettingsWindow!=null&&desktopSettingsWindow.getParent()!=null&&desktopSettingsWindow.body instanceof TenSettings){
+                    TenSettings settings=(TenSettings)desktopSettingsWindow.body;
+                    if(settings.page.equals("desktop"))settings.refreshAppearance();
+                }
+                return;
+            case "gadgets":services.setActive(true);services.refresh();return;case "wallpaper":applyTenAppearance();return;
             case "wallpaper-browse":chooseWallpapers(false);return;
             case "wallpaper-folder":chooseWallpapers(true);return;
             case "profile":startMenu.refreshName();return;case "profile-pick":chooseProfilePicture();return;case "home":home();return;case "shortcuts":manageShortcuts();return;case "new-folder":organizer("@organize","new");return;
