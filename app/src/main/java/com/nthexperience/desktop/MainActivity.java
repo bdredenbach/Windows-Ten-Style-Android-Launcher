@@ -689,7 +689,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         }
         startMenu.hide();if(tray!=null)tray.dismiss();
         TenSystemTools.record(id);
-        if(id.startsWith("@")&&!Arrays.asList("@search","@news","@taskview","@tenactions").contains(id))store.launched(id);
+        if(id.startsWith("@")&&DesktopBackup.shortcut(id,new JSONObject(),false)&&!Arrays.asList("@news","@taskview").contains(id))store.launched(id);
         if(id.startsWith("nota-query:")){nota(new TenNotaContext("Start search",Uri.decode(id.substring(11)),false));return;}
         if(id.startsWith("ten-setting:")){open("@settings");DesktopWindow settings=windows.get("@settings");if(settings!=null&&settings.body instanceof TenSettings)((TenSettings)settings.body).navigate(id.substring(12));return;}
         if(FolderLinks.id(id)){JSONObject link=FolderLinks.get(store,id);if(link==null){toast("This folder shortcut is unavailable.");return;}explorer(id,link.optString("page","home"));return;}

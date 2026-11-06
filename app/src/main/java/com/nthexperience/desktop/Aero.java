@@ -14,11 +14,11 @@ import android.widget.TextView;
 
 final class Aero {
     static final int INK=0xff18232c;
-    private static Typeface regular,semibold;
+    private static Typeface regular,semibold;private static String fontKey;
     static int dp(Context c,float value){return Math.round(value*c.getResources().getDisplayMetrics().density);}
-    static void resetFont(){regular=null;semibold=null;}
-    static Typeface face(Context c){if(regular==null)regular=TenFonts.face(c,c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik"),false);return regular;}
-    static Typeface strong(Context c){if(semibold==null)semibold=TenFonts.face(c,c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik"),true);return semibold;}
+    static void resetFont(){regular=null;semibold=null;fontKey=null;}
+    static Typeface face(Context c){String selected=c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik");if(regular==null||!selected.equals(fontKey)){fontKey=selected;regular=TenFonts.face(c,selected,false);semibold=null;}return regular;}
+    static Typeface strong(Context c){face(c);if(semibold==null)semibold=TenFonts.face(c,c.getSharedPreferences("desktop",0).getString(TenFonts.KEY,"selawik"),true);return semibold;}
     static final class ThemePanel extends GradientDrawable {
         final Context context;final int[] colors;final float radius;final int stroke;boolean appThemed;boolean previousDark,previousAero,previousThemed;int previousAccent;boolean drawn;
         ThemePanel(Context c,int[] colors,float radius,int stroke){super(Orientation.TOP_BOTTOM,new int[]{colors[0],colors[0]});context=c;this.colors=colors.clone();this.radius=radius;this.stroke=stroke;}
