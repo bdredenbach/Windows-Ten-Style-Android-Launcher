@@ -47,7 +47,7 @@ public final class TenAccentSmoke extends TenThemeSmoke {
         Drawable drawable=view.getBackground();if(drawable instanceof StateListDrawable)drawable=drawable.getCurrent();
         int[] colors=drawable instanceof GradientDrawable?((GradientDrawable)drawable).getColors():drawable instanceof ColorDrawable?new int[]{((ColorDrawable)drawable).getColor()}:null;
         int[] surface=inherited;if(colors!=null&&colors.length>0&&Color.alpha(colors[0])==255)surface=colors;
-        if(view instanceof TextView&&view.isEnabled())for(int color:surface)check(TenAppearance.contrast(((TextView)view).getCurrentTextColor(),color)>=4.5,"Chrome text contrasts with its actual rendered surface: "+((TextView)view).getText()+" on "+Integer.toHexString(color));
+        if(view instanceof TextView&&view.isEnabled())for(int color:surface)check(TenAppearance.contrast(((TextView)view).getCurrentTextColor(),color)>=4.5,"Chrome text contrasts with its actual rendered surface: "+((TextView)view).getText()+" ("+Integer.toHexString(((TextView)view).getCurrentTextColor())+") on "+Integer.toHexString(color));
         if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++)chrome(((ViewGroup)view).getChildAt(i),surface);
     }
     TextView label(View view){if(view instanceof TextView&&!((TextView)view).getText().toString().equals("⋮"))return(TextView)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){TextView found=label(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
