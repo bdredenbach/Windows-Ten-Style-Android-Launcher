@@ -19,6 +19,10 @@ final class RecyclePanel extends VistaShell {
     private boolean closed,busy,loaded,refreshPending,descending=true;
     private final TextView restoreButton,emptyButton;
     private final View classicMenu;
+    private LinearLayout tenRibbonTools;
+    private View tenRibbon;
+    private TextView restoreSelection;
+    private final Map<TextView,LinearLayout> ribbonCommands=new LinkedHashMap<>();
     private int viewWidth;
 
     RecyclePanel(Context context,DesktopStore store,Actions actions,Runnable changed){
@@ -27,10 +31,11 @@ final class RecyclePanel extends VistaShell {
         addCommand("Organize ▾",this::organize);
         addCommand("Views ▾",this::views);
         emptyButton=addCommand("Empty Recycle Bin",this::confirmEmpty);
-        restoreButton=addCommand("Restore all items",()->{if(selected()==null)restoreAll();else restoreSelected();});
+        restoreButton=addCommand("Restore all items",this::restoreAll);
         classicMenu=explorerChrome(this::menu);
         classicMenu.setVisibility(GONE);
         useCompactExplorerToolbar();
+        addTenRibbon();
         content.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{
             if(r-l!=viewWidth){viewWidth=r-l;if(!view.equals("Details"))render();}
         });
@@ -51,6 +56,30 @@ final class RecyclePanel extends VistaShell {
         button.setPadding(dp(2),0,dp(2),0);
         commands.addView(button,new LayoutParams(0,-1,label.length()>10?1.45f:1f));
         return button;
+    }
+    private void addTenRibbon(){
+        restoreSelection=command("Restore this item",this::restoreSelected);
+        LinearLayout ribbon=column();tenRibbon=ribbon;ribbon.setBackgroundColor(0xfff5f6f7);ribbon.setContentDescription("Recycle Bin ribbon");
+        LinearLayout tabs=new LinearLayout(getContext());ribbon.addView(tabs,new LayoutParams(-1,dp(34)));
+        HorizontalScrollView scroll=new HorizontalScrollView(getContext());scroll.setHorizontalScrollBarEnabled(false);tenRibbonTools=new LinearLayout(getContext());scroll.addView(tenRibbonTools);ribbon.addView(scroll,new LayoutParams(-1,dp(66)));
+        for(String name:new String[]{"File","Home","View","Manage"}){
+            TextView tab=command(name,()->{if(name.equals("File")){menu("File");return;}recycleRibbon(name);});tab.setTextColor(name.equals("File")?android.graphics.Color.WHITE:Aero.INK);tab.setBackgroundColor(name.equals("File")?TenStyle.ACCENT:android.graphics.Color.TRANSPARENT);tab.setContentDescription("Recycle Bin "+name+" ribbon tab");tabs.addView(tab,new LayoutParams(dp(64),-1));
+        }
+        ((View)commands.getParent()).setVisibility(GONE);addView(ribbon,0,new LayoutParams(-1,-2));recycleRibbon("Manage");
+    }
+    private void recycleRibbon(String tab){
+        // The command instances retain their enabled state while moving between ribbon tabs.
+        for(TextView button:new TextView[]{emptyButton,restoreButton,restoreSelection})if(button.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)button.getParent()).removeView(button);
+        tenRibbonTools.removeAllViews();ribbonCommands.clear();
+        if(tab.equals("View")){
+            recycleCommand(command("Layout",this::views),"apps");recycleCommand(command("Sort by",()->menu("View")),"menu");recycleCommand(command("Refresh",this::refresh),"update");
+        }else{
+            recycleCommand(emptyButton,"delete");recycleCommand(command("Recycle Bin properties",this::properties),"document");recycleCommand(restoreButton,"recycle");recycleCommand(restoreSelection,"recycle");
+        }
+        updateCommands();TenAppearance.apply(tenRibbon);
+    }
+    private void recycleCommand(TextView button,String icon){
+        LinearLayout tile=column();tile.setGravity(Gravity.CENTER);tile.setBackground(Aero.selection(getContext()));TenStyle.Glyph glyph=new TenStyle.Glyph(getContext(),icon,0xff52616c);tile.addView(glyph,new LayoutParams(dp(26),dp(26)));button.setTextSize(10);button.setGravity(Gravity.CENTER);button.setPadding(dp(2),0,dp(2),0);button.setMaxLines(2);tile.addView(button,new LayoutParams(-1,dp(30)));tile.setContentDescription("Recycle Bin "+button.getText()+" ribbon command");tile.setFocusable(true);tile.setOnClickListener(v->{if(button.isEnabled())button.performClick();});tenRibbonTools.addView(tile,new LayoutParams(dp(100),dp(64)));ribbonCommands.put(button,tile);
     }
     @Override void render(){
         if(closed)return;
@@ -172,11 +201,12 @@ final class RecyclePanel extends VistaShell {
         updateCommands();
     }
     private void updateCommands(){
-        restoreButton.setText(selected()==null?"Restore all items":"Restore this item");
+        if(restoreSelection!=null)restoreSelection.setEnabled(!busy&&selected()!=null);
         for(TextView button:new TextView[]{restoreButton,emptyButton}){
             button.setEnabled(!busy&&!items.isEmpty());
             button.setAlpha(button.isEnabled()?1f:.5f);
         }
+        for(Map.Entry<TextView,LinearLayout> entry:ribbonCommands.entrySet()){entry.getValue().setEnabled(entry.getKey().isEnabled());entry.getValue().setAlpha(entry.getKey().isEnabled()?1f:.5f);}
     }
     private void sortBy(String name){descending=sort.equals(name)?!descending:name.equals("Date deleted");sort=name;render();}
     private JSONObject selected(){for(JSONObject item:items)if(item.optString("id").equals(selected))return item;return null;}
@@ -194,7 +224,7 @@ final class RecyclePanel extends VistaShell {
     }
     private void itemProperties(JSONObject item){Aero.dialog(getContext()).setTitle(item.optString("name")).setMessage("Original location: "+item.optString("location","Original folder")+"\nDeleted: "+java.text.DateFormat.getDateTimeInstance().format(new Date(item.optLong("date")))+"\nSize: "+android.text.format.Formatter.formatFileSize(getContext(),item.optLong("size"))+"\n"+(item.optBoolean("deleted")?"Original deletion confirmed":"Recovery copy; original deletion unconfirmed")+"\nRestore keeps both names if the destination already exists.").setPositiveButton("OK",null).show();}
     void properties(){LinearLayout body=column();body.addView(Aero.text(getContext(),"Maximum bin size (new deletions)",14,Aero.INK));Spinner capacity=new Spinner(getContext());String[] choices={"100 MB","250 MB","500 MB","1 GB","2 GB"};int[] values={100,250,500,1024,2048};capacity.setAdapter(new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_dropdown_item,choices));int current=store.prefs.getInt("recycle_capacity_mb",250);for(int i=0;i<values.length;i++)if(values[i]==current)capacity.setSelection(i);capacity.setContentDescription("Recycle Bin maximum size");body.addView(capacity);CheckBox icon=Aero.check(getContext(),"Show Recycle Bin on desktop",store.pinned("@recycle"));body.addView(icon);body.addView(Aero.text(getContext(),"Up to 100 MB per file or folder and 200 recovery items. Existing copies are kept when the limit is lowered. Items from locations without recovery support stay in place unless you explicitly choose permanent deletion.",12,Aero.INK));Aero.dialog(getContext()).setTitle("Recycle Bin Properties").setView(body).setPositiveButton("Apply",(d,w)->{store.prefs.edit().putInt("recycle_capacity_mb",values[capacity.getSelectedItemPosition()]).apply();if(icon.isChecked()!=store.pinned("@recycle"))store.toggle("@recycle");changed.run();render();}).setNegativeButton("Cancel",null).show();}
-    private void show(DesktopContextMenu menu){ContextMenus.centered(commands,(x,y)->ContextMenus.show(menu,commands,x,y));}
+    private void show(DesktopContextMenu menu){View anchor=tenRibbon==null?commands:tenRibbon;ContextMenus.centered(anchor,(x,y)->ContextMenus.show(menu,anchor,x,y));}
     private void organize(){
         DesktopContextMenu menu=new DesktopContextMenu(getContext(),"Recycle Bin Organize");
         menu.submenu("Layout","appearance",this::layoutMenu);

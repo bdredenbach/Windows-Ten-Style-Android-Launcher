@@ -14,6 +14,10 @@ collect_facet() {
 fresh() {
   adb shell am force-stop "$launcher"
   adb shell pm clear "$launcher"
+  adb shell appops set --uid "$launcher" MANAGE_EXTERNAL_STORAGE deny
+  adb shell appops set "$launcher" WRITE_SETTINGS deny
+  adb shell appops set "$launcher" REQUEST_INSTALL_PACKAGES deny
+  adb shell appops set --uid "$launcher" GET_USAGE_STATS deny
   adb shell input keyevent KEYCODE_WAKEUP
   adb shell wm dismiss-keyguard
 }

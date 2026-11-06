@@ -824,7 +824,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         desktopMenu.item("New folder","folderapps",()->organizer("@organize","new"));
         desktopMenu.submenu("Desktop tools","computer",()->desktopTools(x,y));
         desktopMenu.separator();
-        desktopMenu.item("Screen resolution","computer",()->vistaAction("android:display"));
+        desktopMenu.item("Display settings","computer",()->open("ten-setting:display"));
         desktopMenu.submenu("Desktop background","pictures",()->backgroundMenu(x,y));
         if(wallpaper.hasSlideshow())desktopMenu.item("Next desktop background","pictures",wallpaper::next);
         desktopMenu.item("Personalize","appearance",this::appearance);
@@ -833,9 +833,9 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     }
     private void desktopTools(float x,float y){
         desktopMenu=new DesktopContextMenu(this,"Desktop tools");
-        desktopMenu.item("All programs","programs",()->showStart(false));
+        desktopMenu.item("All apps","programs",()->showStart(false));
         desktopMenu.item("Computer","computer",this::computer);
-        desktopMenu.item("Control Panel","control",()->open("@control"));
+        desktopMenu.item("Settings","control",()->open("@settings"));
         desktopMenu.item("Recycle Bin","delete",()->open("@recycle"));
         desktopMenu.item("Saved Workspaces…","computer",this::showWorkspaces);
         desktopMenu.item("Task View","appearance",()->open("@taskview"));
@@ -1239,7 +1239,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case "android:defaults":action=Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS;break;case "android:security":action=Settings.ACTION_SECURITY_SETTINGS;break;case "android:privacy":action=Settings.ACTION_PRIVACY_SETTINGS;break;
             case "android:storage":action=Settings.ACTION_INTERNAL_STORAGE_SETTINGS;break;case "android:battery":action=Settings.ACTION_BATTERY_SAVER_SETTINGS;break;case "android:accounts":action=Settings.ACTION_SYNC_SETTINGS;break;
             case "android:accessibility":action=Settings.ACTION_ACCESSIBILITY_SETTINGS;break;case "android:date":action=Settings.ACTION_DATE_SETTINGS;break;case "android:language":action=Settings.ACTION_LOCALE_SETTINGS;break;case "android:device":action=Settings.ACTION_DEVICE_INFO_SETTINGS;break;
-            case "android:print":action=Settings.ACTION_PRINT_SETTINGS;break;case "android:input":action=Settings.ACTION_INPUT_METHOD_SETTINGS;break;case "android:cast":action=Settings.ACTION_CAST_SETTINGS;break;case "android:wallpaper":action=Intent.ACTION_SET_WALLPAPER;break;case "android:connected":action="android.settings.CONNECTION_DEVICE_SETTINGS";break;case "android:airplane":action=Settings.ACTION_AIRPLANE_MODE_SETTINGS;break;case "android:vpn":action=Settings.ACTION_VPN_SETTINGS;break;case "android:speech":action="com.android.settings.TTS_SETTINGS";break;case "android:notifications":action="android.settings.NOTIFICATION_SETTINGS";break;case "android:permissions":launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",getPackageName(),null)));return;
+            case "android:print":action=Settings.ACTION_PRINT_SETTINGS;break;case "android:input":action=Settings.ACTION_INPUT_METHOD_SETTINGS;break;case "android:cast":action=Settings.ACTION_CAST_SETTINGS;break;case "android:wallpaper":action=Intent.ACTION_SET_WALLPAPER;break;case "android:connected":action=Settings.ACTION_BLUETOOTH_SETTINGS;break;case "android:airplane":action=Settings.ACTION_AIRPLANE_MODE_SETTINGS;break;case "android:vpn":action=Settings.ACTION_VPN_SETTINGS;break;case "android:speech":action="com.android.settings.TTS_SETTINGS";break;case "android:notifications":launchSystem(new Intent(Build.VERSION.SDK_INT>=33?Settings.ACTION_ALL_APPS_NOTIFICATION_SETTINGS:Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName()));return;case "android:permissions":launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",getPackageName(),null)));return;
             default:action=Settings.ACTION_SETTINGS;
         }
         try{startActivity(new Intent(action));}catch(ActivityNotFoundException|SecurityException ex){launchSystem(new Intent(Settings.ACTION_SETTINGS));}
