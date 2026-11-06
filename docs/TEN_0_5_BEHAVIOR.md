@@ -12,7 +12,7 @@ Windows traditionally shares the physical Desktop folder across virtual desktops
 
 Files, folder contents, Start pins, taskbar pins and the appearance theme are shared. Adding a shortcut does not copy or move a physical file. Removing an icon changes the current sheet. Closing a desktop merges its shortcuts into another desktop and moves its windows, preserving folder contents; duplicate shortcuts are combined. The destination's icon positions are retained, and incoming icons are arranged into free space. Existing singleton-window collision protection remains. A full destination or duplicate open tool prevents closing rather than dropping content.
 
-App-folder recycling records memberships across desktops; restore returns the folder to its original surviving desktop sheets. Backups include every desktop's membership and both layouts, validate IDs and coordinates before restore, and still import older backups. Actual folder access remains subject to Android grants.
+App-folder recycling records memberships across desktops; restore returns the folder to its original surviving desktop sheets. If all original desktops were closed, it returns to the current desktop so the restored folder remains reachable. Backups include every desktop's membership and both layouts, validate IDs and coordinates before restore, and still import older backups. Actual folder access remains subject to Android grants.
 
 ## One application appearance
 

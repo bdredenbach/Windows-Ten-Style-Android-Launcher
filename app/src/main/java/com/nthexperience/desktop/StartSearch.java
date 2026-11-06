@@ -20,7 +20,7 @@ final class StartSearch {
         if("nth media center music video".contains(q))result.add(new Result(MediaLibrary.CENTER,MediaLibrary.CENTER_TITLE,"Programs","videofile",null,true));
         if("task view window switcher".contains(q))result.add(new Result("@taskview","Task View","Programs","appearance",null,false));
         VistaControlPanel.searchItems(q,result);
-        for(String[] gadget:GadgetCatalog.ITEMS)if(GadgetCatalog.extra(gadget[0])&&(gadget[1]+" "+gadget[3]).toLowerCase(Locale.ROOT).contains(q))result.add(new Result("@gadget:"+gadget[0],gadget[1],"Gadgets",GadgetCatalog.icon(gadget[0]),null,false));
+        for(String[] gadget:GadgetCatalog.ITEMS)if(GadgetCatalog.extra(gadget[0])&&(gadget[1]+" "+gadget[3]).toLowerCase(Locale.ROOT).contains(q))result.add(new Result("@gadget:"+gadget[0],gadget[1],"Tools",GadgetCatalog.icon(gadget[0]),null,false));
         for(String[] note:new String[][]{{"note","Notepad","@notes"},{"gadget_note","Sticky note","@sticky"}}){String text=store.prefs.getString(note[0],"");if((note[1]+" "+text).toLowerCase(Locale.ROOT).contains(q))result.add(new Result(note[2],note[1],"Notes","notes",null,false));}
         JSONArray files=LinkedFiles.list(store);for(int i=0;i<files.length();i++){JSONObject file=files.optJSONObject(i);if(file!=null&&file.optString("name").toLowerCase(Locale.ROOT).contains(q))result.add(new Result("search-file:"+file.optString("uri"),file.optString("name"),"Linked files","documentfile",null,false));}
         Set<String> seen=new HashSet<>();for(Result item:result)seen.add(item.id.startsWith("search-file:")?item.id.substring(12):item.id);

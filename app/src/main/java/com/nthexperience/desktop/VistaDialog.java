@@ -27,6 +27,8 @@ final class VistaDialog extends AlertDialog.Builder {
             super.setCustomTitle(bar);
         }
         AlertDialog dialog=super.create();owner[0]=dialog;
+        // User on-show callbacks cannot displace palette binding.
+        if(dialog.getWindow()!=null)dialog.getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View view){Aero.styleDialog(context,dialog);}public void onViewDetachedFromWindow(View view){}});
         dialog.setOnShowListener(ignored->{Aero.styleDialog(context,dialog);ListView list=dialog.getListView();if(list!=null&&!(list.getAdapter() instanceof Rows)){int checked=list.getCheckedItemPosition();list.setSelector(Aero.selection(context));list.setDivider(new android.graphics.drawable.ColorDrawable(0xffe3e8ec));list.setDividerHeight(Aero.dp(context,1));list.setBackgroundColor(0xfffafcfd);list.setAdapter(new Rows(context,list.getAdapter(),list.getChoiceMode()));if(checked>=0)list.setItemChecked(checked,true);}View message=dialog.findViewById(android.R.id.message);if(message instanceof TextView){((TextView)message).setTextSize(14);((TextView)message).setTextColor(Aero.INK);((TextView)message).setLineSpacing(Aero.dp(context,3),1);}});
         return dialog;
     }
