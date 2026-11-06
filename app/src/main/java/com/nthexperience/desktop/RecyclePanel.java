@@ -59,11 +59,11 @@ final class RecyclePanel extends VistaShell {
     }
     private void addTenRibbon(){
         restoreSelection=command("Restore this item",this::restoreSelected);
-        LinearLayout ribbon=column();tenRibbon=ribbon;ribbon.setBackgroundColor(0xfff5f6f7);ribbon.setContentDescription("Recycle Bin ribbon");
+        LinearLayout ribbon=Aero.column(getContext());tenRibbon=ribbon;ribbon.setBackgroundColor(0xfff5f6f7);ribbon.setContentDescription("Recycle Bin ribbon");
         LinearLayout tabs=new LinearLayout(getContext());ribbon.addView(tabs,new LayoutParams(-1,dp(34)));
         HorizontalScrollView scroll=new HorizontalScrollView(getContext());scroll.setHorizontalScrollBarEnabled(false);tenRibbonTools=new LinearLayout(getContext());scroll.addView(tenRibbonTools);ribbon.addView(scroll,new LayoutParams(-1,dp(66)));
         for(String name:new String[]{"File","Home","View","Manage"}){
-            TextView tab=command(name,()->{if(name.equals("File")){menu("File");return;}recycleRibbon(name);});tab.setTextColor(name.equals("File")?android.graphics.Color.WHITE:Aero.INK);tab.setBackgroundColor(name.equals("File")?TenStyle.ACCENT:android.graphics.Color.TRANSPARENT);tab.setContentDescription("Recycle Bin "+name+" ribbon tab");tabs.addView(tab,new LayoutParams(dp(64),-1));
+            TextView tab=command(name,()->{if(name.equals("File")){menu("File");return;}recycleRibbon(name);});tab.setTag(R.id.ten_appearance_accent,null);tab.setTextColor(name.equals("File")?android.graphics.Color.WHITE:Aero.INK);tab.setBackgroundColor(name.equals("File")?0xff006fc4:android.graphics.Color.TRANSPARENT);if(name.equals("File"))TenAppearance.preserve(tab);tab.setContentDescription("Recycle Bin "+name+" ribbon tab");tabs.addView(tab,new LayoutParams(dp(64),-1));
         }
         ((View)commands.getParent()).setVisibility(GONE);addView(ribbon,0,new LayoutParams(-1,-2));recycleRibbon("Manage");
     }
@@ -74,12 +74,12 @@ final class RecyclePanel extends VistaShell {
         if(tab.equals("View")){
             recycleCommand(command("Layout",this::views),"apps");recycleCommand(command("Sort by",()->menu("View")),"menu");recycleCommand(command("Refresh",this::refresh),"update");
         }else{
-            recycleCommand(emptyButton,"delete");recycleCommand(command("Recycle Bin properties",this::properties),"document");recycleCommand(restoreButton,"recycle");recycleCommand(restoreSelection,"recycle");
+            recycleCommand(emptyButton,"delete");recycleCommand(command("Recycle Bin properties",this::properties),"document");recycleCommand(restoreButton,"update");recycleCommand(restoreSelection,"update");
         }
         updateCommands();TenAppearance.apply(tenRibbon);
     }
     private void recycleCommand(TextView button,String icon){
-        LinearLayout tile=column();tile.setGravity(Gravity.CENTER);tile.setBackground(Aero.selection(getContext()));TenStyle.Glyph glyph=new TenStyle.Glyph(getContext(),icon,0xff52616c);tile.addView(glyph,new LayoutParams(dp(26),dp(26)));button.setTextSize(10);button.setGravity(Gravity.CENTER);button.setPadding(dp(2),0,dp(2),0);button.setMaxLines(2);tile.addView(button,new LayoutParams(-1,dp(30)));tile.setContentDescription("Recycle Bin "+button.getText()+" ribbon command");tile.setFocusable(true);tile.setOnClickListener(v->{if(button.isEnabled())button.performClick();});tenRibbonTools.addView(tile,new LayoutParams(dp(100),dp(64)));ribbonCommands.put(button,tile);
+        LinearLayout tile=Aero.column(getContext());tile.setPadding(dp(2),dp(2),dp(2),dp(2));tile.setGravity(Gravity.CENTER);tile.setBackground(Aero.selection(getContext()));TenStyle.Glyph glyph=new TenStyle.Glyph(getContext(),icon,0xff52616c);tile.addView(glyph,new LayoutParams(dp(26),dp(26)));button.setTag(R.id.ten_appearance_accent,null);button.setTextColor(Aero.INK);button.setTextSize(10);button.setGravity(Gravity.CENTER);button.setPadding(dp(2),0,dp(2),0);button.setMaxLines(2);tile.addView(button,new LayoutParams(-1,dp(30)));tile.setContentDescription("Recycle Bin "+button.getText()+" ribbon command");tile.setFocusable(true);tile.setOnClickListener(v->{if(button.isEnabled())button.performClick();});tenRibbonTools.addView(tile,new LayoutParams(dp(100),dp(64)));ribbonCommands.put(button,tile);
     }
     @Override void render(){
         if(closed)return;

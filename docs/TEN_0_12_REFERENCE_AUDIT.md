@@ -12,7 +12,7 @@ The launcher adapts the reference layout to a phone. Functionality below refers 
 - Lock screen exposes Android wallpaper, security, notification and timeout destinations. Casting and connected-device pages use Android settings, with the existing Settings fallback when an OEM omits a destination. Remote Desktop explains opening the user’s installed remote app.
 - Selected Action Center tiles use a readable foreground on the literal selected accent. Focus assist and Tablet mode expose selected accessibility state. Both black and white accents remain literal choices.
 - Start settings opens the Start surface. Search keeps its separate landing page. File Explorer’s taskbar and Jump List use the same name. Desktop tools uses Task View instead of the inherited Flip 3D name. Exported Steps files use the Ten name.
-- Recycle Bin now shares the Ten File/Home/View/Manage ribbon style, with separate restore-all and selected-item commands. Disabled recovery commands remain disabled. Desktop menus use Display settings, All apps and Settings.
+- Recycle Bin now shares the Ten File/Home/View/Manage ribbon style, with separate restore-all and selected-item commands. Disabled recovery commands remain disabled. Ribbon labels fit without clipping, and File tabs share a readable white-on-blue surface. Desktop menus use Display settings, All apps and Settings.
 - Settings section headings grow when their text wraps on narrow windows, preventing overlap with the following description.
 - Browser Home now remains reachable through Settings and more when the phone-width toolbar hides its dedicated button.
 - Explorer layout/command menus anchor to the visible Ten ribbon. Native regression exercises its actual Home commands as well as held file/folder menus.
