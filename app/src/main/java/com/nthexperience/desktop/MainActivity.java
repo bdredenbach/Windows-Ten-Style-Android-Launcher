@@ -1266,11 +1266,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             recovery.setPadding(0,dp(12),0,dp(10));
             content.addView(recovery);
 
-            ImageView example=new ImageView(this);
-            example.setAdjustViewBounds(true);
-            example.setImageResource(R.drawable.usage_access_app_info);
-            example.setContentDescription("Android App info menu showing Allow restricted settings");
-            content.addView(example,new LinearLayout.LayoutParams(-1,-2));
+            content.addView(new UsageAccessExample(this),new LinearLayout.LayoutParams(-1,-2));
         }
 
         ScrollView scroll=new ScrollView(this);
