@@ -7,7 +7,7 @@ aapt = sdk / 'build-tools' / '35.0.0' / 'aapt'
 def manifest(path):
     return subprocess.check_output([str(aapt), 'dump', 'xmltree', path, 'AndroidManifest.xml'], text=True)
 tests = manifest('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
-for runner in ('TenSmoke', 'TenPolishSmoke', 'TenShellSmoke', 'TenThemeSmoke'):
+for runner in ('TenSmoke', 'TenPolishSmoke', 'TenShellSmoke', 'TenThemeSmoke', 'TenWorkspaceSmoke'):
     assert 'com.nthexperience.desktop.' + runner in tests, runner + ' is missing'
 assert 'com.nthexperience.desktop.ten.test' in tests
 assert 'com.nthexperience.desktop.ten' in tests
@@ -17,4 +17,4 @@ assert 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE' in main
 assert 'com.nthexperience.desktop.ten.storage' in main
 assert 'com.nthexperience.desktop.NotaTextActivity' in main or '.NotaTextActivity' in main
 assert 'android.intent.action.PROCESS_TEXT' in main
-print('PASS: Ten package, protected notification listener and four native runners and Nota text selection are registered')
+print('PASS: Ten package, protected notification listener and five native runners and Nota text selection are registered')

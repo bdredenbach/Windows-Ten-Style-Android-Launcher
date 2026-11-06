@@ -20,7 +20,7 @@ final class DesktopContextMenu {
     DesktopContextMenu(Context context,String description,int rowHeight,int menuWidth){
         this.context=context;this.rowHeight=rowHeight;this.menuWidth=menuWidth;items=Aero.column(context);items.setContentDescription(description);
         ScrollView scroll=new ScrollView(context);scroll.setFillViewport(false);scroll.setBackground(Aero.panel(context,0xfffafafa,0xfff0f0f0,1,0xff777777));scroll.setPadding(dp(2),dp(2),dp(2),dp(2));scroll.addView(items);
-        popup=new PopupWindow(scroll,dp(menuWidth),-2,true);popup.setBackgroundDrawable(Aero.panel(context,0xfff8f8f8,0xffeeeeee,1,0xff777777));popup.setOutsideTouchable(true);popup.setElevation(dp(8));popup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);popup.setOnDismissListener(()->{if(owner!=null){owner.removeOnAttachStateChangeListener(lifetime);owner.removeOnLayoutChangeListener(bounds);owner=null;}});
+        TenAppearance.bind(scroll);popup=new PopupWindow(scroll,dp(menuWidth),-2,true);popup.setBackgroundDrawable(Aero.panel(context,0xfff8f8f8,0xffeeeeee,1,0xff777777));TenAppearance.enable(context,popup.getBackground());popup.setOutsideTouchable(true);popup.setElevation(dp(8));popup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);popup.setOnDismissListener(()->{if(owner!=null){owner.removeOnAttachStateChangeListener(lifetime);owner.removeOnLayoutChangeListener(bounds);owner=null;}});
     }
     void item(String title,String icon,Runnable action){item(title,icon,true,action);}
     void item(String title,String icon,boolean enabled,Runnable action){

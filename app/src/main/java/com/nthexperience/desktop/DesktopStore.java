@@ -18,6 +18,7 @@ final class DesktopStore {
     final Context context;
     DesktopStore(Context context) { this.context=context.getApplicationContext();prefs = context.getSharedPreferences("desktop", Context.MODE_PRIVATE);usagePrefs=context.getSharedPreferences("usage_access",Context.MODE_PRIVATE); }
     List<String> desktop() {
+        if(prefs.contains(TenDesktopItems.KEY))return TenDesktopItems.items(this,TenDesktopItems.current(this));
         return list("shortcuts", Arrays.asList("@computer", "@browser", "@notes", "@appearance"));
     }
     void migrateDesktop(){
@@ -63,13 +64,13 @@ final class DesktopStore {
         String title=cleanName(name);if(title.isEmpty())throw new IllegalArgumentException("Enter a folder name");String id="folder:"+UUID.randomUUID();
         JSONObject folder=new JSONObject();GadgetLayout.put(folder,"name",title);GadgetLayout.put(folder,"items",new JSONArray(leafItems(members)));GadgetLayout.put(all,id,folder);
         List<String> desktop=desktop();int position=desktop.size();for(String member:members){int at=desktop.indexOf(member);if(at>=0)position=Math.min(position,at);}desktop.removeAll(members);desktop.add(Math.min(position,desktop.size()),id);
-        prefs.edit().putString("app_folders",all.toString()).putString("shortcuts",new JSONArray(desktop).toString()).apply();return id;
+        desktop(prefs.edit().putString("app_folders",all.toString()),desktop).apply();return id;
     }
     void folderItems(String id,List<String> items){JSONObject all=folders(),folder=all.optJSONObject(id);if(folder==null)return;GadgetLayout.put(folder,"items",new JSONArray(leafItems(items)));prefs.edit().putString("app_folders",all.toString()).apply();}
     String drop(String moving,String target,boolean group){
         if(moving.equals(target))return null;List<String> ids=desktop();if(!ids.contains(moving)||!ids.contains(target))return null;
         if(group&&!isFolder(moving)){
-            if(isFolder(target)){List<String> members=folderItems(target);if(!members.contains(moving)){if(members.size()>=MAX_ITEMS)throw new IllegalArgumentException("This folder is full");members.add(moving);}JSONObject all=folders();GadgetLayout.put(all.optJSONObject(target),"items",new JSONArray(members));ids.remove(moving);prefs.edit().putString("app_folders",all.toString()).putString("shortcuts",new JSONArray(ids).toString()).apply();return target;}
+            if(isFolder(target)){List<String> members=folderItems(target);if(!members.contains(moving)){if(members.size()>=MAX_ITEMS)throw new IllegalArgumentException("This folder is full");members.add(moving);}JSONObject all=folders();GadgetLayout.put(all.optJSONObject(target),"items",new JSONArray(members));ids.remove(moving);desktop(prefs.edit().putString("app_folders",all.toString()),ids).apply();return target;}
             return createFolder("New folder",Arrays.asList(target,moving));
         }
         desktop(LauncherState.move(ids,moving,target));return null;
@@ -77,11 +78,12 @@ final class DesktopStore {
     void dissolve(String id){
         JSONObject all=folders();if(!all.has(id))return;List<String> members=folderItems(id),ids=desktop();int position=ids.indexOf(id);ids.remove(id);if(position<0)position=ids.size();for(String member:members)if(!ids.contains(member))ids.add(Math.min(position++,ids.size()),member);all.remove(id);
         List<String> quick=quickLaunch();quick.remove(id);JSONObject names=object("shortcut_names");names.remove(id);
-        prefs.edit().putString("app_folders",all.toString()).putString("shortcuts",new JSONArray(ids).toString()).putString("quick_launch",new JSONArray(quick).toString()).putString("shortcut_names",names.toString()).apply();
+        SharedPreferences.Editor edit=prefs.edit().putString("app_folders",all.toString()).putString("quick_launch",new JSONArray(quick).toString()).putString("shortcut_names",names.toString());if(prefs.contains(TenDesktopItems.KEY))TenDesktopItems.dissolve(this,edit,id,members);else desktop(edit,ids);edit.apply();
     }
     JSONObject folderPositions(String id) {
         JSONObject positions = new JSONObject();
         GadgetLayout.put(positions, "shortcuts", desktop().indexOf(id));
+        if(prefs.contains(TenDesktopItems.KEY))GadgetLayout.put(positions,"desktops",TenDesktopItems.memberships(this,id));
         GadgetLayout.put(positions, "quick_launch", quickLaunch().indexOf(id));
         GadgetLayout.put(positions, "start_pins", startPins().indexOf(id));
         return positions;
@@ -95,7 +97,7 @@ final class DesktopStore {
             GadgetLayout.put(all, id, folder);
         }
         SharedPreferences.Editor edit = prefs.edit().putString("app_folders", all.toString());
-        folderMembership(edit, "shortcuts", desktop(), id, positions, 512);
+        if(prefs.contains(TenDesktopItems.KEY))TenDesktopItems.recycle(this,edit,id,positions);else folderMembership(edit, "shortcuts", desktop(), id, positions, 512);
         folderMembership(edit, "quick_launch", quickLaunch(), id, positions, MAX_QUICK);
         folderMembership(edit, "start_pins", startPins(), id, positions, 32);
         if (!edit.commit()) throw new java.io.IOException("The folder change could not be saved. Recovery data was kept.");
@@ -137,7 +139,8 @@ final class DesktopStore {
             return LauncherState.normalize(result);
         } catch (JSONException | ClassCastException ex) { return new ArrayList<>(fallback); }
     }
-    void desktop(List<String> ids) { save("shortcuts", ids); }
+    SharedPreferences.Editor desktop(SharedPreferences.Editor edit,List<String> ids){return prefs.contains(TenDesktopItems.KEY)?TenDesktopItems.items(this,edit,ids):edit.putString("shortcuts",new JSONArray(LauncherState.normalize(ids)).toString());}
+    void desktop(List<String> ids) { desktop(prefs.edit(),ids).apply(); }
     void launched(String id) { save("recents", LauncherState.recent(recents(), id)); }
     private void save(String key, List<String> ids) {
         prefs.edit().putString(key, new JSONArray(LauncherState.normalize(ids)).toString()).apply();

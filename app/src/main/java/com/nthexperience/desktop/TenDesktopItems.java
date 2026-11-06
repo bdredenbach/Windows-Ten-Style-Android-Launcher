@@ -1,0 +1,42 @@
+package com.nthexperience.desktop;
+
+import android.content.SharedPreferences;
+import org.json.*;
+import java.util.*;
+
+/** Shortcut membership and both icon layouts belong to a desktop; folder contents remain shared. */
+final class TenDesktopItems {
+    static final String KEY="ten_desktop_items";
+    static JSONObject data(DesktopStore store){try{return new JSONObject(store.prefs.getString(KEY,"{}"));}catch(JSONException e){return new JSONObject();}}
+    static String current(DesktopStore store){try{return new JSONObject(store.prefs.getString(TenDesktops.KEY,"{}")).optString("current","desktop-1");}catch(JSONException e){return "desktop-1";}}
+    static String first(DesktopStore store){try{return new JSONObject(store.prefs.getString(TenDesktops.KEY,"{}")).getJSONArray("desktops").getJSONObject(0).getString("id");}catch(JSONException e){return "desktop-1";}}
+    private static JSONObject empty(){JSONObject row=new JSONObject();GadgetLayout.put(row,"shortcuts",new JSONArray());GadgetLayout.put(row,"portrait",new JSONObject());GadgetLayout.put(row,"landscape",new JSONObject());return row;}
+    static void initialize(DesktopStore store,List<String> ids){
+        JSONObject rows=data(store);boolean legacy=!store.prefs.contains(KEY);
+        for(int i=0;i<ids.size();i++)if(!rows.has(ids.get(i))){JSONObject row=empty();if(legacy&&i==0){try{row.put("shortcuts",new JSONArray(store.prefs.getString("shortcuts","[\"@computer\",\"@browser\",\"@notes\",\"@appearance\"]")));for(String axis:new String[]{"portrait","landscape"})row.put(axis,new JSONObject(store.prefs.getString("desktop_positions_"+axis,"{}")));}catch(JSONException e){throw new IllegalStateException("Desktop migration could not read the saved layout",e);}}GadgetLayout.put(rows,ids.get(i),row);}
+        Set<String> valid=new HashSet<>(ids);Iterator<String> keys=rows.keys();while(keys.hasNext())if(!valid.contains(keys.next()))keys.remove();
+        store.prefs.edit().putString(KEY,rows.toString()).apply();
+    }
+    static List<String> items(DesktopStore store,String desk){JSONObject row=data(store).optJSONObject(desk);return DesktopStore.array(row==null?null:row.optJSONArray("shortcuts"));}
+    static SharedPreferences.Editor items(DesktopStore store,SharedPreferences.Editor edit,List<String> ids){JSONObject rows=data(store);String desk=current(store);JSONObject row=rows.optJSONObject(desk);if(row==null)row=empty();GadgetLayout.put(row,"shortcuts",new JSONArray(LauncherState.normalize(ids)));GadgetLayout.put(rows,desk,row);edit.putString(KEY,rows.toString());if(desk.equals(first(store)))edit.putString("shortcuts",new JSONArray(LauncherState.normalize(ids)).toString());return edit;}
+    static JSONObject positions(DesktopStore store,String axis){JSONObject row=data(store).optJSONObject(current(store));JSONObject points=row==null?null:row.optJSONObject(axis);return points==null?new JSONObject():points;}
+    static void positions(DesktopStore store,String axis,JSONObject points){JSONObject rows=data(store);String desk=current(store);JSONObject row=rows.optJSONObject(desk);if(row==null)row=empty();GadgetLayout.put(row,axis,points);GadgetLayout.put(rows,desk,row);SharedPreferences.Editor edit=store.prefs.edit().putString(KEY,rows.toString());if(desk.equals(first(store)))edit.putString("desktop_positions_"+axis,points.toString());edit.apply();}
+    static void create(DesktopStore store,String desk){JSONObject rows=data(store);GadgetLayout.put(rows,desk,empty());store.prefs.edit().putString(KEY,rows.toString()).apply();}
+    static boolean canMerge(DesktopStore store,String from,String to){Set<String> union=new HashSet<>(items(store,to));union.addAll(items(store,from));return union.size()<=512;}
+    static void merge(DesktopStore store,String from,String to){JSONObject rows=data(store);JSONObject target=rows.optJSONObject(to);if(target==null)target=empty();List<String> ids=DesktopStore.array(target.optJSONArray("shortcuts"));for(String id:items(store,from))if(!ids.contains(id))ids.add(id);GadgetLayout.put(target,"shortcuts",new JSONArray(ids));GadgetLayout.put(rows,to,target);rows.remove(from);SharedPreferences.Editor edit=store.prefs.edit().putString(KEY,rows.toString());if(to.equals(first(store)))edit.putString("shortcuts",new JSONArray(ids).toString());edit.apply();}
+    static JSONObject memberships(DesktopStore store,String id){JSONObject result=new JSONObject(),rows=data(store);Iterator<String> keys=rows.keys();while(keys.hasNext()){String desk=keys.next();int at=items(store,desk).indexOf(id);if(at>=0)GadgetLayout.put(result,desk,at);}return result;}
+    static void recycle(DesktopStore store,SharedPreferences.Editor edit,String id,JSONObject positions)throws java.io.IOException{
+        JSONObject rows=data(store),places=positions==null?null:positions.optJSONObject("desktops");Iterator<String> keys=rows.keys();
+        while(keys.hasNext()){String desk=keys.next();JSONObject row=rows.optJSONObject(desk);List<String> ids=DesktopStore.array(row.optJSONArray("shortcuts"));if(positions==null)ids.remove(id);else{int at=places==null?(desk.equals(current(store))?positions.optInt("shortcuts",-1):-1):places.optInt(desk,-1);if(at>=0&&!ids.contains(id)){if(ids.size()>=512)throw new java.io.IOException("The original desktop is full.");ids.add(Math.min(at,ids.size()),id);}}GadgetLayout.put(row,"shortcuts",new JSONArray(ids));}
+        edit.putString(KEY,rows.toString());JSONObject primary=rows.optJSONObject(first(store));if(primary!=null)edit.putString("shortcuts",primary.optJSONArray("shortcuts").toString());
+    }
+    static void dissolve(DesktopStore store,SharedPreferences.Editor edit,String id,List<String> members){JSONObject rows=data(store);Iterator<String> keys=rows.keys();while(keys.hasNext()){JSONObject row=rows.optJSONObject(keys.next());List<String> ids=DesktopStore.array(row.optJSONArray("shortcuts"));int at=ids.indexOf(id);if(at<0)continue;ids.remove(at);for(String member:members)if(!ids.contains(member))ids.add(Math.min(at++,ids.size()),member);GadgetLayout.put(row,"shortcuts",new JSONArray(ids));}edit.putString(KEY,rows.toString());JSONObject primary=rows.optJSONObject(first(store));if(primary!=null)edit.putString("shortcuts",primary.optJSONArray("shortcuts").toString());}
+    static String portable(DesktopStore store){JSONObject rows=data(store);Iterator<String> keys=rows.keys();while(keys.hasNext()){JSONObject row=rows.optJSONObject(keys.next());Set<String> icons=new HashSet<>(DesktopStore.array(row.optJSONArray("shortcuts")));for(String axis:new String[]{"portrait","landscape"}){JSONObject points=row.optJSONObject(axis);if(points==null)continue;Iterator<String> ids=points.keys();while(ids.hasNext())if(!icons.contains(ids.next()))ids.remove();}}return rows.toString();}
+    static void validate(String text,JSONObject metadata,JSONObject folders)throws JSONException{
+        if(text.length()>2*1024*1024)throw new JSONException("Desktop layouts are too large");JSONObject rows=new JSONObject(text);JSONArray desks=metadata.getJSONArray("desktops");if(rows.length()!=desks.length())throw new JSONException("Desktop layouts do not match the desktop list");
+        for(int i=0;i<desks.length();i++){JSONObject row=rows.getJSONObject(desks.getJSONObject(i).getString("id"));JSONArray icons=row.getJSONArray("shortcuts");if(icons.length()>512)throw new JSONException("Too many desktop shortcuts");Set<String> seen=new HashSet<>();for(int j=0;j<icons.length();j++){Object id=icons.get(j);if(!(id instanceof String)||!seen.add((String)id)||!DesktopBackup.shortcut((String)id,folders,true))throw new JSONException("Invalid desktop shortcut");}
+            for(String axis:new String[]{"portrait","landscape"}){JSONObject points=row.getJSONObject(axis);if(points.length()>512)throw new JSONException("Too many icon positions");Iterator<String> keys=points.keys();while(keys.hasNext()){String id=keys.next();JSONObject point=points.getJSONObject(id);if(!DesktopBackup.shortcut(id,folders,true))throw new JSONException("Invalid positioned shortcut");Object x=point.get("x"),y=point.get("y");if(!(x instanceof Number)||!(y instanceof Number)||!Double.isFinite(((Number)x).doubleValue())||!Double.isFinite(((Number)y).doubleValue())||point.getDouble("x")<0||point.getDouble("x")>1||point.getDouble("y")<0||point.getDouble("y")>100000)throw new JSONException("Invalid icon position");}}
+        }
+    }
+    private TenDesktopItems(){}
+}

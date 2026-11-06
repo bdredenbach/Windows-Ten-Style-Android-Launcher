@@ -12,10 +12,10 @@ final class DesktopIconGrid extends ViewGroup {
     private String key;
     private int tileWidth,tileHeight,preferredWidth,preferredHeight,viewportHeight,plannedX,plannedY;
     private final List<Rect> cutouts=new ArrayList<>(),positions=new ArrayList<>();
-    DesktopIconGrid(Context context,DesktopStore store,String orientation){super(context);this.store=store;key="desktop_positions_"+orientation;setLayerType(LAYER_TYPE_SOFTWARE,null);}
-    void orientation(String orientation){key="desktop_positions_"+orientation;requestLayout();}
-    private JSONObject saved(){try{return new JSONObject(store.prefs.getString(key,"{}"));}catch(JSONException|ClassCastException ex){return new JSONObject();}}
-    void clearPositions(){store.prefs.edit().remove(key).apply();requestLayout();}
+    DesktopIconGrid(Context context,DesktopStore store,String orientation){super(context);this.store=store;key=orientation;setLayerType(LAYER_TYPE_SOFTWARE,null);}
+    void orientation(String orientation){key=orientation;requestLayout();}
+    private JSONObject saved(){return TenDesktopItems.positions(store,key);}
+    void clearPositions(){TenDesktopItems.positions(store,key,new JSONObject());requestLayout();}
     void configure(int width,int height,List<Rect> exclusions){if(preferredWidth==width&&preferredHeight==height&&cutouts.equals(exclusions))return;preferredWidth=width;preferredHeight=height;cutouts.clear();for(Rect r:exclusions)cutouts.add(new Rect(r));requestLayout();}
     int cellWidth(){return Math.max(1,tileWidth);}
     int cellHeight(){return Math.max(1,tileHeight);}
@@ -28,7 +28,7 @@ final class DesktopIconGrid extends ViewGroup {
         if(store.prefs.getBoolean("layout_locked",false))return;
         Rect target=at(x,y,getWidth(),Math.max(viewportHeight,getHeight()),store.prefs.getBoolean("snap_desktop",true));
         if(blocked(target))return;
-        JSONObject all=saved(),point=new JSONObject();for(int i=0;i<getChildCount();i++){View child=getChildAt(i);String other=String.valueOf(child.getTag());if(all.has(other))continue;JSONObject previous=new JSONObject();GadgetLayout.put(previous,"x",DesktopGeometry.fraction(child.getLeft(),getWidth()-tileWidth));GadgetLayout.put(previous,"y",child.getTop()/getResources().getDisplayMetrics().density);GadgetLayout.put(all,other,previous);}GadgetLayout.put(point,"x",DesktopGeometry.fraction(target.left,getWidth()-tileWidth));GadgetLayout.put(point,"y",target.top/getResources().getDisplayMetrics().density);GadgetLayout.put(all,id,point);store.prefs.edit().putString(key,all.toString()).apply();requestLayout();
+        JSONObject all=saved(),point=new JSONObject();for(int i=0;i<getChildCount();i++){View child=getChildAt(i);String other=String.valueOf(child.getTag());if(all.has(other))continue;JSONObject previous=new JSONObject();GadgetLayout.put(previous,"x",DesktopGeometry.fraction(child.getLeft(),getWidth()-tileWidth));GadgetLayout.put(previous,"y",child.getTop()/getResources().getDisplayMetrics().density);GadgetLayout.put(all,other,previous);}GadgetLayout.put(point,"x",DesktopGeometry.fraction(target.left,getWidth()-tileWidth));GadgetLayout.put(point,"y",target.top/getResources().getDisplayMetrics().density);GadgetLayout.put(all,id,point);TenDesktopItems.positions(store,key,all);requestLayout();
     }
     void swapPositions(String moving,String target){
         View a=null,b=null;for(int i=0;i<getChildCount();i++){View v=getChildAt(i);if(moving.equals(v.getTag()))a=v;if(target.equals(v.getTag()))b=v;}

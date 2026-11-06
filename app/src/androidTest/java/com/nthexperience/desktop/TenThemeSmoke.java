@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /** Branding, real preset application, portable themes and Run integration. */
-public final class TenThemeSmoke extends Instrumentation {
+public class TenThemeSmoke extends Instrumentation {
     MainActivity home;View root;DesktopStore store;
     @Override public void onCreate(Bundle args){super.onCreate(args);start();}
     @Override public void onStart(){Bundle result=new Bundle();try{

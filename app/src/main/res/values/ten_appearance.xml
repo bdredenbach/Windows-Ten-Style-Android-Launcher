@@ -1,0 +1,26 @@
+<resources>
+    <item type="id" name="ten_appearance_binding"/>
+    <item type="id" name="ten_appearance_original"/>
+    <item type="id" name="ten_appearance_preserve"/>
+    <style name="TenDarkControls">
+        <item name="android:colorBackground">#202020</item>
+        <item name="android:colorForeground">#F2F2F2</item>
+        <item name="android:textColorPrimary">#F2F2F2</item>
+        <item name="android:textColorSecondary">#CCCCCC</item>
+        <item name="android:colorControlNormal">#CCCCCC</item>
+        <item name="android:colorControlHighlight">#3378A8D0</item>
+        <item name="android:popupMenuStyle">@style/TenDarkPopupMenu</item>
+    </style>
+    <style name="TenLightControls">
+        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:colorForeground">#18232C</item>
+        <item name="android:textColorPrimary">#18232C</item>
+        <item name="android:textColorSecondary">#666666</item>
+        <item name="android:colorControlNormal">#666666</item>
+        <item name="android:colorControlHighlight">#330078D7</item>
+        <item name="android:popupMenuStyle">@style/AeroPopupMenu</item>
+    </style>
+    <style name="TenDarkPopupMenu" parent="android:style/Widget.Material.PopupMenu">
+        <item name="android:popupBackground">#292929</item>
+    </style>
+</resources>

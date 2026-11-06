@@ -79,7 +79,7 @@ final class SevenThemes extends GridLayout {
         void apply(DesktopStore store){
             android.content.SharedPreferences.Editor edit=store.prefs.edit();
             DesktopBackgrounds.choose(edit,backgrounds,wallpaper);
-            edit.putString("ten_shell_style","Aero").putInt("ten_accent",AeroGlass.TINTS[color]).putBoolean("ten_light",false).putBoolean("ten_transparency",glass).putBoolean("ten_accent_shell",false).putBoolean("ten_accent_titles",false).putInt("aero_color",color).putBoolean("aero_transparency",glass).putString(DesktopSounds.SCHEME,sound()).apply();
+            edit.putBoolean("ten_apps_dark",false).putString("ten_shell_style","Aero").putInt("ten_accent",AeroGlass.TINTS[color]).putBoolean("ten_light",false).putBoolean("ten_transparency",glass).putBoolean("ten_accent_shell",false).putBoolean("ten_accent_titles",false).putInt("aero_color",color).putBoolean("aero_transparency",glass).putString(DesktopSounds.SCHEME,sound()).apply();
         }
     }
 }
