@@ -28,6 +28,7 @@ import org.json.*;
 @androidx.media3.common.util.UnstableApi
 public final class MainActivity extends Activity implements StartMenu.Actions {
     private DesktopStore store;private TenDesktops tenDesktops;
+    private LinearLayout tenNotaButton;
     private TenTaskView tenTasks;private TenActionCenter tenActions;private TenNewsFlyout tenNews;private LinearLayout newsButton;private TextView newsText;
     private String layoutKey;
     private JSONObject pausedSession;
@@ -53,8 +54,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     private final Handler main=new Handler(Looper.getMainLooper());
     private final Map<String,AppCatalog.Entry> entries=new LinkedHashMap<>();
     private final Map<String,DesktopWindow> windows=new LinkedHashMap<>();
-    private final Map<String,DesktopWindow> desktopHidden=new LinkedHashMap<>(),shakeHidden=new LinkedHashMap<>();
-    private DesktopWindow shakeOwner;
+    private final Map<String,DesktopWindow> desktopHidden=new LinkedHashMap<>();
     private DesktopContextMenu jumpMenu;
     private final Map<AeroGlass,List<DesktopWindow>> taskProgressSurfaces=new LinkedHashMap<>();
     private BrowserPanel downloadBrowser;
@@ -102,6 +102,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         super.onCreate(saved);TenAppearance.context(this);store=new DesktopStore(this);store.migrateDesktop();if(!store.prefs.contains("ten_apps_dark"))store.prefs.edit().putBoolean("ten_apps_dark",!TenThemes.aero(store.prefs)&&(store.prefs.getInt("wallpaper",11)==13||store.prefs.getInt("wallpaper",11)==14)).apply();TenAppearance.context(this);store.prefs.registerOnSharedPreferenceChangeListener(tenShellPrefs);tenDesktops=new TenDesktops(store,windows,this::desktopChangedTen);
         if(!store.prefs.getBoolean("ten_initialized",false)){store.prefs.edit().putBoolean("ten_initialized",true).putInt("wallpaper",11).apply();store.startPins(Arrays.asList("@nota","@browser","@files","@calendar","@photos","@settings"));}
         if(!store.prefs.getBoolean("ten_v2_defaults",false)){List<String> pins=new ArrayList<>(store.quickLaunch());if(!pins.contains("@nota")&&pins.size()<DesktopStore.MAX_QUICK)pins.add("@nota");store.quickLaunch(pins);store.prefs.edit().putBoolean("ten_v2_defaults",true).apply();}
+        if(!store.prefs.getBoolean("ten_v13_taskbar_defaults",false))store.prefs.edit().putBoolean("taskbar_static",false).putBoolean("ten_v13_taskbar_defaults",true).apply();
         if(!store.prefs.getBoolean("seven_taskbar_grouping_set",false))store.prefs.edit().putString("taskbar_grouping","Always").putBoolean("seven_taskbar_grouping_set",true).apply();
         storageSetup=new StorageSetup(this);storageAllowed=StorageAccess.has(this);restoreStorageSetup=saved!=null&&saved.getBoolean("storage_setup_open");layoutKey=getResources().getConfiguration().orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE?"landscape":"portrait";
         if(saved!=null){
@@ -189,6 +190,10 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         String searchMode=store.prefs.getString("ten_search_mode","Auto");if(!searchMode.equals("Hidden")){boolean box=searchMode.equals("Auto")&&getResources().getConfiguration().screenWidthDp>=900;View searchButton;if(box){LinearLayout field=new LinearLayout(this);field.setGravity(Gravity.CENTER_VERTICAL);field.setBackgroundColor(0xfff2f2f2);TenStyle.Glyph symbol=new TenStyle.Glyph(this,"search",Aero.INK);field.addView(symbol,new LinearLayout.LayoutParams(dp(36),dp(38)));TextView hint=Aero.text(this,"Type here to search",12,0xff555555);field.addView(hint);searchButton=field;}else searchButton=new TenStyle.Glyph(this,"search",TenStyle.text(this));searchButton.setContentDescription("Search");searchButton.setFocusable(true);if(!box){searchButton.setPadding(dp(6),dp(12),dp(6),dp(12));searchButton.setBackground(TenStyle.hover(this,Color.TRANSPARENT));}searchButton.setTooltipText("Search");searchButton.setOnClickListener(v->open("@search"));taskbar.addView(searchButton,new LinearLayout.LayoutParams(dp(box?220:36),dp(48)));}
         TenStyle.Glyph taskViewButton=new TenStyle.Glyph(this,"taskview",TenStyle.text(this));taskViewButton.setContentDescription("Task View");taskViewButton.setPadding(dp(6),dp(12),dp(6),dp(12));taskViewButton.setTooltipText("Task View");taskViewButton.setFocusable(true);taskViewButton.setBackground(TenStyle.hover(this,Color.TRANSPARENT));taskViewButton.setOnClickListener(v->open("@taskview"));taskbar.addView(taskViewButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
 
+
+        tenNotaButton=taskButton("@nota","Nth Nota",false);tenNotaButton.setTag(R.id.taskbar_order_key,"@nota");tenNotaButton.setContentDescription("Open Nth Nota");tenNotaButton.setTooltipText("Nth Nota");tenNotaButton.setOnClickListener(v->{DesktopWindow nota=windows.get("@nota");if(nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing())nota.minimize();else open("@nota");});taskbar.addView(tenNotaButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
+        ContextMenus.bind(tenNotaButton,(x,y)->{DesktopContextMenu menu=new DesktopContextMenu(this,"Nth Nota taskbar menu");menu.item("Open Nth Nota","notes",()->open("@nota"));DesktopWindow nota=windows.get("@nota");if(nota!=null)menu.item("Close Nth Nota","close",nota::closeWindow);ContextMenus.show(menu,tenNotaButton,x,y);});
+
         HorizontalScrollView strip=new HorizontalScrollView(this){
             private float downX,downY;
             @Override public boolean onInterceptTouchEvent(MotionEvent event){
@@ -216,7 +221,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(newsButton==null)return;String mode=store.prefs.getString("ten_news_mode","Auto");newsButton.setVisibility(mode.equals("Hidden")?View.GONE:View.VISIBLE);boolean wide=getResources().getConfiguration().screenWidthDp>=600;newsText.setVisibility(!mode.equals("Icon")&&wide?View.VISIBLE:View.GONE);String caption="News";try{WeatherClient.Snapshot snapshot=WeatherClient.Snapshot.parse(store.prefs.getString("weather_json",""));boolean f=store.prefs.getBoolean("weather_f",Locale.getDefault().getCountry().equals("US"));caption=snapshot.temperature(f)+"°"+(wide?"  "+snapshot.condition():"");if(!mode.equals("Icon"))newsText.setVisibility(View.VISIBLE);}catch(Exception ignored){JSONArray articles=FeedClient.items(store);if(articles.length()>0)caption="Top stories";}newsText.setText(caption);newsText.setMaxWidth(dp(150));newsButton.setTooltipText("News and interests · "+caption);
     }
     private void newsMenu(View anchor,float x,float y){DesktopContextMenu menu=new DesktopContextMenu(this,"News and interests options");for(String mode:new String[]{"Auto","Icon","Hidden"})menu.item((mode.equals(store.prefs.getString("ten_news_mode","Auto"))?"✓  ":"")+(mode.equals("Auto")?"Show icon and text":mode.equals("Icon")?"Show icon only":"Turn off"),"news",()->{store.prefs.edit().putString("ten_news_mode",mode).apply();updateNewsChip();});menu.separator();menu.item((store.prefs.getBoolean("ten_news_hover",false)?"✓  ":"")+"Open on hover","news",()->store.prefs.edit().putBoolean("ten_news_hover",!store.prefs.getBoolean("ten_news_hover",false)).apply());menu.item("Open news and interests","news",()->open("@news"));ContextMenus.show(menu,anchor,x,y);}
-    private android.graphics.PointF taskAnchor(String id){int[] host=new int[2];workspace.getLocationOnScreen(host);for(int i=0;i<taskItems.getChildCount();i++){View button=taskItems.getChildAt(i);String key=TaskbarReorder.key(button);if(id.equals(key)||(folderTask(id,windows.get(id))&&"@files".equals(key))){int[] point=new int[2];button.getLocationOnScreen(point);if(point[0]>=host[0]&&point[0]<host[0]+workspace.getWidth())return new android.graphics.PointF(point[0]-host[0]+button.getWidth()/2f,point[1]-host[1]+button.getHeight()/2f);}}return new android.graphics.PointF(dp(40),workspace.getHeight()+dp(24));}
+    private android.graphics.PointF taskAnchor(String id){int[] host=new int[2];workspace.getLocationOnScreen(host);if(id.equals("@nota")&&tenNotaButton!=null){int[] p=new int[2];tenNotaButton.getLocationOnScreen(p);return new android.graphics.PointF(p[0]-host[0]+tenNotaButton.getWidth()/2f,p[1]-host[1]+tenNotaButton.getHeight()/2f);}for(int i=0;i<taskItems.getChildCount();i++){View button=taskItems.getChildAt(i);String key=TaskbarReorder.key(button);if(id.equals(key)||(folderTask(id,windows.get(id))&&"@files".equals(key))){int[] point=new int[2];button.getLocationOnScreen(point);if(point[0]>=host[0]&&point[0]<host[0]+workspace.getWidth())return new android.graphics.PointF(point[0]-host[0]+button.getWidth()/2f,point[1]-host[1]+button.getHeight()/2f);}}return new android.graphics.PointF(dp(40),workspace.getHeight()+dp(24));}
     void nota(TenNotaContext context){
         if(context.text.isEmpty()){open("@nota");return;}DesktopWindow existing=windows.get("@nota");Runnable load=()->{open("@nota");DesktopWindow tool=windows.get("@nota");if(tool!=null&&tool.body instanceof TenNotaPanel)((TenNotaPanel)tool.body).context(context);};
         if(existing!=null&&existing.getParent()!=null&&existing.body instanceof TenNotaPanel&&!((TenNotaPanel)existing.body).input.getText().toString().isEmpty())Aero.dialog(this).setTitle("Bring text into Nth Nota?").setMessage("Replace the current composer with the passage from "+context.title+"? Your source is kept.").setPositiveButton("Use passage",(d,w)->load.run()).setNegativeButton("Cancel",null).show();else load.run();
@@ -276,7 +281,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         List<String> taskIds=new ArrayList<>();
         Set<String> explorerIds=new HashSet<>();
         for(Map.Entry<String,DesktopWindow> item:windows.entrySet())if(item.getValue().getParent()!=null){
-            taskIds.add(item.getKey());
+            if(!item.getKey().equals("@nota"))taskIds.add(item.getKey());
             if(folderTask(item.getKey(),item.getValue()))explorerIds.add(item.getKey());
         }
         List<String> external=new ArrayList<>();
@@ -287,7 +292,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         boolean fit=store.prefs.getBoolean("taskbar_static",false);
         boolean showLabels=store.prefs.getBoolean("taskbar_show_labels",false);
         int buttonWidth=dp(showLabels?152:48), gap=0;
-        List<String> pins=store.quickLaunch();
+        List<String> pins=new ArrayList<>(store.quickLaunch());pins.remove("@nota");
         Map<String,LinearLayout> buttons=new LinkedHashMap<>();
         int viewport=taskViewportWidth>0?taskViewportWidth:dp(240);
         int taskRoom=viewport;
@@ -381,6 +386,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             if(taskStrip.getScrollX()!=0)taskStrip.scrollTo(0,0);
         }
 
+        if(tenNotaButton!=null){DesktopWindow nota=windows.get("@nota");boolean active=nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing();AeroGlass surface=new AeroGlass(wallpaper,AeroGlass.TASKBUTTON);surface.active(active);surface.idle(nota==null);tenNotaButton.setBackground(surface);tenNotaButton.setSelected(active);tenNotaButton.setContentDescription(nota==null?"Open Nth Nota":(active?"Minimize ":"Restore ")+"Nth Nota");}
         desktopHidden.entrySet().removeIf(item->item.getValue().getParent()==null||windows.get(item.getKey())!=item.getValue());if(desktopToggle!=null){String hint=desktopHidden.isEmpty()?"Show desktop":"Restore desktop windows";desktopToggle.setContentDescription(hint);desktopToggle.setTooltipText(hint+". Hold to peek.");}
         main.removeCallbacks(taskProgressTick);
         if(!taskProgressSurfaces.isEmpty())main.post(taskProgressTick);
@@ -776,7 +782,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case FILE_SEARCH:open("start-search:"+Uri.encode(action.value));return "Searching linked files";
             case WEBSITE:if(BrowserUrls.web(action.value)){open("favorite-web:"+action.value);return "Opening website";}return "That website address is unavailable";
             case DESKTOP:showDesktop();return "Desktop shown; restore windows from the taskbar";
-            case NEW_DESKTOP:String id=tenDesktops.create();if(id==null)return "Desktop limit reached. Use Task View to manage desktops.";tenDesktops.select(id);return "Created "+tenDesktops.name();
+            case NEW_DESKTOP:String previous=tenDesktops.current();String id=tenDesktops.create();if(id==null)return "Desktop limit reached. Use Task View to manage desktops.";tenDesktops.select(id);showTenTasks();tenTasks.createdGuide(previous,id);return "Created "+tenDesktops.name()+". Task View shows how to return to your previous desktop.";
             case NEXT_DESKTOP:case PREVIOUS_DESKTOP:String before=tenDesktops.current();tenDesktops.adjacent(action.kind==TenNotaActions.Kind.NEXT_DESKTOP?1:-1);return before.equals(tenDesktops.current())?"No desktop in that direction. Open Task View to create one.":"Switched to "+tenDesktops.name();
             case OPEN:String title=action.label.replaceFirst("^Open ","");ComponentName component=ComponentName.unflattenFromString(action.value);if(component!=null){if(!launchInstalledApp(component))return "Could not open "+title+". The app may have been removed or disabled.";}else open(action.value);return "Opening "+title;
             default:return "This action is unavailable";
@@ -887,23 +893,10 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     private void shake(DesktopWindow owner){
         if(recordableDesktop())steps.record("Toggled Aero Shake");
         previews.dismiss();
-        if(shakeOwner==owner&&!shakeHidden.isEmpty()){
-            for(DesktopWindow window:new ArrayList<>(shakeHidden.values()))
-                if(window.getParent()==workspace&&window.getVisibility()!=View.VISIBLE)window.restore();
-            shakeHidden.clear();
-            shakeOwner=null;
-            owner.restore();
-            return;
-        }
-        shakeHidden.clear();
-        shakeOwner=owner;
-        for(DesktopWindow window:orderedWindows()){
-            if(window==owner||window.getVisibility()!=View.VISIBLE||window.minimizing())continue;
-            shakeHidden.put(window.toolId,window);
-            window.dismissSystemMenu();
-            window.settle();
-            window.setVisibility(View.GONE);
-        }
+        List<DesktopWindow> others=new ArrayList<>();boolean visible=false;
+        for(DesktopWindow window:orderedWindows())if(window!=owner){others.add(window);visible|=window.getVisibility()==View.VISIBLE&&!window.minimizing();}
+        if(visible){for(DesktopWindow window:others){window.dismissSystemMenu();window.settle();window.setVisibility(View.GONE);}}
+        else for(DesktopWindow window:others)window.restore();
         owner.restore();
     }
     private List<DesktopWindow> orderedWindows(){List<DesktopWindow> result=new ArrayList<>();for(int i=0;i<workspace.getChildCount();i++)if(workspace.getChildAt(i) instanceof DesktopWindow&&windows.containsValue(workspace.getChildAt(i)))result.add((DesktopWindow)workspace.getChildAt(i));return result;}

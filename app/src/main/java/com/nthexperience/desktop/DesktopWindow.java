@@ -368,11 +368,11 @@ final class DesktopWindow extends LinearLayout {
     }
 
     private boolean detectShake(float x,float y,long time){
-        if(time-shakeTime>650||Math.abs(y-downY)>Aero.dp(getContext(),36)){
+        if(time-shakeTime>1200||Math.abs(y-downY)>Aero.dp(getContext(),96)){
             shakeX=x;shakeTime=time;shakeDirection=0;shakeStrokes=0;return false;
         }
         float distance=x-shakeX;
-        if(Math.abs(distance)<Aero.dp(getContext(),40))return false;
+        if(Math.abs(distance)<Aero.dp(getContext(),26))return false;
         int direction=distance>0?1:-1;
         if(direction==shakeDirection)return false;
         shakeX=x;
