@@ -9,6 +9,8 @@ final class AeroCheck extends Drawable {
     boolean appThemed;private final Context context;private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float density;
     private final boolean radio;
+    private boolean previousDark;private int previousAccent;
+    void appearance(){boolean dark=TenAppearance.dark(context);int accent=TenAppearance.accent(context);if(!appThemed||dark!=previousDark||accent!=previousAccent){appThemed=true;previousDark=dark;previousAccent=accent;invalidateSelf();}}
     AeroCheck(Context c,boolean radio){context=c;density=c.getResources().getDisplayMetrics().density;this.radio=radio;}
     @Override public int getIntrinsicWidth(){return Math.round(23*density);}
     @Override public int getIntrinsicHeight(){return Math.round(20*density);}

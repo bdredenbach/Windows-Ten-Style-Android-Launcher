@@ -4,7 +4,7 @@ import android.app.*;
 import android.content.*;
 import android.content.pm.ActivityInfo;
 import android.graphics.*;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.*;
 import android.os.*;
 import android.view.*;
 import android.widget.*;
@@ -30,17 +30,25 @@ public final class TenAccentSmoke extends TenThemeSmoke {
                 for(int i=0;i<AeroGlass.TINTS.length;i++)tryOn("Aero "+AeroGlass.COLOR_NAMES[i],AeroGlass.TINTS[i],dark,orientation,i);
             }
         }
-        scrollAndReopen();calculator();saveTable();output.putString("stream","PASS: "+combinations+" accent/app-mode/orientation combinations (24 named colors plus eight Aero tints), real folder labels and controls, repeated apply identity and contrast, literal swatches, first-draw cells while scrolling, folder reopen/context menu, portrait app list with tiles, calculator layout/memory/arithmetic/reopen and invalid backup rejection\n");finish(Activity.RESULT_OK,output);
+        scrollAndReopen();calculator();saveTable();output.putString("stream","PASS: "+combinations+" accent/app-mode/orientation combinations (24 named colors plus eight Aero tints), real folder labels and controls with actual toolbar-surface contrast, repeated apply identity and contrast, literal swatches, first-draw cells while scrolling, folder reopen/context menu, portrait app list with tiles, calculator layout/memory/arithmetic/reopen and invalid backup rejection\n");finish(Activity.RESULT_OK,output);
     }catch(Throwable error){try{saveTable();shot("ten9-failure");}catch(Exception ignored){}output.putString("stream","FAIL: "+android.util.Log.getStackTraceString(error));finish(Activity.RESULT_CANCELED,output);}}
     void tryOn(String name,int color,boolean dark,int orientation,int tint)throws Exception{
         ui(()->{store.prefs.edit().putBoolean("ten_apps_dark",dark).putBoolean("ten_light",false).putString("ten_shell_style",tint<0?"Ten":"Aero").apply();home.applyTenAppearance();home.open("ten-setting:colors");TenSettings settings=(TenSettings)windows().get("@settings").body;View choice=TenSmoke.description(settings,tint<0?"Accent color "+Integer.toHexString(color):"Aero glass tint: "+AeroGlass.COLOR_NAMES[tint]);check(choice!=null,"Real color choice exists: "+name);choice.performClick();check(TenStyle.accent(home)==color,"Chosen literal accent retained");
             if(tint<0){View sample=TenSmoke.description(settings,"Accent sample "+Integer.toHexString(color));check(sample!=null&&sample.getBackground() instanceof ColorDrawable&&((ColorDrawable)sample.getBackground()).getColor()==color,"Swatch retains real RGB");}
             home.open(folderId);windows().get(folderId).maximize();TenAppearance.apply(folder);
         });waitForIdleSync();
-        final int[] labels={0};ui(()->{labels[0]=labels(folder);check(labels[0]>0,"Visible shortcut labels exist");EditText note=(EditText)TenSmoke.description(windows().get("@notes"),"Notepad text");check(TenAppearance.contrast(note.getCurrentTextColor(),TenAppearance.background(home))>=4.5,"Notepad stays readable");TextView link=(TextView)TenSmoke.description(folder,"Organize");if(link!=null)check(TenAppearance.contrast(link.getCurrentTextColor(),dark?0xff262626:0xffeeeeee)>=4.5,"Semantic commands remain readable");StartMenu start=TenSmoke.find(root,StartMenu.class);TenSmoke.description(root,"Start menu").performClick();});waitForIdleSync();
+        final int[] labels={0};ui(()->{labels[0]=labels(folder);check(labels[0]>0,"Visible shortcut labels exist");EditText note=(EditText)TenSmoke.description(windows().get("@notes"),"Notepad text");check(TenAppearance.contrast(note.getCurrentTextColor(),TenAppearance.background(home))>=4.5,"Notepad stays readable");for(int i=0;i<3;i++)chrome(folder.getChildAt(i),new int[]{TenAppearance.background(home)});StartMenu start=TenSmoke.find(root,StartMenu.class);TenSmoke.description(root,"Start menu").performClick();});waitForIdleSync();
         ui(()->{StartMenu start=TenSmoke.find(root,StartMenu.class);Rect apps=new Rect(),tiles=new Rect(),bounds=new Rect();check(start.getGlobalVisibleRect(bounds)&&start.apps.getGlobalVisibleRect(apps)&&start.tiles.getGlobalVisibleRect(tiles)&&apps.right<=tiles.left&&tiles.right<=bounds.right,"App list and tiles share Start in both orientations");check(TenAccent.contrast(TenStyle.text(home),TenStyle.surface(home))>=4.5,"Shell text stays readable");for(View tile:start.tileViews.values())for(int i=0;i<((ViewGroup)tile).getChildCount();i++){View child=((ViewGroup)tile).getChildAt(i);if(child instanceof TextView)check(TenAccent.contrast(((TextView)child).getCurrentTextColor(),0xff3b3b3b)>=4.5,"Tile labels keep their own foreground");}start.hide();});
         if((color==0xff107c10||color==0xffffffff||color==0xff000000)&&dark)shot("ten9-"+(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"portrait-":"landscape-")+name.toLowerCase(Locale.ROOT));
         combinations++;table.append(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"Portrait":"Landscape").append('\t').append(dark?"Dark":"Light").append('\t').append(name).append('\t').append(Integer.toHexString(color)).append('\t').append(labels[0]).append("\tPASS\n");
+    }
+    void chrome(View view,int[] inherited){
+        if(view.getVisibility()!=View.VISIBLE)return;
+        Drawable drawable=view.getBackground();if(drawable instanceof StateListDrawable)drawable=drawable.getCurrent();
+        int[] colors=drawable instanceof GradientDrawable?((GradientDrawable)drawable).getColors():drawable instanceof ColorDrawable?new int[]{((ColorDrawable)drawable).getColor()}:null;
+        int[] surface=inherited;if(colors!=null&&colors.length>0&&Color.alpha(colors[0])==255)surface=colors;
+        if(view instanceof TextView&&view.isEnabled())for(int color:surface)check(TenAppearance.contrast(((TextView)view).getCurrentTextColor(),color)>=4.5,"Chrome text contrasts with its actual rendered surface: "+((TextView)view).getText()+" on "+Integer.toHexString(color));
+        if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++)chrome(((ViewGroup)view).getChildAt(i),surface);
     }
     TextView label(View view){if(view instanceof TextView&&!((TextView)view).getText().toString().equals("⋮"))return(TextView)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){TextView found=label(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
     int labels(View view){int count=0;if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;CharSequence description=view.getContentDescription();if(description!=null&&description.toString().startsWith("Shortcut: ")){TextView label=label(group);check(label!=null,"Shortcut has a visible name");int expected=TenAppearance.foreground(home,Aero.INK);check(label.getCurrentTextColor()==expected,"Shortcut label has stable neutral text: "+label.getText());check(TenAppearance.contrast(label.getCurrentTextColor(),TenAppearance.background(home))>=4.5,"Shortcut contrast");android.content.res.ColorStateList colors=label.getTextColors();for(int n=0;n<5;n++)TenAppearance.apply(label);check(colors==label.getTextColors(),"Repeated theme passes keep the same text palette");count++;}for(int i=0;i<group.getChildCount();i++)count+=labels(group.getChildAt(i));}return count;}
