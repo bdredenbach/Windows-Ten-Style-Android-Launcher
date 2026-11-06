@@ -12,12 +12,13 @@ final class DesktopSettings extends LinearLayout {
     private final LinearLayout preview;private TextView grid;
     DesktopSettings(Context c,DesktopStore store,Runnable changed){
         super(c);this.store=store;this.changed=changed;setOrientation(VERTICAL);
-        section("Desktop layout");check("Snap desktop apps to grid","snap_desktop",true);check("Lock desktop layout","layout_locked",false);
-        section("Icon layout");HorizontalScrollView scroll=new HorizontalScrollView(c);scroll.setHorizontalScrollBarEnabled(false);scroll.setBackground(Aero.panel(c,0xff1b557e,0xff16394c,2,0xff7293a7));preview=new LinearLayout(c);preview.setGravity(Gravity.CENTER_VERTICAL);preview.setPadding(dp(8),dp(12),dp(8),dp(8));scroll.addView(preview);addView(scroll,new LayoutParams(-1,dp(142)));
+        section("Icon size and spacing");HorizontalScrollView scroll=new HorizontalScrollView(c);scroll.setHorizontalScrollBarEnabled(false);scroll.setBackground(Aero.panel(c,0xff1b557e,0xff16394c,2,0xff7293a7));preview=new LinearLayout(c);preview.setGravity(Gravity.CENTER_VERTICAL);preview.setPadding(dp(8),dp(12),dp(8),dp(8));scroll.addView(preview);
         slider(this,"Icon size","desktop_icon_percent",60,150,store.iconPercent(),"%",true);
+        slider(this,"Horizontal spacing","desktop_spacing_x",0,24,store.spacingX(),"",true);slider(this,"Vertical spacing","desktop_spacing_y",0,24,store.spacingY(),"",true);
+        addView(scroll,new LayoutParams(-1,dp(142)));
         check("Show desktop icon labels","desktop_labels",true);slider(this,"Label size","desktop_label_size",10,16,store.labelSize(),"",true);
         grid=Aero.button(c,"",this::gridDialog);grid.setContentDescription("Choose desktop grid");addView(grid,new LayoutParams(-1,dp(44)));gridLabel();hint("Portrait and landscape keep separate grids. Icons use the available desktop space.");
-        slider(this,"Horizontal spacing","desktop_spacing_x",0,24,store.spacingX(),"",true);slider(this,"Vertical spacing","desktop_spacing_y",0,24,store.spacingY(),"",true);
+        section("Desktop layout");check("Snap desktop apps to grid","snap_desktop",true);check("Lock desktop layout","layout_locked",false);
         TextView reset=Aero.button(c,"Restore default icon layout",()->{android.content.SharedPreferences.Editor e=store.prefs.edit();for(String key:new String[]{"desktop_icon_size","desktop_icon_percent","desktop_labels","desktop_label_size","desktop_spacing_x","desktop_spacing_y","desktop_columns_portrait","desktop_rows_portrait","desktop_columns_landscape","desktop_rows_landscape"})e.remove(key);e.apply();changed.run();View parent=(View)getParent();while(parent!=null&&!(parent instanceof VistaControlPanel))parent=parent.getParent() instanceof View?(View)parent.getParent():null;if(parent instanceof VistaControlPanel)((VistaControlPanel)parent).render();});addView(reset,new LayoutParams(-1,dp(44)));updatePreview();
     }
     @Override protected void onConfigurationChanged(Configuration configuration){super.onConfigurationChanged(configuration);gridLabel();}

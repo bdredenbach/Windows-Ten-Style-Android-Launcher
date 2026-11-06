@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'app/src/main/java/com/nthexperience/desktop/MainActivity.java'
+      - 'app/src/main/java/com/nthexperience/desktop/DesktopSettings.java'
+      - 'app/src/main/java/com/nthexperience/desktop/TenSettings.java'
+      - 'app/src/main/java/com/nthexperience/desktop/TenSettingsCatalog.java'
+      - 'checks/run-ten-taskbar-check.sh'
       - 'app/src/androidTest/java/com/nthexperience/desktop/TenInteractionSmoke.java'
       - '.github/workflows/taskbar-regression.yml'
   workflow_dispatch:
