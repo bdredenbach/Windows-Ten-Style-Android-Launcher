@@ -32,3 +32,5 @@ Normal Start now keeps the app list and pinned tiles side by side from 320 dp, w
 Final screenshot review caught pale Explorer menu and command strips in dark app mode. Theme panels used to update their gradient palette only inside `draw()`, so a retained hardware display list could keep a light background after its text had changed. Appearance passes now refresh the panel palette immediately and invalidate only when the mode, accent or finish changes. Check and radio drawables use the same change-driven invalidation. The accent runner checks each enabled toolbar label against the actual current gradient stops, rather than an assumed dark surface.
 
 Breadcrumb separators also use the regular foreground instead of a low-contrast blue-gray, in app folders and real-file Explorer.
+
+Accent text uses its real background gradient stops and interaction states, inheriting the parent surface when the control itself is transparent. It retains the selected hue as far as contrast permits, with independent foregrounds for flat and Aero surfaces. A surface-key cache keeps repeated appearance passes stable.

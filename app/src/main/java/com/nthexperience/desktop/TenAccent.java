@@ -11,5 +11,7 @@ final class TenAccent {
     static int on(int fill){return contrast(0xff000000,fill)>=contrast(0xffffffff,fill)?0xff000000:0xffffffff;}
     static int readable(int color,boolean dark){return readableOn(color,dark?0xff505050:0xffdddddd);}
     static int readableOn(int color,int surface){int target=on(surface);if(contrast(color,surface)>=4.5)return color;for(int i=1;i<=100;i++){int candidate=mix(color,target,i/100f);if(contrast(candidate,surface)>=4.5)return candidate;}return target;}
+    static int readableOn(int color,int[] surfaces){if(surfaces.length==0)return color;int target=minimumContrast(0xff000000,surfaces)>=minimumContrast(0xffffffff,surfaces)?0xff000000:0xffffffff;if(minimumContrast(color,surfaces)>=4.5)return color;for(int i=1;i<=100;i++){int candidate=mix(color,target,i/100f);if(minimumContrast(candidate,surfaces)>=4.5)return candidate;}return target;}
+    private static double minimumContrast(int color,int[] surfaces){double result=Double.MAX_VALUE;for(int surface:surfaces)result=Math.min(result,contrast(color,surface));return result;}
     private TenAccent(){}
 }
