@@ -23,4 +23,5 @@
     <style name="TenDarkPopupMenu" parent="android:style/Widget.Material.PopupMenu">
         <item name="android:popupBackground">#292929</item>
     </style>
+    <item type="id" name="ten_appearance_accent"/>
 </resources>

@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.9.0 — stable accent colors, a reference-style Calculator and portrait Start columns.** Adds 24 named accent choices, including white and black. Ordinary app-folder labels keep their normal readable foreground; semantic accent text uses a separate contrast-safe color. Dynamic adapter cells are themed before drawing and repeated passes retain stable text state. Calculator now has the large display, blue memory row, orange Clear, wide zero and tall green equals from the reference. Normal portrait Start displays apps beside tiles. See [0.9 behavior](docs/TEN_0_9_POLISH.md).
+
 **0.8.0 — desktop commands in Nth Nota and permanent split Settings.** Nota recognizes local requests to open Nth tools, installed apps and settings, search the web or linked files, and create/switch virtual desktops. Replies offer named action buttons; model output and imported writing never execute commands. Discover examples in the suggestion strip or ask “What can you do?”. Settings keeps a full-height category pane beside its page in portrait, landscape and narrow windows. Calculator is under Nth tools instead of Games. See [0.8 behavior](docs/TEN_0_8_COMMANDS.md).
 
 **0.7.0 — large news feeds and honest connection feedback.** Streams the first twelve RSS/Atom stories within a bounded decoded input limit, supports gzip/declared encodings, fixes immediate manual retry and preserves a working source when a new connection fails. Connect stays open for actionable errors. Includes TechRadar/BBC choices, cache/rate-limit/cancellation checks and live-feed probe evidence.
@@ -14,7 +16,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.8.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.9.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 
@@ -35,7 +37,7 @@ Ten installs alongside Seven and Vista. Android apps use Android tasks; Nth wind
 
 ## Build and checks
 
-Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs all eight Ten native suites on Android 11 and 16. APKs and screenshots are workflow artifacts. See the [0.8.0 validation record](docs/TEN_0_8_VALIDATION.md) for the successful run and tested scope.
+Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs all nine Ten native suites on Android 11 and 16. APKs and screenshots are workflow artifacts. See the [0.9.0 validation record](docs/TEN_0_9_VALIDATION.md) for the successful run and tested scope.
 
 `checks/TenTileLayoutCheck.java` exercises 9,600 mixed-size tile placements and opt-in rules. `checks/TenPolishCheck.java` adds 19,200 placements across narrow/wide groups, Settings catalog checks and writing/fallback policies. `TenSmoke` and `TenPolishSmoke` check the separate package, Start search and tile persistence, assistant opt-in and local save using a synthetic reply, Settings, Explorer ribbon, Task View, Action Center, backup and both orientations. `TenNotaActionsCheck` checks local app/settings resolution, ambiguity, command boundaries, searches and utility classification. `TenCommandsSmoke` checks actual split Settings, local action buttons, native browser/settings/app launch, source/reply boundaries and empty desktop creation. `TenShellSmoke` covers taskbar, News, contextual Nota and window transitions. `TenWorkspaceSmoke` covers legacy gadget flags in both orientations, shortcut/layout migration and isolation, desktop close/recovery, backup rejection, app palettes, content preservation and recreation. `TenThemeSmoke` covers N¹⁰ resources, visible theme cards, Ten/Aero application, saved/legacy themes, validated backup fields and Run. Native tests do not call the live AI endpoint. Fake-backend unit tests cover model preparation gating and late-reply cancellation; a separate synthetic live gateway check verifies cloud response.
 
