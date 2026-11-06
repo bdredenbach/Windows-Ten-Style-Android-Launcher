@@ -1,6 +1,6 @@
 # Nth Desktop Ten
 
-**0.16.0 — correct identity in the Usage Access guide.** The App info example uses the installed launcher's icon and app name instead of an embedded Seven screenshot. The example is responsive and keeps its Android Settings colors across launcher themes.
+**0.16.0 — correct identity in the Usage Access guide.** The App info example uses the installed launcher's icon and app name instead of an embedded Seven screenshot. The example is responsive and keeps its Android Settings colors across launcher themes. See [the guide fix and validation](docs/TEN_0_16_USAGE_GUIDE.md).
 
 **0.15.0 — Nota taskbar state and matching highlight size.** Closing Nota clears its running highlight, its next tap reopens it, and its fixed button now matches normal app-button bounds. See [the taskbar fix](docs/TEN_0_15_NOTA_TASKBAR.md).
 
