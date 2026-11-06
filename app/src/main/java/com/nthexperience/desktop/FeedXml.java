@@ -19,10 +19,15 @@ final class FeedXml {
         @Override public int read(byte[] bytes,int off,int length)throws IOException{int n=in.read(bytes,off,length);add(n);return n;}
     }
     static JSONArray parse(InputStream stream,String base,String contentType)throws Exception{
+        // HTML5's lowercase doctype is not XML. Recognize it before the XML parser
+        // reports a misleading syntax error; replay this small prefix unchanged.
+        if(contentType!=null&&contentType.toLowerCase(Locale.ROOT).matches("\\s*(text/html|application/xhtml\\+xml)(\\s*;.*)?"))throw new IOException("FEED_HTML");
+        PushbackInputStream input=new PushbackInputStream(stream,512);byte[] prefix=new byte[512];int count=input.read(prefix);if(count>0){input.unread(prefix,0,count);rejectHtml(new String(prefix,0,count,java.nio.charset.StandardCharsets.UTF_8));}
         XmlPullParser parser=parser();String charset=null;if(contentType!=null){Matcher m=Pattern.compile("(?i)charset\\s*=\\s*[\"']?([^;\\s\"']+)").matcher(contentType);if(m.find())charset=m.group(1);}
-        parser.setInput(stream,charset);return parse(parser,base);
+        parser.setInput(input,charset);return parse(parser,base);
     }
-    static JSONArray parse(String xml,String base)throws Exception{XmlPullParser parser=parser();parser.setInput(new StringReader(xml));return parse(parser,base);}
+    static JSONArray parse(String xml,String base)throws Exception{rejectHtml(xml);XmlPullParser parser=parser();parser.setInput(new StringReader(xml));return parse(parser,base);}
+    private static void rejectHtml(String prefix)throws IOException{if(Pattern.compile("(?is)^[\\s\\uFEFF]*(?:<\\?xml[^>]*>\\s*)?(?:<!doctype\\s+html(?:\\s|>)|<html(?:\\s|>))").matcher(prefix).find())throw new IOException("FEED_HTML");}
     private static XmlPullParser parser()throws Exception{XmlPullParser parser=XmlPullParserFactory.newInstance().newPullParser();parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES,true);parser.setFeature(XmlPullParser.FEATURE_PROCESS_DOCDECL,false);return parser;}
     private static int next(XmlPullParser parser)throws Exception{int event=parser.nextToken();if(event==XmlPullParser.DOCDECL)throw new IOException(parser.getText()!=null&&parser.getText().trim().toLowerCase(Locale.ROOT).startsWith("html")?"FEED_HTML":"FEED_DOCTYPE");return event;}
     private static JSONArray parse(XmlPullParser parser,String base)throws Exception{
