@@ -191,7 +191,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         TenStyle.Glyph taskViewButton=new TenStyle.Glyph(this,"taskview",TenStyle.text(this));taskViewButton.setContentDescription("Task View");taskViewButton.setPadding(dp(6),dp(12),dp(6),dp(12));taskViewButton.setTooltipText("Task View");taskViewButton.setFocusable(true);taskViewButton.setBackground(TenStyle.hover(this,Color.TRANSPARENT));taskViewButton.setOnClickListener(v->open("@taskview"));taskbar.addView(taskViewButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
 
 
-        tenNotaButton=taskButton("@nota","Nth Nota",false);tenNotaButton.setTag(R.id.taskbar_order_key,"@nota");tenNotaButton.setContentDescription("Open Nth Nota");tenNotaButton.setTooltipText("Nth Nota");tenNotaButton.setOnClickListener(v->{DesktopWindow nota=windows.get("@nota");if(nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing())nota.minimize();else open("@nota");});taskbar.addView(tenNotaButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
+        tenNotaButton=taskButton("@nota","Nth Nota",false);tenNotaButton.setTag(R.id.taskbar_order_key,"@nota");tenNotaButton.setContentDescription("Open Nth Nota");tenNotaButton.setTooltipText("Nth Nota");tenNotaButton.setOnClickListener(v->{boolean overview=(tenTasks!=null&&tenTasks.overlay!=null)||startMenu.getVisibility()==View.VISIBLE;if(tenTasks!=null)tenTasks.dismiss();startMenu.hide();previews.dismiss();if(tray!=null)tray.dismiss();if(tenNews!=null)tenNews.dismiss();DesktopWindow nota=windows.get("@nota");if(!overview&&nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing())nota.minimize();else open("@nota");});taskbar.addView(tenNotaButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
         ContextMenus.bind(tenNotaButton,(x,y)->{DesktopContextMenu menu=new DesktopContextMenu(this,"Nth Nota taskbar menu");menu.item("Open Nth Nota","notes",()->open("@nota"));DesktopWindow nota=windows.get("@nota");if(nota!=null)menu.item("Close Nth Nota","close",nota::closeWindow);ContextMenus.show(menu,tenNotaButton,x,y);});
 
         HorizontalScrollView strip=new HorizontalScrollView(this){
@@ -327,7 +327,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             };
             if(hasJumpList(target.toolId))ContextMenus.bindJumpList(button,(x,y)->showJumpList(button,target.toolId,x,y));
             else ContextMenus.bind(button,commands);
-            if(!grouped)button.setOnClickListener(v->{previews.dismiss();startMenu.hide();tray.dismiss();if(tenNews!=null)tenNews.dismiss();if(target.getVisibility()==View.VISIBLE&&!target.minimizing()&&target.active())target.minimize();else target.restore();});
+            if(!grouped)button.setOnClickListener(v->{boolean overview=tenTasks!=null&&tenTasks.overlay!=null;if(tenTasks!=null)tenTasks.dismiss();previews.dismiss();startMenu.hide();tray.dismiss();if(tenNews!=null)tenNews.dismiss();if(!overview&&target.getVisibility()==View.VISIBLE&&!target.minimizing()&&target.active())target.minimize();else target.restore();});
             previews.bindTask(button,members,mousePreviews,()->ContextMenus.centered(button,commands));
             LinearLayout.LayoutParams size=new LinearLayout.LayoutParams(showLabels&&grouped?dp(112):buttonWidth,dp(48));
             size.rightMargin=gap;
@@ -686,6 +686,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@run":return "Run";case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "News and interests";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "File Explorer";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
     }
     @Override public void open(String id){
+        if((id.equals("@taskview")||id.equals("@flip3d"))&&tenTasks!=null&&tenTasks.overlay!=null){tenTasks.dismiss();return;}
         if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();if(tenNews!=null&&!id.equals("@news"))tenNews.dismiss();
         if(id.equals("start-menu:")){showStart(false);return;}
         if(id.startsWith("app-info:")){launchSystem(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.fromParts("package",id.substring(9),null)));return;}
@@ -883,7 +884,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         desktopMenu.separator();for(String[] row:new String[][]{{"Task Manager","@taskmanager"},{"Settings","@settings"},{"File Explorer","@files"},{"Search","@search"},{"Run","@run"}})desktopMenu.item(row[0],"empty",()->open(row[1]));desktopMenu.separator();desktopMenu.submenu("Shut down or sign out","empty",()->open("@power"));desktopMenu.item("Desktop","empty",this::showDesktop);ContextMenus.show(desktopMenu,anchor,x,y);
     }
 
-    private void showStart(boolean search){if(tenNews!=null)tenNews.dismiss();if(previews!=null)previews.dismiss();if(tray!=null)tray.dismiss();startMenu.show(search);}
+    private void showStart(boolean search){if(tenTasks!=null)tenTasks.dismiss();if(tenNews!=null)tenNews.dismiss();if(previews!=null)previews.dismiss();if(tray!=null)tray.dismiss();startMenu.show(search);}
     private void showDesktop(){if(tenNews!=null)tenNews.dismiss();
         if(tray!=null)tray.dismiss();((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(workspace.getWindowToken(),0);startMenu.hide();
         if(!desktopHidden.isEmpty()){for(Map.Entry<String,DesktopWindow> item:new ArrayList<>(desktopHidden.entrySet())){DesktopWindow window=item.getValue();if(windows.get(item.getKey())==window&&window.getParent()!=null)window.restore();}desktopHidden.clear();}

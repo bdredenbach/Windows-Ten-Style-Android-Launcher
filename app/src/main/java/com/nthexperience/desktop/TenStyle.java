@@ -34,6 +34,7 @@ final class TenStyle {
                 case "account":case "accounts":canvas.drawCircle(16,10,5,p);canvas.drawArc(6,16,26,31,180,180,false,p);break;
                 case "document":case "clipboard":canvas.drawRect(8,5,24,27,p);for(int y=11;y<25;y+=5)canvas.drawLine(12,y,21,y,p);break;
                 case "picture":case "personalization":canvas.drawRect(5,7,27,25,p);canvas.drawCircle(22,12,2,p);path.reset();path.moveTo(6,24);path.lineTo(13,14);path.lineTo(19,21);path.lineTo(23,17);path.lineTo(27,23);canvas.drawPath(path,p);break;
+                case "sound":case "volume":path.reset();path.moveTo(4,12);path.lineTo(10,12);path.lineTo(16,7);path.lineTo(16,25);path.lineTo(10,20);path.lineTo(4,20);path.close();canvas.drawPath(path,p);canvas.drawArc(15,8,28,24,-65,130,false,p);canvas.drawArc(16,12,22,20,-65,130,false,p);break;
                 case "power":canvas.drawArc(6,6,26,27,-60,300,false,p);canvas.drawLine(16,3,16,16,p);break;
                 case "settings":canvas.drawCircle(16,16,7,p);canvas.drawCircle(16,16,2,p);for(int n=0;n<8;n++){double a=n*Math.PI/4;canvas.drawLine(16+8*(float)Math.cos(a),16+8*(float)Math.sin(a),16+12*(float)Math.cos(a),16+12*(float)Math.sin(a),p);}break;
                 case "network":canvas.drawArc(3,7,29,33,220,100,false,p);canvas.drawArc(8,12,24,28,220,100,false,p);canvas.drawArc(13,17,19,23,220,100,false,p);break;
