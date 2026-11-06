@@ -1,6 +1,6 @@
 # Nth Desktop Ten
 
-**0.17.0 — working desktop icon controls and discoverable Usage Access.** Icon size and spacing opens the existing live size, label, spacing and orientation-grid controls. Personalization → Taskbar includes Usage Access status and a setup link; Settings search finds it.
+**0.17.0 — working desktop icon controls and discoverable Usage Access.** Icon size and spacing opens the existing live controls, with size and spacing sliders first. Basic and advanced label/lock controls stay synchronized. Personalization → Taskbar includes Usage Access status and a setup link; Settings search finds it. See [the settings fix and validation](docs/TEN_0_17_SETTINGS.md).
 
 **0.16.0 — correct identity in the Usage Access guide.** The App info example uses the installed launcher's icon and app name instead of an embedded Seven screenshot. The example is responsive and keeps its Android Settings colors across launcher themes. See [the guide fix and validation](docs/TEN_0_16_USAGE_GUIDE.md).
 
