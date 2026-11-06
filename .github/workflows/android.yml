@@ -41,7 +41,7 @@ jobs:
         run: python3 checks/CheckTenManifest.py
       - uses: actions/upload-artifact@v4
         with:
-          name: Nth-Desktop-Ten-0.6.0-api-${{ matrix.api }}
+          name: Nth-Desktop-Ten-0.7.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Enable emulator acceleration
         run: |
@@ -71,5 +71,6 @@ jobs:
             ten-theme-smoke.txt
             ten-workspace-smoke.txt
             ten-theme-matrix-smoke.txt
+            ten-feed-smoke.txt
             app/build/test-results/testDebugUnitTest/
             screenshots/
