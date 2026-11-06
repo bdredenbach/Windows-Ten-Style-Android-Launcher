@@ -755,6 +755,19 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             Aero.dialog(this).setTitle("App unavailable").setMessage("This app may have been removed or disabled.").setPositiveButton("Remove shortcut",(d,w)->{List<String> ids=store.desktop();ids.remove(id);store.desktop(ids);renderDesktop();}).setNegativeButton("Keep",null).show();scanApps();
         }
     }
+    List<TenNotaActions.Target> notaAppTargets(){List<TenNotaActions.Target> apps=new ArrayList<>();for(AppCatalog.Entry app:entries.values())apps.add(new TenNotaActions.Target(store.name(app.id,app.label),app.id,app.label));return apps;}
+    String performNotaAction(TenNotaActions.Action action){
+        switch(action.kind){
+            case WEB_SEARCH:open("web-search:"+Uri.encode(action.value));return "Opening web search";
+            case FILE_SEARCH:open("start-search:"+Uri.encode(action.value));return "Searching linked files";
+            case WEBSITE:if(BrowserUrls.web(action.value)){open("favorite-web:"+action.value);return "Opening website";}return "That website address is unavailable";
+            case DESKTOP:showDesktop();return "Desktop shown; restore windows from the taskbar";
+            case NEW_DESKTOP:String id=tenDesktops.create();if(id==null)return "Desktop limit reached. Use Task View to manage desktops.";tenDesktops.select(id);return "Created "+tenDesktops.name();
+            case NEXT_DESKTOP:case PREVIOUS_DESKTOP:String before=tenDesktops.current();tenDesktops.adjacent(action.kind==TenNotaActions.Kind.NEXT_DESKTOP?1:-1);return before.equals(tenDesktops.current())?"No desktop in that direction. Open Task View to create one.":"Switched to "+tenDesktops.name();
+            case OPEN:open(action.value);return "Opening "+action.label.replaceFirst("^Open ","");
+            default:return "This action is unavailable";
+        }
+    }
     boolean runCommand(String value){String command=value.trim(),key=command.toLowerCase(Locale.ROOT);Map<String,String> aliases=new HashMap<>();aliases.put("notepad","@notes");aliases.put("calc","@gadget:calculator");aliases.put("calculator","@gadget:calculator");aliases.put("explorer","@files");aliases.put("control","@settings");aliases.put("settings","@settings");aliases.put("ms-settings:","@settings");aliases.put("taskmgr","@taskmanager");aliases.put("winver","ten-setting:about");aliases.put("nth nota","@nota");aliases.put("nota","@nota");aliases.put("news","@news");String target=aliases.get(key);if(target!=null){open(target);return true;}if(BrowserUrls.web(command)){open("favorite-web:"+command);return true;}if(key.startsWith("ms-settings:")&&key.substring(12).matches("[a-z-]{1,40}")){String page=key.substring(12);if(TenSettingsCatalog.page(page)!=null||!TenSettingsCatalog.first(page).equals("home")){open("ten-setting:"+page);return true;}}List<AppCatalog.Entry> matches=new ArrayList<>();for(AppCatalog.Entry app:entries.values())if(app.id.equals(command)||store.name(app.id,app.label).equalsIgnoreCase(command))matches.add(app);if(matches.size()==1){open(matches.get(0).id);return true;}if(matches.size()>1){String[] names=matches.stream().map(a->a.label+" · "+a.id).toArray(String[]::new);Aero.dialog(this).setTitle("Choose an app").setItems(names,(d,w)->open(matches.get(w).id)).show();return true;}return false;}
     @Override public void options(View anchor,String id){ContextMenus.centered(anchor,(x,y)->shortcutMenu(anchor,id,"desktop",x,y));}
     private void shortcutMenu(View anchor,String id,String source,float x,float y){

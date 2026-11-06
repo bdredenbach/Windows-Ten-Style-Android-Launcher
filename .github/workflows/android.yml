@@ -36,12 +36,14 @@ jobs:
           java -cp build/ten-checks com.nthexperience.desktop.TenTileLayoutCheck
           javac -d build/ten-checks app/src/main/java/com/nthexperience/desktop/TenTileLayout.java app/src/main/java/com/nthexperience/desktop/TenAiPolicy.java app/src/main/java/com/nthexperience/desktop/TenWritingPrompts.java app/src/main/java/com/nthexperience/desktop/TenSettingsCatalog.java checks/TenPolishCheck.java
           java -cp build/ten-checks com.nthexperience.desktop.TenPolishCheck
+          javac -d build/ten-checks app/src/main/java/com/nthexperience/desktop/TenSettingsCatalog.java app/src/main/java/com/nthexperience/desktop/TenNotaActions.java checks/TenNotaActionsCheck.java
+          java -cp build/ten-checks com.nthexperience.desktop.TenNotaActionsCheck
       - run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :fixture:assembleDebug --no-daemon
       - name: Check packaged runners and notification permission
         run: python3 checks/CheckTenManifest.py
       - uses: actions/upload-artifact@v4
         with:
-          name: Nth-Desktop-Ten-0.7.0-api-${{ matrix.api }}
+          name: Nth-Desktop-Ten-0.8.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Enable emulator acceleration
         run: |
@@ -72,5 +74,6 @@ jobs:
             ten-workspace-smoke.txt
             ten-theme-matrix-smoke.txt
             ten-feed-smoke.txt
+            ten-commands-smoke.txt
             app/build/test-results/testDebugUnitTest/
             screenshots/

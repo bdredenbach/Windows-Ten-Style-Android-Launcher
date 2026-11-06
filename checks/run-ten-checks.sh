@@ -3,7 +3,7 @@ set -euo pipefail
 launcher=com.nthexperience.desktop.ten
 collect() {
   mkdir -p screenshots
-  for name in ten-nota ten-settings ten-explorer ten-task-view ten-action-center ten-start-portrait ten-start-landscape ten-failure ten-polish-settings-home ten-polish-settings-sidebar ten-polish-desktop-research ten-polish-task-view ten-polish-explorer ten-polish-recycle ten-polish-start-landscape ten-polish-start-portrait ten-polish-notifications ten-polish-browser ten-polish-failure ten-shell-taskbar-portrait ten-shell-taskbar-landscape ten-shell-news-portrait ten-shell-news-landscape ten-shell-nota-context ten-shell-window-lifecycle ten-shell-failure ten4-start-brand ten4-brand-toast ten4-themes-ten ten4-aero-start ten4-colors ten4-themes-saved ten4-run ten4-performance ten4-failure ten5-empty-desktop ten5-dark-run ten5-dark-settings ten5-dark-explorer ten5-light-explorer ten5-aero-apps ten5-failure ten6-theme-entry ten6-aero-colors ten6-failure ten7-feed-error ten7-news-portrait ten7-news-landscape ten7-failure; do
+  for name in ten-nota ten-settings ten-explorer ten-task-view ten-action-center ten-start-portrait ten-start-landscape ten-failure ten-polish-settings-home ten-polish-settings-sidebar ten-polish-desktop-research ten-polish-task-view ten-polish-explorer ten-polish-recycle ten-polish-start-landscape ten-polish-start-portrait ten-polish-notifications ten-polish-browser ten-polish-failure ten-shell-taskbar-portrait ten-shell-taskbar-landscape ten-shell-news-portrait ten-shell-news-landscape ten-shell-nota-context ten-shell-window-lifecycle ten-shell-failure ten4-start-brand ten4-brand-toast ten4-themes-ten ten4-aero-start ten4-colors ten4-themes-saved ten4-run ten4-performance ten4-failure ten5-empty-desktop ten5-dark-run ten5-dark-settings ten5-dark-explorer ten5-light-explorer ten5-aero-apps ten5-failure ten6-theme-entry ten6-aero-colors ten6-failure ten7-feed-error ten7-news-portrait ten7-news-landscape ten7-failure ten8-settings-portrait ten8-settings-landscape ten8-settings-themes ten8-nota-shortcut ten8-nota-capabilities ten8-settings-narrow-dark ten8-failure; do
     adb exec-out run-as "$launcher" cat "files/$name.png" > "screenshots/$name.png" 2>/dev/null || true
   done
   for number in $(seq -w 0 16); do adb exec-out run-as "$launcher" cat "files/ten6-theme-$number.png" > "screenshots/ten6-theme-$number.png" 2>/dev/null || true; done
@@ -29,4 +29,5 @@ run_suite TenThemeSmoke ten-theme-smoke.txt
 run_suite TenWorkspaceSmoke ten-workspace-smoke.txt
 run_suite TenThemeMatrixSmoke ten-theme-matrix-smoke.txt
 run_suite TenFeedSmoke ten-feed-smoke.txt
+run_suite TenCommandsSmoke ten-commands-smoke.txt
 exit "$failed"
