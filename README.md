@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.17.0 — working desktop icon controls and discoverable Usage Access.** Icon size and spacing opens the existing live size, label, spacing and orientation-grid controls. Personalization → Taskbar includes Usage Access status and a setup link; Settings search finds it.
+
 **0.16.0 — correct identity in the Usage Access guide.** The App info example uses the installed launcher's icon and app name instead of an embedded Seven screenshot. The example is responsive and keeps its Android Settings colors across launcher themes. See [the guide fix and validation](docs/TEN_0_16_USAGE_GUIDE.md).
 
 **0.15.0 — Nota taskbar state and matching highlight size.** Closing Nota clears its running highlight, its next tap reopens it, and its fixed button now matches normal app-button bounds. See [the taskbar fix](docs/TEN_0_15_NOTA_TASKBAR.md).
@@ -26,7 +28,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.16.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.17.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 

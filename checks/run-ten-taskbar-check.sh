@@ -4,7 +4,7 @@ launcher=com.nthexperience.desktop.ten
 collect() {
   mkdir -p screenshots
   for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
-    case "$name" in ten13-*.png|ten14-*.png|ten15-*.png) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
+    case "$name" in ten13-*.png|ten14-*.png|ten15-*.png|ten17-*.png) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
   done
   adb logcat -d -t 300 > screenshots/device-log.txt || true
 }

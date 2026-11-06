@@ -708,7 +708,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(id.startsWith("ten-setting:")){open("@settings");DesktopWindow settings=windows.get("@settings");if(settings!=null&&settings.body instanceof TenSettings)((TenSettings)settings.body).navigate(id.substring(12));return;}
         if(FolderLinks.id(id)){JSONObject link=FolderLinks.get(store,id);if(link==null){toast("This folder shortcut is unavailable.");return;}explorer(id,link.optString("page","home"));return;}
         if(validExplorerId(id)){explorer(id,"home");return;}
-        if(id.startsWith("setting:")){String destination=id.substring(8);if(destination.equals("page:personalization")||destination.equals("page:colors")){open("ten-setting:"+(destination.endsWith("personalization")?"themes":"colors"));return;}if(destination.startsWith("page:")){open("@legacycontrol");DesktopWindow control=windows.get("@legacycontrol");if(control!=null&&control.body instanceof VistaControlPanel)((VistaControlPanel)control.body).navigate(destination.substring(5));}else if(destination.startsWith("open:"))open(destination.substring(5));else vistaAction(destination);return;}
+        if(id.startsWith("setting:")){String destination=id.substring(8);if(destination.equals("page:desktop"))destination="page:icons";if(destination.equals("page:personalization")||destination.equals("page:colors")){open("ten-setting:"+(destination.endsWith("personalization")?"themes":"colors"));return;}if(destination.startsWith("page:")){open("@legacycontrol");DesktopWindow control=windows.get("@legacycontrol");if(control!=null&&control.body instanceof VistaControlPanel)((VistaControlPanel)control.body).navigate(destination.substring(5));}else if(destination.startsWith("open:"))open(destination.substring(5));else vistaAction(destination);return;}
         if(id.startsWith("start-search:")){explorer("@files","search-all");DesktopWindow folder=windows.get("@files");if(folder!=null&&folder.body instanceof VistaExplorer){VistaExplorer view=(VistaExplorer)folder.body;view.navigate("search-all");view.search.setText(Uri.decode(id.substring(13)));}return;}
         if(id.startsWith("web-search:")){open("@browser");DesktopWindow browser=windows.get("@browser");if(browser!=null&&browser.body instanceof BrowserPanel)((BrowserPanel)browser.body).navigate("https://www.bing.com/search?q="+Uri.encode(Uri.decode(id.substring(11))));return;}
         if(id.startsWith("favorite-web:")){String url=id.substring(13);if(BrowserUrls.web(url)){open("@browser");DesktopWindow browser=windows.get("@browser");if(browser!=null&&browser.body instanceof BrowserPanel)((BrowserPanel)browser.body).navigate(url);}return;}
@@ -1344,6 +1344,8 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         for(DesktopWindow window:windows.values()){
             if(window.getParent()!=null&&window.body instanceof VistaControlPanel)
                 ((VistaControlPanel)window.body).refreshUsageAccess(permitted);
+            else if(window.getParent()!=null&&window.body instanceof TenSettings)
+                ((TenSettings)window.body).refreshUsageAccess(permitted);
         }
         boolean included=ExternalTasks.includesExternalApps(store,permitted);
         if(includesExternalApps==included)return false;
