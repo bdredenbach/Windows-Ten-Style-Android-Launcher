@@ -20,7 +20,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.12.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.13.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 
@@ -42,7 +42,7 @@ Ten installs alongside Seven and Vista. Android apps use Android tasks; Nth wind
 
 ## Build and checks
 
-Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs eleven Ten native suites and ten shared-engine scenarios on Android 11 and 16. APKs and screenshots are workflow artifacts. See the [0.12.0 validation record](docs/TEN_0_12_VALIDATION.md) for the successful run and tested scope.
+Open in Android Studio or use Java 17 and `./gradlew :app:assembleDebug :app:assembleDebugAndroidTest`. The workflow builds on Android 36 and runs twelve Ten native suites and ten shared-engine scenarios on Android 11 and 16. APKs and screenshots are workflow artifacts. See the [0.13.0 validation record](docs/TEN_0_13_VALIDATION.md) for the successful run and tested scope.
 
 `checks/TenTileLayoutCheck.java` exercises 9,600 mixed-size tile placements and opt-in rules. `checks/TenPolishCheck.java` adds 19,200 placements across narrow/wide groups, Settings catalog checks and writing/fallback policies. `TenSmoke` and `TenPolishSmoke` check the separate package, Start search and tile persistence, assistant opt-in and local save using a synthetic reply, Settings, Explorer ribbon, Task View, Action Center, backup and both orientations. `TenNotaActionsCheck` checks local app/settings resolution, ambiguity, command boundaries, searches and utility classification. `TenCommandsSmoke` checks actual split Settings, local action buttons, native browser/settings/app launch, source/reply boundaries and empty desktop creation. `TenShellSmoke` covers taskbar, News, contextual Nota and window transitions. `TenReferenceSmoke` checks Search categories, About metadata/Copy, Fonts application/backup, Task View bounds, Win+X destinations and news layout in portrait and landscape. `TenWorkspaceSmoke` covers legacy gadget flags in both orientations, shortcut/layout migration and isolation, desktop close/recovery, backup rejection, app palettes, content preservation and recreation. `TenThemeSmoke` covers N¹⁰ resources, visible theme cards, Ten/Aero application, saved/legacy themes, validated backup fields and Run. Native tests do not call the live AI endpoint. Fake-backend unit tests cover model preparation gating and late-reply cancellation; a separate synthetic live gateway check verifies cloud response.
 
@@ -61,3 +61,5 @@ The design inventory uses the owner's 49 Windows 10 screenshots plus Microsoft r
 Independent Nth project; not affiliated with Microsoft. Windows is a Microsoft trademark. Existing open-source notices remain in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 The [49-image reference audit](docs/TEN_0_12_REFERENCE_AUDIT.md) records every archive screenshot and the Android equivalents. `TenAuditSmoke` navigates all 48 Settings pages in both orientations and app modes, checks inventory/search/destination routes and selected quick actions across 24 accents in both shell modes. The broader regression reuses actual Browser, Photo Gallery, Media Player, Explorer, storage/setup/revocation/resize and file-opening engines, including separate-UID selected-file grants and Package Installer fixtures.
+
+The [0.13 interaction pass](docs/TEN_0_13_INTERACTIONS.md) adds a scrollable taskbar default with fixed Nota button, themed device controls, interactive new-desktop guidance, installed-app icon cards and inclusive shake/restore behavior. `TenInteractionSmoke` exercises those flows and physical title-bar gestures on both OS images.
