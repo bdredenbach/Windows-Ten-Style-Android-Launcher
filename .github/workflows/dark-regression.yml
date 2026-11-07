@@ -60,6 +60,7 @@ jobs:
           name: Ten-dark-evidence-api-${{ matrix.api }}
           path: |
             ten-dark-mode-smoke.txt
+            ten-accent-smoke.txt
             screenshots/
             app/build/test-results/testDebugUnitTest/
             app/build/outputs/apk/debug/app-debug.apk

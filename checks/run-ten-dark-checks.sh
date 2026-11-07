@@ -15,6 +15,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard || true
+timeout -k 3s 180s adb shell am instrument -w "$launcher.test/com.nthexperience.desktop.TenAccentSmoke" | tee ten-accent-smoke.txt
+grep -q 'PASS:' ten-accent-smoke.txt
+! grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' ten-accent-smoke.txt
 timeout -k 3s 360s adb shell am instrument -w "$launcher.test/com.nthexperience.desktop.TenDarkModeSmoke" | tee ten-dark-mode-smoke.txt
 grep -q 'PASS:' ten-dark-mode-smoke.txt
 ! grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' ten-dark-mode-smoke.txt
