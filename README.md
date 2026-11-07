@@ -1,6 +1,6 @@
 # Nth Desktop Ten
 
-**0.18.0 — dark-mode control surfaces.** Rounded browser fields and tabs follow app mode; browser/photo glyphs and Calendar dates have readable dark-mode colors. Input hints remain readable when changing modes, while literal previews and sticky-note paper retain their intended colors. Native dark-mode validation is in progress.
+**0.18.0 — dark-mode consistency (source update).** Browser fields/tabs, photo controls, Calendar, shared fields/hints and PowerShell stay readable. The file chooser follows app mode, and folder palettes stay stable while scrolling. Native dark-mode, accent and full regression checks pass on Android 11 and 16 in both orientations. See [the fixes and verification](docs/TEN_0_18_DARK_MODE.md). The signed APK update is pending because the packaging workspace became unavailable; 0.17.0 remains the last signed release.
 
 **0.17.0 — working desktop icon controls and discoverable Usage Access.** Icon size and spacing opens the existing live controls, with size and spacing sliders first. Basic and advanced label/lock controls stay synchronized. Personalization → Taskbar includes Usage Access status and a setup link; Settings search finds it. See [the settings fix and validation](docs/TEN_0_17_SETTINGS.md).
 
