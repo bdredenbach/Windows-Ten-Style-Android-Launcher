@@ -34,7 +34,7 @@ public final class TenDarkModeSmoke extends TenThemeSmoke {
             for(String page:new String[]{"home","personalization","background","colors","icons","accounts","system","clock","taskbar","grouping","sounds","startup"}){
                 ui(()->{home.open("setting:page:"+page);DesktopWindow window=windows().get("@legacycontrol");if(window!=null&&window.getParent()!=null)scan("control/"+page+"/"+suffix,window.body);});
             }
-            retainedBrowser(suffix);inputDialog(suffix);calendarPixels(suffix);
+            retainedBrowser(suffix);inputDialog(suffix);calendarPixels(suffix);picker(suffix,orientation);
         }
         save();check(failures.isEmpty(),"Dark-mode contrast failures ("+failures.size()+"): "+String.join("; ",new ArrayList<>(failures.values()).subList(0,Math.min(18,failures.size()))));
         result.putString("stream","PASS: "+surfaces.size()+" dark native surfaces; "+checked+" enabled text and "+hints+" hint checks; every Settings page, desktop Control Panel, built-in tools/utilities, retained browser text and selection across all 17 themes and light/dark restoration; actual browser/photo glyph and calendar date pixels; dialog fields, menu and literal preview protection, in portrait and landscape.\n");finish(Activity.RESULT_OK,result);
@@ -98,6 +98,28 @@ public final class TenDarkModeSmoke extends TenThemeSmoke {
     }
     void calendarPixels(String suffix)throws Exception{
         ui(()->{home.open("@calendar");windows().get("@calendar").maximize();});waitForIdleSync();ui(()->{View calendar=TenSmoke.find(windows().get("@calendar").body,MonthCalendarView.class);check(calendar!=null&&calendar.getWidth()>0,"Native calendar exists");Bitmap image=Bitmap.createBitmap(calendar.getWidth(),calendar.getHeight(),Bitmap.Config.ARGB_8888);calendar.draw(new Canvas(image));int[] pixels=new int[image.getWidth()*image.getHeight()];image.getPixels(pixels,0,image.getWidth(),0,0,image.getWidth(),image.getHeight());int bright=0;for(int color:pixels)if(color==0xfff2f2f2)bright++;image.recycle();check(bright>20,"Calendar date text draws a readable dark-mode foreground");});shot("ten18-calendar-dark-"+suffix);
+    }
+    void picker(String suffix,int orientation)throws Exception{
+        final Activity[] active={null};
+        Application.ActivityLifecycleCallbacks lifecycle=new Application.ActivityLifecycleCallbacks(){
+            public void onActivityCreated(Activity activity,Bundle saved){if(activity instanceof ExplorerPickerActivity&&activity.getRequestedOrientation()!=orientation)activity.setRequestedOrientation(orientation);}
+            public void onActivityResumed(Activity activity){if(activity instanceof ExplorerPickerActivity)active[0]=activity;}
+            public void onActivityDestroyed(Activity activity){if(active[0]==activity)active[0]=null;}
+            public void onActivityStarted(Activity activity){}public void onActivityPaused(Activity activity){}public void onActivityStopped(Activity activity){}public void onActivitySaveInstanceState(Activity activity,Bundle state){}
+        };
+        ui(()->home.getApplication().registerActivityLifecycleCallbacks(lifecycle));
+        try{
+            startActivitySync(new Intent(PickerSpec.ACTION).setComponent(new ComponentName(getTargetContext(),ExplorerPickerActivity.class)).setType("*/*").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            await(()->active[0]!=null&&(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?active[0].getWindow().getDecorView().getHeight()>active[0].getWindow().getDecorView().getWidth():active[0].getWindow().getDecorView().getWidth()>active[0].getWindow().getDecorView().getHeight()),"File picker orientation");
+            Activity picker=active[0];View content=((ViewGroup)picker.findViewById(android.R.id.content)).getChildAt(0);EditText search=TenSmoke.find(content,EditText.class);
+            ui(()->{check(search!=null,"File picker search exists");search.setText("pictures");search.setSelection(1,4);});
+            for(boolean dark:new boolean[]{true,false,true}){
+                ui(()->{store.prefs.edit().putBoolean("ten_apps_dark",dark).commit();TenAppearance.context(picker);content.invalidate();});
+                await(()->{int fill=backgrounds(search)[0];return dark?TenAppearance.luma(fill)<90:TenAppearance.luma(fill)>220;},"File picker follows app mode before explicit audit");
+                ui(()->{check(search.getText().toString().equals("pictures")&&search.getSelectionStart()==1&&search.getSelectionEnd()==4,"Picker search survives appearance changes");scan("file-picker/"+dark+"/"+suffix,content);});
+            }
+            shot("ten18-picker-dark-"+suffix);
+        }finally{ui(()->{if(active[0]!=null)active[0].finish();home.getApplication().unregisterActivityLifecycleCallbacks(lifecycle);});waitForIdleSync();}
     }
     Object field(Object object,String name){try{Field field=object.getClass().getDeclaredField(name);field.setAccessible(true);return field.get(object);}catch(Exception error){throw new RuntimeException(error);}}
     void save()throws IOException{try(Writer out=new OutputStreamWriter(new FileOutputStream(new File(getTargetContext().getFilesDir(),"ten18-dark-audit.tsv")),StandardCharsets.UTF_8)){out.write(report.toString());}}
