@@ -28,7 +28,10 @@ final class Aero {
     }
     static final class ThemeStates extends StateListDrawable {final java.util.List<android.graphics.drawable.Drawable> children=new java.util.ArrayList<>();@Override public void addState(int[] states,android.graphics.drawable.Drawable drawable){children.add(drawable);super.addState(states,drawable);}}
     /** A preview or swatch is content: never flatten or recolor its supplied pixels. */
-    static GradientDrawable literal(Context c,int[] colors,float radius,int stroke){GradientDrawable drawable=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,colors);drawable.setCornerRadius(dp(c,radius));if(stroke!=0)drawable.setStroke(dp(c,1),stroke);return drawable;}
+    static final class LiteralPanel extends GradientDrawable {
+        LiteralPanel(int[] colors){super(GradientDrawable.Orientation.TOP_BOTTOM,colors);}
+    }
+    static GradientDrawable literal(Context c,int[] colors,float radius,int stroke){GradientDrawable drawable=new LiteralPanel(colors);drawable.setCornerRadius(dp(c,radius));if(stroke!=0)drawable.setStroke(dp(c,1),stroke);return drawable;}
     static GradientDrawable panel(Context c,int top,int bottom,int radius,int stroke){return new ThemePanel(c,new int[]{top,bottom},radius,stroke);}
     static GradientDrawable gloss(Context c,int[] colors,float radius,int stroke){return new ThemePanel(c,colors,radius,stroke);}
     static StateListDrawable selection(Context c){

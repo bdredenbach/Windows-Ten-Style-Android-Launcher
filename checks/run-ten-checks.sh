@@ -11,6 +11,9 @@ collect() {
   adb exec-out run-as "$launcher" cat files/ten6-theme-matrix.tsv > screenshots/ten6-theme-matrix.tsv 2>/dev/null || true
   adb exec-out run-as "$launcher" cat files/ten7-feed-live.tsv > screenshots/ten7-feed-live.tsv 2>/dev/null || true
   adb exec-out run-as "$launcher" cat files/ten9-accent-matrix.tsv > screenshots/ten9-accent-matrix.tsv 2>/dev/null || true
+  for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
+    case "$name" in ten18-*.png|ten18-*.tsv) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
+  done
   adb logcat -d -t 500 > screenshots/device-log.txt || true
 }
 trap collect EXIT
@@ -35,6 +38,7 @@ run_suite TenCommandsSmoke ten-commands-smoke.txt
 run_suite TenAccentSmoke ten-accent-smoke.txt
 run_suite TenReferenceSmoke ten-reference-smoke.txt
 run_suite TenAuditSmoke ten-audit-smoke.txt
+run_suite TenDarkModeSmoke ten-dark-mode-smoke.txt
 run_suite TenInteractionSmoke ten-interaction-smoke.txt
 collect
 bash checks/run-ten-facets.sh || failed=1
