@@ -30,8 +30,23 @@ The audit opens all 48 Settings pages, legacy Control Panel destinations and bui
 - [Native audit and evidence](https://github.com/bdredenbach/Windows-Ten-Style-Android-Launcher/actions/runs/42423447828)
 - [Full regression and evidence](https://github.com/bdredenbach/Windows-Ten-Style-Android-Launcher/actions/runs/42423447827)
 
-Web pages and third-party Android app screens keep their own appearance. These results describe automated native contrast/state/pixel checks. Screenshots were captured by the runners; they were not manually inspected after the execution workspace disconnected.
+Web pages and third-party Android app screens keep their own appearance. These results describe automated native contrast/state/pixel checks. After the workspace recovered, Browser, Calendar, dialog and file-chooser screenshots from the API 30 run were also manually reviewed in portrait and landscape. API 36 coverage uses automated state and pixel checks.
 
-## APK status
+## Signed APK
 
-The signed 0.18.0 update is pending because the local packaging workspace became unavailable during verification. GitHub Actions artifacts are CI test builds and do not use the existing preview signing key. The last signed release is 0.17.0; do not present a CI artifact as its in-place update.
+The signed 0.18.0 preview is packaged and verified. Install it over the existing Nth Desktop Ten preview to keep the current desktop setup and notes. The download ZIP contains only the APK and install notes.
+
+| Item | Verified result |
+| --- | --- |
+| Application | `com.nthexperience.desktop.ten` |
+| Version | `0.18.0` / code `18` |
+| Android support | API 26 minimum; target API 36 |
+| APK | `Nth-Desktop-Ten-0.18.0.apk`, 10,840,323 bytes |
+| APK SHA-256 | `6a343d0c6b241ca1447e1dbe98cd741a35be53ece0d07697c2552c4dd8b4aae5` |
+| Existing preview certificate SHA-256 | `4c9efb14377b1609083ac30236b5395ba38738c91dc4054273b3162b1a84d4a8` |
+| Signatures | v2 and v3 verified |
+| Alignment | Final ZIP alignment verified, including 16 KiB page alignment |
+| Application payload | All 492 non-signature entries match both tested CI APKs |
+| Download ZIP | CRC verified; embedded APK and notes match the standalone files exactly |
+
+The test artifacts in GitHub Actions use the CI signing key. The distributed preview uses the existing Nth Desktop Ten preview key.
