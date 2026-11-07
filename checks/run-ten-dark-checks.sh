@@ -6,6 +6,7 @@ collect() {
   for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
     case "$name" in ten18-*.png|ten18-*.tsv) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
   done
+  if [ -f screenshots/ten18-dark-audit.tsv ]; then awk -F '\t' 'NR==1 || $NF=="FAIL" { print }' screenshots/ten18-dark-audit.tsv; fi
   adb logcat -d -t 400 > screenshots/device-log.txt || true
 }
 trap collect EXIT
