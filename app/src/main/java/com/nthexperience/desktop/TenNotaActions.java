@@ -43,6 +43,7 @@ final class TenNotaActions {
         String text=input.trim().replaceAll("[?!.]+$","").trim();
         text=text.replaceFirst("(?i)^(?:hey |hi )?(?:nth )?nota[, ]+","").replaceFirst("(?i)^(?:can you|could you|would you|will you)(?: please)?\\s+","").replaceFirst("(?i)^please\\s+","").replaceFirst("(?i)[, ]+please$","").trim();
         String k=key(text);
+        if(k.equals("switch apps"))return new Plan("Switch between apps and desktops in Task View.",new Action("Open Task View",Kind.OPEN,"@taskview"));
         if(Arrays.asList("what can you do","what else can you do","help","help me use nth nota","show commands","show suggestions","what can nota do").contains(k))return help();
         if(k.matches("(?:show|go to)(?: the| my)? desktop"))return new Plan("Show your desktop by minimizing its built-in windows. Use their taskbar buttons to restore them.",new Action("Show desktop",Kind.DESKTOP,""));
         if(k.matches("(?:create|make|add)(?: a)?(?: new)?(?: virtual)? desktop"))return new Plan("Create a new, empty desktop and switch to it. Your current desktop and windows are kept.",new Action("Create new desktop",Kind.NEW_DESKTOP,""));
@@ -57,7 +58,19 @@ final class TenNotaActions {
         if(target.startsWith("@")||target.matches("(?i)(?:intent|setting|ten-setting|javascript|file|content):.*"))return new Plan("Use an app name, Settings page, or HTTP/HTTPS website address.");
         String name=key(target);List<Action> matches=target(name,installed);if(matches.isEmpty())matches=target(name.replaceFirst("^(?:the|my) ",""),installed);
         if(matches.isEmpty())return new Plan("I couldn't find “"+target+"”. Try the app's full name, or open Start to find it. Ask “What can you do?” for examples.",new Action("Find an app in Start",Kind.OPEN,"@search"));
-        if(matches.size()>1){List<Action> identified=new ArrayList<>();for(Action action:matches)identified.add(new Action(action.label+" · "+(action.value.startsWith("@")||action.value.startsWith("ten-setting:")||action.value.startsWith("setting:")?"Nth Desktop":action.value.split("/")[0]),action.kind,action.value));matches=identified;}
+        if(matches.size()>1){
+            List<Action> identified=new ArrayList<>();
+            for(Action action:matches){
+                boolean owned=action.value.startsWith("@")||action.value.startsWith("ten-setting:")||action.value.startsWith("setting:");
+                String label=action.label,source=owned?"Nth Desktop":action.value.split("/")[0];
+                if(!owned){
+                    long siblings=matches.stream().filter(other->other.label.equals(action.label)&&other.value.startsWith(source+"/")).count();
+                    if(siblings>1){String component=action.value.substring(action.value.indexOf('/')+1);if(component.startsWith(source+"."))component=component.substring(source.length()+1);if(component.startsWith("."))component=component.substring(1);label+=" · "+component;}
+                }
+                identified.add(new Action(label+" · "+source,action.kind,action.value));
+            }
+            matches=identified;
+        }
         boolean auto=matches.size()==1&&app(matches.get(0));
         return new Plan(matches.size()==1?(auto?"Opening "+matches.get(0).label.replaceFirst("^Open ","")+"…":"Found the shortcut. Click the shortcut above."):"Found matching apps. Click the shortcut you want above.",matches,auto);
     }
