@@ -161,7 +161,7 @@ final class DesktopWindow extends LinearLayout {
     void caption(String title){titleLabel.setText(title);titleLabel.setContentDescription(title+". Drag to move window.");}
     boolean minimizing(){return minimizing;}
     boolean active(){return active;}
-    void active(boolean value){active=value;glass.active(value);titleLabel.setTextColor(TenStyle.titleText(getContext(),value));titleLabel.setShadowLayer(0,0,0,0);minimizeButton.setTextColor(TenStyle.titleText(getContext(),value));maximizeButton.setTextColor(TenStyle.titleText(getContext(),value));closeButton.setTextColor(TenStyle.titleText(getContext(),value));minimizeButton.setAlpha(value?1:.65f);maximizeButton.setAlpha(value?1:.65f);closeButton.setAlpha(value?1:.6f);}
+    void active(boolean value){active=value;glass.active(value);titleLabel.setTextColor(TenStyle.titleText(getContext(),value));titleLabel.setShadowLayer(0,0,0,0);minimizeButton.setTextColor(TenStyle.titleText(getContext(),value));maximizeButton.setTextColor(TenStyle.titleText(getContext(),value));int fill=TenStyle.captionSurface(getContext(),value);minimizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));maximizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));closeButton.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{android.R.attr.state_pressed},new int[]{android.R.attr.state_hovered},new int[]{android.R.attr.state_focused},new int[]{}},new int[]{Color.WHITE,Color.WHITE,Color.WHITE,TenStyle.titleText(getContext(),value)}));minimizeButton.setAlpha(1);maximizeButton.setAlpha(1);closeButton.setAlpha(1);}
     @Override public boolean dispatchTouchEvent(MotionEvent e){if(peeking)return true;if(e.getActionMasked()==MotionEvent.ACTION_DOWN&&!minimizing){bringToFront();changed.run();}return super.dispatchTouchEvent(e);}
     private int cornerReach(){return Aero.dp(getContext(),22);}
     private int resizeCornerAt(float x,float y){
@@ -304,7 +304,7 @@ final class DesktopWindow extends LinearLayout {
         fitToHost();
     }
     private TextView chrome(String symbol,Runnable action){
-        TextView view=TenStyle.command(getContext(),symbol,action);view.setTextColor(Aero.INK);if(symbol.equals("×")){android.graphics.drawable.StateListDrawable bg=new android.graphics.drawable.StateListDrawable();for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_hovered})bg.addState(new int[]{state},new android.graphics.drawable.ColorDrawable(0xffe81123));bg.addState(new int[]{},new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));view.setBackground(bg);}
+        TextView view=TenStyle.command(getContext(),symbol,action);view.setTextColor(Aero.INK);if(symbol.equals("×")){android.graphics.drawable.StateListDrawable bg=new android.graphics.drawable.StateListDrawable();for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_hovered,android.R.attr.state_focused})bg.addState(new int[]{state},new android.graphics.drawable.ColorDrawable(0xffe81123));bg.addState(new int[]{},new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));view.setBackground(bg);}
         view.setTextSize(16);view.setMinHeight(0);view.setPadding(0,0,0,0);LayoutParams lp=new LayoutParams(Aero.dp(getContext(),44),Aero.dp(getContext(),44));lp.leftMargin=Aero.dp(getContext(),1);view.setLayoutParams(lp);
         view.setContentDescription(symbol.equals("×")?"Close window":symbol.equals("—")?"Minimize window":"Maximize or restore window");
         return view;

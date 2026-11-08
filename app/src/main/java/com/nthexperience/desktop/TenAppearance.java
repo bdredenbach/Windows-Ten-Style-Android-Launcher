@@ -98,7 +98,8 @@ final class TenAppearance {
         return false;
     }
     static void enable(Context c,Drawable drawable){
-        if(drawable instanceof ColorDrawable){int color=originalColors.computeIfAbsent(drawable,key->((ColorDrawable)key).getColor());int mapped=surface(c,color);if(((ColorDrawable)drawable).getColor()!=mapped)((ColorDrawable)drawable).setColor(mapped);}
+        if(drawable instanceof TenStyle.Hover){TenStyle.Hover hover=(TenStyle.Hover)drawable;hover.appThemed=true;hover.appearance();}
+        else if(drawable instanceof ColorDrawable){int color=originalColors.computeIfAbsent(drawable,key->((ColorDrawable)key).getColor());int mapped=surface(c,color);if(((ColorDrawable)drawable).getColor()!=mapped)((ColorDrawable)drawable).setColor(mapped);}
         else if(drawable instanceof Aero.ThemePanel){Aero.ThemePanel panel=(Aero.ThemePanel)drawable;panel.appThemed=true;panel.appearance();}
         else if(drawable instanceof Aero.LiteralPanel)return;
         else if(drawable instanceof GradientDrawable)gradient(c,(GradientDrawable)drawable);

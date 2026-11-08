@@ -29,7 +29,7 @@ final class TenNews extends LinearLayout {
     }
     private int dp(int n){return Aero.dp(getContext(),n);}
     private TextView text(String s,int size,int color){return Aero.text(getContext(),s,size,color);}
-    private TextView command(String label,String description,Runnable run){TextView v=TenStyle.command(getContext(),label,run);v.setTextColor(Color.WHITE);v.setContentDescription(description);return v;}
+    private TextView command(String label,String description,Runnable run){TextView v=TenStyle.command(getContext(),label,run);v.setTextColor(Color.WHITE);v.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,0xff202020));v.setContentDescription(description);return v;}
     private LinearLayout card(LinearLayout column,String description){LinearLayout card=Aero.column(getContext());card.setPadding(dp(16),dp(14),dp(16),dp(14));GradientDrawable bg=new GradientDrawable();bg.setColor(0xff303030);bg.setCornerRadius(dp(7));card.setBackground(bg);card.setContentDescription(description);LayoutParams lp=new LayoutParams(-1,-2);lp.setMargins(dp(5),dp(5),dp(5),dp(6));column.addView(card,lp);return card;}
     void render(){
         if(feed==null)return;updateConfiguration();cards.removeAllViews();status.setText((savedOnly?"Saved stories · ":"")+feed.status());status.setContentDescription("News connection status");

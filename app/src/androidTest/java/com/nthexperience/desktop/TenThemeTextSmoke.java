@@ -5,7 +5,7 @@ import android.app.*;
 import android.content.*;
 import android.content.pm.ActivityInfo;
 import android.graphics.*;
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.*;
 import android.os.*;
 import android.view.*;
 import android.view.inspector.WindowInspector;
@@ -19,7 +19,7 @@ import java.util.*;
 public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     final List<TenThemes.Preset> presets=new ArrayList<>();
     final Set<View> baseline=Collections.newSetFromMap(new IdentityHashMap<>());
-    int combinations,popups;String path;List<View> opened;
+    int combinations,popups,stateChecks;String path,popupName;List<View> opened;View semanticRoot;int semanticFill;
     @Override public void onStart(){Bundle result=new Bundle();try{
         store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putBoolean("weather_follow",false).putString("feed_url","").remove(TenNotaDrafts.KEY).putString("ten_nota_draft","").commit();
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
@@ -30,18 +30,20 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
             for(int i=0;i<presets.size();i++)for(boolean dark:new boolean[]{false,true}){
                 final TenThemes.Preset preset=presets.get(i);path=(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"portrait":"landscape")+"/"+preset.name+"/"+(dark?"dark":"light");
                 ui(()->{preset.apply(store);store.prefs.edit().putBoolean("ten_apps_dark",dark).commit();home.applyTenAppearance();});waitForIdleSync();
-                bodies();settings();choices(i,orientation,dark);menus();dialogs();combinations++;save();
+                bodies();settings();choices(i,orientation,dark);menus();dialogs();shell();combinations++;save();
                 if(!failures.isEmpty())throw new AssertionError("Theme text failures: "+String.join("; ",failures.values()).substring(0,Math.min(5000,String.join("; ",failures.values()).length())));
             }
         }
-        result.putString("stream","PASS: all 17 themes x light/dark app mode x portrait/landscape ("+combinations+" combinations), "+surfaces.size()+" native surfaces, "+checked+" text and "+hints+" hint checks, "+popups+" real popup windows; all built-in tools and 48 Settings pages, source lists, sounds, Recycle Bin capacity, utility selectors, Run suggestions, native menu items and dialogs; recycled choices, first-frame palettes and retained live light/dark popup transitions. No explicit recoloring occurs in the audit.\n");finish(Activity.RESULT_OK,result);
+        result.putString("stream","PASS: all 17 themes x light/dark app mode x portrait/landscape ("+combinations+" combinations), "+surfaces.size()+" native surfaces, "+checked+" text and "+hints+" hint checks, "+popups+" real popup windows and "+stateChecks+" pressed/hovered control states; all built-in tools and 48 Settings pages, source lists, sounds, Recycle Bin capacity, utility selectors, Run suggestions, native menu items and dialogs; recycled choices, first-frame palettes and retained live light/dark popup transitions. No explicit recoloring occurs in the audit.\n");finish(Activity.RESULT_OK,result);
     }catch(Throwable error){try{save();shot("ten21-theme-text-failure");for(View v:extraRoots())paint(v,"ten21-theme-popup-failure");}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(error));finish(Activity.RESULT_CANCELED,result);}}
-    @Override void scan(String name,View view){surfaces.add(name);walk(name,view);}
-    @Override int[] backgrounds(View view){View current=view;while(current!=null){if(current.getBackground() instanceof AeroGlass)return new int[]{TenStyle.surface(home)};int[] colors=fills(current.getBackground());if(colors!=null)return colors;ViewParent parent=current.getParent();current=parent instanceof View?(View)parent:null;}return new int[]{TenAppearance.background(home)};}
+    @Override void scan(String name,View view){surfaces.add(name);walk(name,view);List<View> controls=new ArrayList<>();stateControls(view,controls);for(View control:controls){boolean pressed=control.isPressed(),hovered=control.isHovered();control.setHovered(false);control.setPressed(true);walk(name+"/pressed",control);control.setPressed(false);control.setHovered(true);walk(name+"/hovered",control);control.setHovered(hovered);control.setPressed(pressed);stateChecks+=2;}}
+    void stateControls(View view,List<View> controls){if(view.getVisibility()!=View.VISIBLE)return;if(view.isEnabled()&&view.getBackground() instanceof StateListDrawable)controls.add(view);if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)stateControls(group.getChildAt(i),controls);}}
+    @Override int[] fills(Drawable drawable){if(drawable instanceof TenStyle.Hover)((TenStyle.Hover)drawable).appearance();return super.fills(drawable);}
+    @Override int[] backgrounds(View view){View current=view;while(current!=null){if(current.getBackground() instanceof AeroGlass){Drawable glass=current.getBackground();return new int[]{(Integer)field(glass,"style")==AeroGlass.WINDOW?TenStyle.captionSurface(home,(Boolean)field(glass,"active")):TenStyle.surface(home)};}int[] colors=fills(current.getBackground());if(colors!=null)return colors;if(current==semanticRoot)return new int[]{semanticFill};ViewParent parent=current.getParent();current=parent instanceof View?(View)parent:null;}return new int[]{TenAppearance.background(home)};}
     void checkPaint(String name,View view)throws Exception{waitForIdleSync();ui(()->scan(path+"/"+name,view));}
     void bodies()throws Exception{
         ArrayList<String> ids=new ArrayList<>(Arrays.asList(tools));for(String kind:GadgetCatalog.IDS)if(GadgetCatalog.extra(kind))ids.add("@gadget:"+kind);
-        for(String id:ids){final View[] content={null};ui(()->{home.open(id);if(id.equals(MediaLibrary.CENTER)){content[0]=(View)field(home,"mediaCenter");return;}DesktopWindow w=windows().get(id);if(w==null)for(DesktopWindow candidate:windows().values())if(candidate.getParent()!=null&&candidate.body instanceof DesktopOrganizer)w=candidate;check(w!=null,"Tool opens: "+id);w.maximize();content[0]=w.body;});checkPaint(id,content[0]);ui(()->{if(id.equals(MediaLibrary.CENTER)){invoke(home,"closeMediaCenter",new Class<?>[]{});return;}for(DesktopWindow w:new ArrayList<>(windows().values()))if(w.getParent()!=null)w.closeWindow();});}
+        for(String id:ids){final View[] content={null};ui(()->{home.open(id);if(id.equals(MediaLibrary.CENTER)){content[0]=(View)field(home,"mediaCenter");return;}DesktopWindow w=windows().get(id);if(w==null)for(DesktopWindow candidate:windows().values())if(candidate.getParent()!=null&&candidate.body instanceof DesktopOrganizer)w=candidate;check(w!=null,"Tool opens: "+id);w.maximize();content[0]=w;});checkPaint(id,content[0]);if(content[0] instanceof DesktopWindow){DesktopWindow w=(DesktopWindow)content[0];ui(()->{w.active(false);scan(path+"/"+id+"/inactive-caption",w.getChildAt(0));w.active(true);});}ui(()->{if(id.equals(MediaLibrary.CENTER)){invoke(home,"closeMediaCenter",new Class<?>[]{});return;}for(DesktopWindow w:new ArrayList<>(windows().values()))if(w.getParent()!=null)w.closeWindow();});}
     }
     void settings()throws Exception{
         ui(()->{home.open("@settings");windows().get("@settings").maximize();});TenSettings settings=(TenSettings)windows().get("@settings").body;
@@ -79,6 +81,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         openPopup("start-app-options",()->invoke(start,"appOptions",new Class<?>[]{View.class,StartSearch.Result.class},start,item));closePopup();
         openPopup("start-tile-options",()->invoke(start,"tileOptions",new Class<?>[]{View.class,StartSearch.Result.class},start,item));closePopup();ui(()->start.hide());
         ui(()->{home.open("@notes");home.open("@taskview");});TenTaskView tasks=(TenTaskView)field(home,"tenTasks");TenDesktops desktops=(TenDesktops)field(home,"tenDesktops");
+        waitForIdleSync();ui(()->{semanticRoot=tasks.overlay;semanticFill=0xff202020;scan(path+"/task-view",tasks.overlay);semanticRoot=null;});
         openPopup("desktop-menu",()->invoke(tasks,"desktopMenu",new Class<?>[]{View.class,TenDesktops.Desk.class},tasks.overlay,desktops.desks.get(desktops.current())));closePopup();
         openPopup("window-menu",()->invoke(tasks,"windowMenu",new Class<?>[]{View.class,DesktopWindow.class},tasks.overlay,windows().get("@notes")));closePopup();ui(()->{tasks.dismiss();windows().get("@notes").closeWindow();});
     }
@@ -87,13 +90,18 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         ui(()->{EditText value=new EditText(home);value.setHint("Enter a name");value.setText("Retained text");d[0]=Aero.dialog(home).setTitle("Theme input").setView(value).setPositiveButton("Save",null).setNegativeButton("Cancel",null).show();});checkPaint("input-dialog",d[0].getWindow().getDecorView());ui(()->d[0].dismiss());
         ui(()->TenSmoke.description(root,"Start menu").performContextClick());waitForIdleSync();if(!extraRoots().isEmpty()){ui(()->{for(View view:extraRoots())scan(path+"/start-context",view);});backToMain();}
     }
+    void shell()throws Exception{
+        checkPaint("taskbar",TenSmoke.description(root,"Desktop taskbar"));
+        ui(()->home.open("@news"));TenNewsFlyout news=(TenNewsFlyout)field(home,"tenNews");checkPaint("news",news.frame);ui(news::dismiss);
+        ui(()->home.open("@actioncenter"));TenActionCenter actions=(TenActionCenter)field(home,"tenActions");checkPaint("action-center",actions.panel);ui(actions::dismiss);
+    }
     void openPopup(String name,Runnable show)throws Exception{
-        ui(()->{baseline.clear();baseline.addAll(WindowInspector.getGlobalWindowViews());show.run();});await(()->!newRoots().isEmpty(),"Popup window opens: "+path+"/"+name);waitForIdleSync();ui(()->{opened=new ArrayList<>(newRoots());check(!opened.isEmpty(),"Rendered popup exists: "+name);int before=checked;for(View view:opened)scan(path+"/popup/"+name,view);check(checked>before,"Actual popup text inspected: "+name);popups++;});
+        popupName=name;ui(()->{baseline.clear();baseline.addAll(WindowInspector.getGlobalWindowViews());show.run();});await(()->!newRoots().isEmpty(),"Popup window opens: "+path+"/"+name);waitForIdleSync();ui(()->{opened=new ArrayList<>(newRoots());check(!opened.isEmpty(),"Rendered popup exists: "+name);int before=checked;for(View view:opened)scan(path+"/popup/"+name,view);check(checked>before,"Actual popup text inspected: "+name);popups++;});
     }
     List<View> newRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(!baseline.contains(view)&&view.isShown())result.add(view);return result;}
     List<View> extraRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(view!=root&&view.isShown())result.add(view);return result;}
-    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);await(()->{for(View view:old)if(view.isAttachedToWindow()&&view.isShown())return false;return true;},"Popup dismissed");}
-    void backToMain()throws Exception{for(int i=0;i<4&&!extraRoots().isEmpty();i++){getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);waitForIdleSync();}await(()->extraRoots().isEmpty(),"Dialog dismissed");}
+    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);await(()->{for(View view:old)if(view.isAttachedToWindow()&&view.isShown())return false;return true;},"Popup dismissed: "+path+"/"+popupName);}
+    void backToMain()throws Exception{for(int i=0;i<4&&!extraRoots().isEmpty();i++){sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIdleSync();}await(()->extraRoots().isEmpty(),"Dialog dismissed");}
     void invoke(Object object,String name,Class<?>[] types,Object... args){try{Method method=object.getClass().getDeclaredMethod(name,types);method.setAccessible(true);method.invoke(object,args);}catch(Exception e){throw new RuntimeException(e);}}
     void paintUnchecked(View view,String name){try{paint(view,name);}catch(IOException e){throw new RuntimeException(e);}}
     void paint(View view,String name)throws IOException{if(view.getWidth()<1||view.getHeight()<1)return;Bitmap image=Bitmap.createBitmap(view.getWidth(),view.getHeight(),Bitmap.Config.ARGB_8888);view.draw(new Canvas(image));try(OutputStream out=new FileOutputStream(new File(getTargetContext().getFilesDir(),name+".png"))){image.compress(Bitmap.CompressFormat.PNG,100,out);}finally{image.recycle();}}

@@ -14,7 +14,15 @@ final class TenStyle {
     static int mix(int a,int b,float t){return Color.rgb(Math.round(Color.red(a)*(1-t)+Color.red(b)*t),Math.round(Color.green(a)*(1-t)+Color.green(b)*t),Math.round(Color.blue(a)*(1-t)+Color.blue(b)*t));}
     static int titleText(Context c,boolean active){android.content.SharedPreferences prefs=c.getSharedPreferences("desktop",0);if(active&&!TenThemes.aero(prefs)&&prefs.getBoolean("ten_accent_titles",false))return TenAccent.on(accent(c));if(!TenThemes.aero(prefs)&&TenAppearance.dark(c))return active?0xfff2f2f2:0xffbbbbbb;return active?0xff111b22:0xff465563;}
     static int text(Context c){return TenAccent.on(surface(c));}
-    static StateListDrawable hover(Context c,int base){StateListDrawable d=new Aero.ThemeStates();int surface=Color.alpha(base)==0?surface(c):base;for(int s:new int[]{android.R.attr.state_pressed,android.R.attr.state_hovered,android.R.attr.state_focused})d.addState(new int[]{s},new ColorDrawable(TenAccent.on(surface)==0xff000000?0xffd6d6d6:0xff454545));d.addState(new int[]{},new ColorDrawable(base));return d;}
+    static int captionSurface(Context c,boolean active){android.content.SharedPreferences prefs=c.getSharedPreferences("desktop",0);if(TenThemes.aero(prefs))return 0xfff7f7f7;if(active&&prefs.getBoolean("ten_accent_titles",false))return accent(c)|0xff000000;return TenAppearance.dark(c)?0xff292929:0xfff7f7f7;}
+    static final class Hover extends Aero.ThemeStates {
+        final Context context;final int base;final Integer fixedSurface;final ColorDrawable hot=new ColorDrawable(),normal=new ColorDrawable();boolean appThemed;
+        Hover(Context c,int base,Integer fixedSurface){context=c;this.base=base;this.fixedSurface=fixedSurface;for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_hovered,android.R.attr.state_focused})addState(new int[]{state},hot);addState(new int[]{},normal);appearance();}
+        void appearance(){int fill=appThemed?TenAppearance.surface(context,base):base;int behind=fixedSurface!=null?fixedSurface:Color.alpha(fill)==0?appThemed?TenAppearance.background(context):surface(context):fill;int hover=TenAccent.on(behind)==Color.BLACK?0xffd6d6d6:0xff454545;if(hot.getColor()!=hover)hot.setColor(hover);if(normal.getColor()!=fill)normal.setColor(fill);}
+        @Override public void draw(Canvas canvas){appearance();super.draw(canvas);}
+    }
+    static StateListDrawable hover(Context c,int base){return new Hover(c,base,null);}
+    static StateListDrawable hover(Context c,int base,int surface){return new Hover(c,base,surface);}
     static TextView command(Context c,String label,Runnable action){TextView v=Aero.text(c,label,13,text(c));v.setGravity(Gravity.CENTER);v.setFocusable(true);v.setMinHeight(Aero.dp(c,44));v.setBackground(hover(c,Color.TRANSPARENT));v.setContentDescription(label);v.setOnClickListener(w->action.run());return v;}
     static Glyph accentGlyph(Context c,String kind){return new Glyph(c,kind,accent(c),true);}
     static final class Glyph extends View {

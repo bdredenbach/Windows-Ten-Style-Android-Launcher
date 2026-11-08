@@ -25,7 +25,7 @@ final class DesktopContextMenu {
     }
     void item(String title,String icon,Runnable action){item(title,icon,true,action);}
     void item(String title,String icon,boolean enabled,Runnable action){
-        if(plain){TextView text=Aero.text(context,title,12,0xfff2f2f2);text.setPadding(dp(26),0,dp(18),0);text.setMinHeight(dp(rowHeight));text.setContentDescription(title);text.setFocusable(true);text.setBackground(TenStyle.hover(context,Color.TRANSPARENT));text.setEnabled(enabled);text.setOnClickListener(v->{if(enabled){dismiss();action.run();}});items.addView(text,new LinearLayout.LayoutParams(-1,dp(rowHeight)));return;}
+        if(plain){TextView text=Aero.text(context,title,12,0xfff2f2f2);text.setPadding(dp(26),0,dp(18),0);text.setMinHeight(dp(rowHeight));text.setContentDescription(title);text.setFocusable(true);text.setBackground(TenStyle.hover(context,Color.TRANSPARENT,0xff292929));text.setEnabled(enabled);text.setOnClickListener(v->{if(enabled){dismiss();action.run();}});items.addView(text,new LinearLayout.LayoutParams(-1,dp(rowHeight)));return;}
         LinearLayout row=new LinearLayout(context);row.setGravity(Gravity.CENTER_VERTICAL);row.setFocusable(true);row.setContentDescription(title);
         StateListDrawable hover=new StateListDrawable();for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_focused,android.R.attr.state_hovered})hover.addState(new int[]{state},Aero.panel(context,0xffedf7ff,0xffcce5f7,2,0xff80aed0));hover.addState(new int[]{},Aero.panel(context,0x00ffffff,0x00ffffff,0,0));row.setBackground(hover);
         FrameLayout gutter=new FrameLayout(context);gutter.setBackground(Aero.panel(context,0xfff0f2f4,0xffe8ecef,0,0));View image;

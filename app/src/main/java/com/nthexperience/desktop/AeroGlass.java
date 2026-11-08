@@ -39,7 +39,7 @@ final class AeroGlass extends Drawable {
     @Override public void draw(Canvas c){
         if(TenThemes.aero(prefs)){drawAero(c);return;}
         rect.set(getBounds());rect.top+=insetTop;if(rect.isEmpty())return;float d=getCallback() instanceof View?((View)getCallback()).getResources().getDisplayMetrics().density:1;
-        boolean light=prefs.getBoolean("ten_light",false);int color=style==WINDOW?prefs.getBoolean("ten_accent_titles",false)&&active?prefs.getInt("ten_accent",TenStyle.ACCENT)|0xff000000:TenAppearance.dark(wallpaper.getContext())?0xff292929:0xfff7f7f7:TenStyle.surface(wallpaper.getContext());
+        boolean light=prefs.getBoolean("ten_light",false);int color=style==WINDOW?TenStyle.captionSurface(wallpaper.getContext(),active):TenStyle.surface(wallpaper.getContext());
         boolean over=hot||pressed||focused;
         if(style==TASKBUTTON){if(idle&&!over&&progress<-1)return;color=over?(light?0xffcccccc:0xff4d4d4d):active?(light?0xffd6d6d6:0xff3a3a3a):(light?0xffededed:0xff202020);}
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setColor(color);p.setAlpha(drawableAlpha);if(style!=TASKBUTTON&&style!=WINDOW&&prefs.getBoolean("ten_transparency",false)&&getCallback() instanceof View){int saved=c.save();c.clipRect(rect);wallpaper.drawGlass(c,(View)getCallback());p.setAlpha(Math.round(drawableAlpha*.84f));c.drawRect(rect,p);c.restoreToCount(saved);}else c.drawRect(rect,p);
