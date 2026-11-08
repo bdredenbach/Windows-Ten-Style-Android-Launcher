@@ -6,7 +6,8 @@ import java.util.function.Consumer;
 /** Automatic local-first routing. Downloading a model is a separate user action. */
 final class TenAssistant {
  final LocalAI local;final CloudAI cloud;final Consumer<JSONObject> emit;String active="",task,prompt;boolean preparing,cloudStage,closed;
- TenAssistant(Context context,Consumer<JSONObject> emit){this.emit=emit;local=new LocalAI(e->dispatch(false,e));cloud=new CloudAI(context,e->dispatch(true,e));}
+ TenAssistant(Context context,Consumer<JSONObject> emit){this(context,emit,null);}
+ TenAssistant(Context context,Consumer<JSONObject> emit,LocalAI.Backend backend){this.emit=emit;local=backend==null?new LocalAI(e->dispatch(false,e)):new LocalAI(e->dispatch(false,e),backend);cloud=new CloudAI(context,e->dispatch(true,e));}
  synchronized void request(String id,String task,String prompt){if(closed)return;if(!active.isEmpty()){send(id,"BUSY","The assistant is still finishing a request.");return;}active=id;this.task=task;this.prompt=TenWritingPrompts.build(task,prompt);preparing=false;cloudStage=false;try{local.request(id+"_local","generate",new JSONObject().put("task",task).put("prompt",this.prompt).toString());}catch(Exception e){send(id,"UNAVAILABLE","The request could not be prepared.");active="";}}
  synchronized void prepare(String id){if(closed||!active.isEmpty())return;active=id;preparing=true;cloudStage=false;local.request(id+"_local","prepare","{}");}
  private synchronized void dispatch(boolean fromCloud,JSONObject event){if(closed||active.isEmpty()||!event.optString("id").equals(active+(fromCloud?"_cloud":"_local")))return;if(cloudStage&&!fromCloud)return;

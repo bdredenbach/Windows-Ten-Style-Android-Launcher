@@ -10,6 +10,7 @@ final class ToolViewState {
     private static void capture(View view,String path,JSONObject result){
         if(view instanceof BrowserPanel)return;
         JSONObject item=new JSONObject();
+        if(view instanceof TenNotaPanel){GadgetLayout.put(item,"nota",((TenNotaPanel)view).sessionState());GadgetLayout.put(result,path,item);return;}
         if(view instanceof TaskManagerPanel){GadgetLayout.put(item,"taskmanager",((TaskManagerPanel)view).state());GadgetLayout.put(result,path,item);return;}
         if(view instanceof PhotoGallery){GadgetLayout.put(item,"photo",((PhotoGallery)view).state());GadgetLayout.put(result,path,item);return;}
         if(view instanceof VistaShell){GadgetLayout.put(item,"shell",((VistaShell)view).state());GadgetLayout.put(result,path,item);return;}
@@ -26,6 +27,8 @@ final class ToolViewState {
     private static void restore(View view,String path,JSONObject state){
         if(view instanceof BrowserPanel)return;
         JSONObject item=state.optJSONObject(path);
+        // Ignore pre-port recursive child paths; only the versioned Nota payload is authoritative.
+        if(view instanceof TenNotaPanel){if(item!=null)((TenNotaPanel)view).restoreSessionState(item.optJSONObject("nota"));return;}
         if(item!=null){
             if(view instanceof TaskManagerPanel){((TaskManagerPanel)view).restore(item.optJSONObject("taskmanager"));return;}
             if(view instanceof PhotoGallery){((PhotoGallery)view).restore(item.optJSONObject("photo"));return;}

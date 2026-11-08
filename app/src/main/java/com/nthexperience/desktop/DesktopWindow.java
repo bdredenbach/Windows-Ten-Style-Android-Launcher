@@ -245,7 +245,8 @@ final class DesktopWindow extends LinearLayout {
         return true;
     }
     @Override public boolean onTouchEvent(MotionEvent event){
-        if(resizeCorner==0)return super.onTouchEvent(event);
+        // Retain blank-area gestures after child dispatch; desktop outside this window stays usable.
+        if(resizeCorner==0){super.onTouchEvent(event);return true;}
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_MOVE:
                 dragCorner(event.getRawX(),event.getRawY());
@@ -492,7 +493,7 @@ final class DesktopWindow extends LinearLayout {
         return result;
     }
     void saveGeometry(){store.prefs.edit().putString(geometryKey,geometry().toString()).apply();}
-    void desktopScope(String id){desktopSuffix=id.equals("desktop-1")?"":"_desktop_"+id;geometryKey="window_"+orientationKey+"_"+toolId+desktopSuffix;}
+    void desktopScope(String id){if(body instanceof TenNotaPanel)((TenNotaPanel)body).moveToDesktop(id);desktopSuffix=id.equals("desktop-1")?"":"_desktop_"+id;geometryKey="window_"+orientationKey+"_"+toolId+desktopSuffix;}
     void orientation(String key){saveGeometry();JSONObject previous=geometry();orientationKey=key;geometryKey="window_"+key+"_"+toolId+desktopSuffix;readGeometry(previous);}
     void readGeometry(JSONObject fallback){
         JSONObject value=fallback;String saved=store.prefs.getString(geometryKey,null);if(saved!=null)try{value=new JSONObject(saved);}catch(JSONException ignored){}
