@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ten-selector-${{ github.ref }}
+  group: ten-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   preview:
@@ -17,10 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - api: 30
-            orientation: portrait
-            mode: dark
+        api: [30, 36]
+        orientation: [portrait, landscape]
+        mode: [light, dark]
     env:
       TEN_THEME_ORIENTATION: ${{ matrix.orientation }}
       TEN_THEME_MODE: ${{ matrix.mode }}
@@ -48,7 +47,7 @@ jobs:
       - name: Check packaged runners and notification permission
         run: python3 checks/CheckTenManifest.py
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: matrix.orientation == 'portrait' && matrix.mode == 'light'
         with:
           name: Nth-Desktop-Ten-0.21.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
