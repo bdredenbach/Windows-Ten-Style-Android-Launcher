@@ -73,7 +73,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     }
     void menus()throws Exception{
         ui(()->{home.open("@gadget:calculator");windows().get("@gadget:calculator").maximize();});View calculator=windows().get("@gadget:calculator").body;
-        openPopup("calculator-menu",()->invoke(calculator,"menu",new Class<?>[]{View.class},calculator));closePopup();ui(()->windows().get("@gadget:calculator").closeWindow());
+        openPopup("calculator-menu",()->TenSmoke.description(calculator,"Calculator menu").performClick());closePopup();ui(()->windows().get("@gadget:calculator").closeWindow());
         ui(()->home.open("@search"));StartMenu start=TenSmoke.find(root,StartMenu.class);checkPaint("search-shell",start);
         openPopup("search-more",()->TenSmoke.description(start,"More ▾").performClick());closePopup();
         StartSearch.Result item=new StartSearch.Result("@browser","Nth Browser","Programs","browser",null,true);
@@ -102,7 +102,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     List<View> newRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(!baseline.contains(view)&&view.isShown())result.add(view);return result;}
     List<View> extraRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(view!=root&&view.isShown())result.add(view);return result;}
     boolean popupVisible(List<View> views){for(View view:views)if(view.isAttachedToWindow()&&view.isShown())return true;return false;}
-    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIdleSync();if(popupVisible(old)){int[] xy=new int[2];ui(()->root.getLocationOnScreen(xy));long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,xy[0]+2,xy[1]+2,0),up=MotionEvent.obtain(now,now+30,MotionEvent.ACTION_UP,xy[0]+2,xy[1]+2,0);try{sendPointerSync(down);sendPointerSync(up);}finally{down.recycle();up.recycle();}}await(()->!popupVisible(old),"Popup dismissed: "+path+"/"+popupName);}
+    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);ui(()->{for(View view:old){long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(now,now,MotionEvent.ACTION_OUTSIDE,-1,-1,0);try{view.dispatchTouchEvent(event);}finally{event.recycle();}}});await(()->!popupVisible(old),"Popup dismissed: "+path+"/"+popupName);}
     void backToMain()throws Exception{for(int i=0;i<4&&!extraRoots().isEmpty();i++){boolean[] cancelled={false};ui(()->{for(View view:extraRoots()){View cancel=view.findViewById(android.R.id.button2);if(cancel!=null&&cancel.isShown()){cancel.performClick();cancelled[0]=true;break;}}});if(!cancelled[0]){opened=new ArrayList<>(extraRoots());closePopup();}waitForIdleSync();}await(()->extraRoots().isEmpty(),"Dialog dismissed: "+path);}
     void invoke(Object object,String name,Class<?>[] types,Object... args){try{Method method=object.getClass().getDeclaredMethod(name,types);method.setAccessible(true);method.invoke(object,args);}catch(Exception e){throw new RuntimeException(e);}}
     void paintUnchecked(View view,String name){try{paint(view,name);}catch(IOException e){throw new RuntimeException(e);}}
