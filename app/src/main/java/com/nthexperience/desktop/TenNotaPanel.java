@@ -39,6 +39,15 @@ final class TenNotaPanel extends LinearLayout {
         try{return TenNotaState.ordinary(input.getText().toString(),Math.max(0,task.getSelectedItemPosition()),importedDraft,lastReply,contextLabel.getVisibility()==VISIBLE?contextLabel.getText().toString():"",guidance.getVisibility()==VISIBLE,commandReply);}catch(JSONException e){throw new IllegalStateException(e);}
     }
     private void persist(){if(!hydrating&&!privateDraft&&!closed)TenNotaDrafts.write(store,desktopId,state());}
+    JSONObject sessionState(){
+        if(privateDraft)return TenNotaState.redacted();
+        // Full text lives in the scoped store; keep Android's saved-state transaction small.
+        persist();JSONObject ref=new JSONObject();GadgetLayout.put(ref,"version",1);GadgetLayout.put(ref,"desktop",desktopId);return ref;
+    }
+    void restoreSessionState(JSONObject saved){
+        if(saved!=null&&saved.length()==2&&Integer.valueOf(1).equals(saved.opt("version"))&&desktopId.equals(saved.opt("desktop")))restoreState(TenNotaDrafts.read(store,desktopId));
+        else restoreState(saved);
+    }
     void moveToDesktop(String id){if(desktopId.equals(id))return;if(!privateDraft)TenNotaDrafts.move(store,desktopId,id,state());desktopId=id;}
     private void cancelRequest(){String previous=pending;pending="";send.setEnabled(true);if(!previous.isEmpty())assistant.cancel(previous);}
     void restoreState(JSONObject saved){

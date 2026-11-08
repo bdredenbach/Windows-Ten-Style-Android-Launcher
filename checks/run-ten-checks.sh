@@ -27,6 +27,11 @@ run_suite() {
   if ! grep -q 'PASS:' "$output"; then failed=1; fi
   if grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$output"; then failed=1; fi
 }
+run_suite TenNotaSmoke ten-nota-smoke.txt
+adb shell am force-stop "$launcher"
+if ! timeout 240s adb shell am instrument -w -e phase cold "$launcher.test/com.nthexperience.desktop.TenNotaSmoke" | tee ten-nota-cold-smoke.txt; then failed=1; fi
+if ! grep -q "PASS:" ten-nota-cold-smoke.txt || grep -Eq "FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED" ten-nota-cold-smoke.txt; then failed=1; fi
+if [[ "$failed" != 0 ]]; then exit "$failed"; fi
 run_suite TenSmoke ten-smoke.txt
 run_suite TenPolishSmoke ten-polish-smoke.txt
 run_suite TenShellSmoke ten-shell-smoke.txt
@@ -40,10 +45,7 @@ run_suite TenReferenceSmoke ten-reference-smoke.txt
 run_suite TenAuditSmoke ten-audit-smoke.txt
 run_suite TenDarkModeSmoke ten-dark-mode-smoke.txt
 run_suite TenInteractionSmoke ten-interaction-smoke.txt
-run_suite TenNotaSmoke ten-nota-smoke.txt
-adb shell am force-stop "$launcher"
-if ! timeout 240s adb shell am instrument -w -e phase cold "$launcher.test/com.nthexperience.desktop.TenNotaSmoke" | tee ten-nota-cold-smoke.txt; then failed=1; fi
-if ! grep -q "PASS:" ten-nota-cold-smoke.txt || grep -Eq "FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED" ten-nota-cold-smoke.txt; then failed=1; fi
+
 collect
 bash checks/run-ten-facets.sh || failed=1
 exit "$failed"

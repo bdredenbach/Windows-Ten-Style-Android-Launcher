@@ -16,4 +16,5 @@ final class TenNotaDrafts {
     static void write(DesktopStore store,String desktop,JSONObject state){JSONObject banks=banks(store);GadgetLayout.put(banks,desktop,state);store.prefs.edit().putString(KEY,banks.toString()).apply();}
     static void move(DesktopStore store,String from,String to,JSONObject state){JSONObject banks=banks(store);banks.remove(from);GadgetLayout.put(banks,to,state);store.prefs.edit().putString(KEY,banks.toString()).apply();}
     static void remove(DesktopStore store,String desktop){JSONObject banks=banks(store);banks.remove(desktop);store.prefs.edit().putString(KEY,banks.toString()).apply();}
+    static void reconcile(DesktopStore store,java.util.List<String> ids){if(!store.prefs.contains(KEY))return;JSONObject banks=banks(store);java.util.Iterator<String> keys=banks.keys();while(keys.hasNext())if(!ids.contains(keys.next()))keys.remove();store.prefs.edit().putString(KEY,banks.toString()).apply();}
 }
