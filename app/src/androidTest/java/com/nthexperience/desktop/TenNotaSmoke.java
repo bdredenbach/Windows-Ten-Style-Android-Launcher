@@ -90,6 +90,7 @@ public final class TenNotaSmoke extends TenThemeSmoke {
         ui(()->{panel().input.requestFocus();home.getSystemService(android.view.inputmethod.InputMethodManager.class).showSoftInput(panel().input,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);});
         await(()->root.getRootWindowInsets()!=null&&root.getRootWindowInsets().isVisible(WindowInsets.Type.ime()),"Real keyboard visible");
         ui(()->{Rect command=new Rect(),send=new Rect();View button=TenSmoke.description(panel(),"New command");check(button.getGlobalVisibleRect(command)&&command.height()>=button.getHeight()*.9f&&panel().send.getGlobalVisibleRect(send)&&send.height()>=panel().send.getHeight()*.9f,"New command and Send accessible above keyboard");});shot("ten20-nota-keyboard");ui(()->home.getSystemService(android.view.inputmethod.InputMethodManager.class).hideSoftInputFromWindow(root.getWindowToken(),0));await(()->!root.getRootWindowInsets().isVisible(WindowInsets.Type.ime()),"Keyboard dismissed");
+        try(android.os.ParcelFileDescriptor fd=getUiAutomation().executeShellCommand("settings put secure show_ime_with_hard_keyboard 0");java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(fd)){while(in.read()!=-1){}}
     }
     void windowTouches()throws Exception{
         final AtomicInteger behind=new AtomicInteger(),child=new AtomicInteger();final FrameLayout[] stage={null},body={null};final DesktopWindow[] win={null};final Button[] button={null};
