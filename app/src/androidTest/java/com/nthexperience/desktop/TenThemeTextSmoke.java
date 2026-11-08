@@ -13,12 +13,15 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.*;
 
 /** Audits painted controls, including separate popup windows. It never repairs a view before checking it. */
 public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     final List<TenThemes.Preset> presets=new ArrayList<>();
     final Set<View> baseline=Collections.newSetFromMap(new IdentityHashMap<>());
-    int combinations,popups,stateChecks;String path,popupName;List<View> opened;View semanticRoot;int semanticFill;
+    int combinations,popups,stateChecks;String path,popupName,stage="startup";List<View> opened;View semanticRoot;int semanticFill;
+    final ExecutorService idleWaiter=Executors.newSingleThreadExecutor(r->{Thread thread=new Thread(r,"theme-audit-idle");thread.setDaemon(true);return thread;});
+    @Override public void waitForIdleSync(){try{idleWaiter.submit(()->super.waitForIdleSync()).get(8,TimeUnit.SECONDS);}catch(Exception error){throw new AssertionError("UI did not settle: "+stage,error);}}
     @Override public void onStart(){Bundle result=new Bundle();try{
         store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putBoolean("weather_follow",false).putString("feed_url","").remove(TenNotaDrafts.KEY).putString("ten_nota_draft","").commit();
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
@@ -39,10 +42,10 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     void stateControls(View view,List<View> controls){if(view.getVisibility()!=View.VISIBLE)return;if(view.isEnabled()&&view.getBackground() instanceof StateListDrawable)controls.add(view);if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)stateControls(group.getChildAt(i),controls);}}
     @Override int[] fills(Drawable drawable){if(drawable instanceof TenStyle.Hover)((TenStyle.Hover)drawable).appearance();return super.fills(drawable);}
     @Override int[] backgrounds(View view){View current=view;while(current!=null){if(current.getBackground() instanceof AeroGlass){Drawable glass=current.getBackground();return new int[]{(Integer)field(glass,"style")==AeroGlass.WINDOW?TenStyle.captionSurface(home,(Boolean)field(glass,"active")):TenStyle.surface(home)};}int[] colors=fills(current.getBackground());if(colors!=null)return colors;if(current==semanticRoot)return new int[]{semanticFill};ViewParent parent=current.getParent();current=parent instanceof View?(View)parent:null;}return new int[]{TenAppearance.background(home)};}
-    void checkPaint(String name,View view)throws Exception{waitForIdleSync();ui(()->scan(path+"/"+name,view));}
+    void checkPaint(String name,View view)throws Exception{stage=path+"/"+name;waitForIdleSync();ui(()->scan(path+"/"+name,view));}
     void bodies()throws Exception{
         ArrayList<String> ids=new ArrayList<>(Arrays.asList(tools));for(String kind:GadgetCatalog.IDS)if(GadgetCatalog.extra(kind))ids.add("@gadget:"+kind);
-        for(String id:ids){final View[] content={null};ui(()->{home.open(id);if(id.equals(MediaLibrary.CENTER)){content[0]=(View)field(home,"mediaCenter");return;}DesktopWindow w=windows().get(id);if(w==null)for(DesktopWindow candidate:windows().values())if(candidate.getParent()!=null&&candidate.body instanceof DesktopOrganizer)w=candidate;check(w!=null,"Tool opens: "+id);w.maximize();content[0]=w;});checkPaint(id,content[0]);if(content[0] instanceof DesktopWindow){DesktopWindow w=(DesktopWindow)content[0];ui(()->{w.active(false);scan(path+"/"+id+"/inactive-caption",w.getChildAt(0));w.active(true);});}ui(()->{if(id.equals(MediaLibrary.CENTER)){invoke(home,"closeMediaCenter",new Class<?>[]{});return;}for(DesktopWindow w:new ArrayList<>(windows().values()))if(w.getParent()!=null)w.closeWindow();});}
+        for(String id:ids){stage=path+"/"+id;final View[] content={null};ui(()->{home.open(id);if(id.equals(MediaLibrary.CENTER)){content[0]=(View)field(home,"mediaCenter");return;}DesktopWindow w=windows().get(id);if(w==null)for(DesktopWindow candidate:windows().values())if(candidate.getParent()!=null&&candidate.body instanceof DesktopOrganizer)w=candidate;check(w!=null,"Tool opens: "+id);w.maximize();content[0]=w;});checkPaint(id,content[0]);if(content[0] instanceof DesktopWindow){DesktopWindow w=(DesktopWindow)content[0];ui(()->{w.active(false);scan(path+"/"+id+"/inactive-caption",w.getChildAt(0));w.active(true);});}ui(()->{if(id.equals(MediaLibrary.CENTER)){invoke(home,"closeMediaCenter",new Class<?>[]{});return;}for(DesktopWindow w:new ArrayList<>(windows().values()))if(w.getParent()!=null)w.closeWindow();});}
     }
     void settings()throws Exception{
         ui(()->{home.open("@settings");windows().get("@settings").maximize();});TenSettings settings=(TenSettings)windows().get("@settings").body;
@@ -67,7 +70,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         ui(()->{store.prefs.edit().putString("ten_run_history","[\"notepad\",\"calculator\",\"explorer\"]").commit();home.open("@run");});waitForIdleSync();AutoCompleteTextView[] entry={null};ui(()->{for(View extra:extraRoots()){AutoCompleteTextView found=TenSmoke.find(extra,AutoCompleteTextView.class);if(found!=null)entry[0]=found;}});check(entry[0]!=null,"Real Run editor exists");ui(()->entry[0].dismissDropDown());await(()->extraRoots().size()==1,"Initial Run suggestions dismissed");openPopup("run-suggestions",()->entry[0].showDropDown());closePopup();backToMain();
     }
     void spinner(Spinner spinner,String name,Runnable snapshot)throws Exception{
-        check(spinner!=null,"Spinner exists: "+name);waitForIdleSync();ui(()->spinner.requestRectangleOnScreen(new Rect(0,0,spinner.getWidth(),spinner.getHeight()),true));waitForIdleSync();int selection=spinner.getSelectedItemPosition();
+        check(spinner!=null,"Spinner exists: "+name);stage=path+"/spinner/"+name;waitForIdleSync();ui(()->spinner.requestRectangleOnScreen(new Rect(0,0,spinner.getWidth(),spinner.getHeight()),true));waitForIdleSync();int selection=spinner.getSelectedItemPosition();
         openPopup(name,()->spinner.performClick());if(snapshot!=null)ui(snapshot);
         ListView[] list={null};ui(()->{for(View view:opened){ListView found=TenSmoke.find(view,ListView.class);if(found!=null)list[0]=found;}check(list[0]!=null,"Popup has native list: "+name);list[0].setSelection(Math.max(0,list[0].getCount()-1));});waitForIdleSync();ui(()->{for(View view:opened)scan(path+"/popup/"+name+"/recycled",view);});closePopup();check(spinner.getSelectedItemPosition()==selection,"Inspecting a dropdown preserves selection: "+name);
     }
@@ -97,7 +100,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         ui(()->home.open("@actioncenter"));TenActionCenter actions=(TenActionCenter)field(home,"tenActions");checkPaint("action-center",actions.panel);ui(actions::dismiss);
     }
     void openPopup(String name,Runnable show)throws Exception{
-        popupName=name;ui(()->{baseline.clear();baseline.addAll(WindowInspector.getGlobalWindowViews());show.run();});await(()->!newRoots().isEmpty(),"Popup window opens: "+path+"/"+name);waitForIdleSync();ui(()->{opened=new ArrayList<>(newRoots());check(!opened.isEmpty(),"Rendered popup exists: "+name);int before=checked;for(View view:opened)scan(path+"/popup/"+name,view);check(checked>before,"Actual popup text inspected: "+name);popups++;});
+        popupName=name;stage=path+"/popup/"+name;ui(()->{baseline.clear();baseline.addAll(WindowInspector.getGlobalWindowViews());show.run();});await(()->!newRoots().isEmpty(),"Popup window opens: "+path+"/"+name);waitForIdleSync();ui(()->{opened=new ArrayList<>(newRoots());check(!opened.isEmpty(),"Rendered popup exists: "+name);int before=checked;for(View view:opened)scan(path+"/popup/"+name,view);check(checked>before,"Actual popup text inspected: "+name);popups++;});
     }
     List<View> newRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(!baseline.contains(view)&&view.isShown())result.add(view);return result;}
     List<View> extraRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(view!=root&&view.isShown())result.add(view);return result;}

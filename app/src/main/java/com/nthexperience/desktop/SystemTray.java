@@ -97,7 +97,7 @@ final class SystemTray extends LinearLayout {
     private void refresh(){main.post(()->{if(running)update();});}
     private int topInset;
     void bounds(int left,int right,int top){topInset=top;bounds(left,right);}
-    void bounds(int left,int right){leftInset=left;rightInset=right;if(cover==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)frame.getLayoutParams();p.width=Math.min(dp(324),Math.max(1,workspace.getWidth()-left-right-dp(12)));p.height=Math.min(dp(page.equals("calendar")?395:page.equals("actioncenter")?310:page.equals("controls")?350:285),Math.max(1,workspace.getHeight()-topInset-dp(10)));p.rightMargin=right+dp(6);frame.setLayoutParams(p);}
+    void bounds(int left,int right){leftInset=left;rightInset=right;if(cover==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)frame.getLayoutParams();int width=Math.min(dp(324),Math.max(1,workspace.getWidth()-left-right-dp(12))),height=Math.min(dp(page.equals("calendar")?395:page.equals("actioncenter")?310:page.equals("controls")?350:285),Math.max(1,workspace.getHeight()-topInset-dp(10))),margin=right+dp(6);if(p.width!=width||p.height!=height||p.rightMargin!=margin){p.width=width;p.height=height;p.rightMargin=margin;frame.setLayoutParams(p);}}
     boolean dismiss(){if(cover==null)return false;workspace.removeView(cover);cover=null;summary=null;volume=null;page="";tracking=false;main.removeCallbacks(tick);return true;}
     void show(String value){
         if(value.equals(page)&&cover!=null){dismiss();return;}dismiss();host.opening();page=value;
