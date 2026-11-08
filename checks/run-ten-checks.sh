@@ -27,9 +27,11 @@ run_suite() {
   if ! grep -q 'PASS:' "$output"; then failed=1; fi
   if grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$output"; then failed=1; fi
 }
-if ! timeout -k 3s 1500s adb shell am instrument -w "$launcher.test/com.nthexperience.desktop.TenThemeTextSmoke" | tee ten-theme-text-smoke.txt; then failed=1; fi
+if ! timeout -k 3s 1500s adb shell am instrument -w -e orientation "${TEN_THEME_ORIENTATION:-all}" -e mode "${TEN_THEME_MODE:-all}" "$launcher.test/com.nthexperience.desktop.TenThemeTextSmoke" | tee ten-theme-text-smoke.txt; then failed=1; fi
 if ! grep -q "PASS:" ten-theme-text-smoke.txt || grep -Eq "FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED" ten-theme-text-smoke.txt; then failed=1; fi
 if [[ "$failed" != 0 ]]; then exit "$failed"; fi
+# One partition on each OS also runs the complete existing regression set.
+if [[ "${TEN_THEME_ORIENTATION:-portrait}" != portrait || "${TEN_THEME_MODE:-light}" != light ]]; then exit 0; fi
 run_suite TenNotaSmoke ten-nota-smoke.txt
 if [[ "$failed" != 0 ]]; then exit "$failed"; fi
 adb shell am force-stop "$launcher"

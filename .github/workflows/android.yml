@@ -18,6 +18,11 @@ jobs:
       fail-fast: false
       matrix:
         api: [30, 36]
+        orientation: [portrait, landscape]
+        mode: [light, dark]
+    env:
+      TEN_THEME_ORIENTATION: ${{ matrix.orientation }}
+      TEN_THEME_MODE: ${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -42,6 +47,7 @@ jobs:
       - name: Check packaged runners and notification permission
         run: python3 checks/CheckTenManifest.py
       - uses: actions/upload-artifact@v4
+        if: matrix.orientation == 'portrait' && matrix.mode == 'light'
         with:
           name: Nth-Desktop-Ten-0.21.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -65,7 +71,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Ten-evidence-api-${{ matrix.api }}
+          name: Ten-evidence-api-${{ matrix.api }}-${{ matrix.orientation }}-${{ matrix.mode }}
           path: |
             ten-smoke.txt
             ten-polish-smoke.txt
