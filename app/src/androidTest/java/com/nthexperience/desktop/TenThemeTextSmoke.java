@@ -30,7 +30,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
             for(int i=0;i<presets.size();i++)for(boolean dark:new boolean[]{false,true}){
                 final TenThemes.Preset preset=presets.get(i);path=(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"portrait":"landscape")+"/"+preset.name+"/"+(dark?"dark":"light");
                 ui(()->{preset.apply(store);store.prefs.edit().putBoolean("ten_apps_dark",dark).commit();home.applyTenAppearance();});waitForIdleSync();
-                bodies();settings();choices(i,orientation,dark);menus();dialogs();shell();combinations++;save();
+                bodies();settings();choices(i,orientation,dark);menus();dialogs();shell();combinations++;save();Bundle progress=new Bundle();progress.putString("stream","Checked "+path+" ("+combinations+"/68)\n");sendStatus(0,progress);
                 if(!failures.isEmpty())throw new AssertionError("Theme text failures: "+String.join("; ",failures.values()).substring(0,Math.min(5000,String.join("; ",failures.values()).length())));
             }
         }
@@ -91,7 +91,9 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         ui(()->TenSmoke.description(root,"Start menu").performContextClick());waitForIdleSync();if(!extraRoots().isEmpty()){ui(()->{for(View view:extraRoots())scan(path+"/start-context",view);});backToMain();}
     }
     void shell()throws Exception{
+        ui(()->home.open("@notes"));DesktopWindow window=windows().get("@notes");await(()->TenSmoke.description(root,"Minimize "+window.caption())!=null,"Running taskbar preview target");openPopup("taskbar-preview",()->TenSmoke.description(root,"Minimize "+window.caption()).performLongClick());closePopup();ui(window::closeWindow);
         checkPaint("taskbar",TenSmoke.description(root,"Desktop taskbar"));
+        SystemTray tray=(SystemTray)field(home,"tray");for(String page:new String[]{"controls","battery","network","volume","brightness","calendar","actioncenter"}){ui(()->tray.show(page));checkPaint("tray/"+page,(View)field(tray,"frame"));ui(tray::dismiss);}
         ui(()->home.open("@news"));TenNewsFlyout news=(TenNewsFlyout)field(home,"tenNews");checkPaint("news",news.frame);ui(news::dismiss);
         ui(()->home.open("@actioncenter"));TenActionCenter actions=(TenActionCenter)field(home,"tenActions");checkPaint("action-center",actions.panel);ui(actions::dismiss);
     }
@@ -100,7 +102,8 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
     }
     List<View> newRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(!baseline.contains(view)&&view.isShown())result.add(view);return result;}
     List<View> extraRoots(){ArrayList<View> result=new ArrayList<>();for(View view:WindowInspector.getGlobalWindowViews())if(view!=root&&view.isShown())result.add(view);return result;}
-    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);await(()->{for(View view:old)if(view.isAttachedToWindow()&&view.isShown())return false;return true;},"Popup dismissed: "+path+"/"+popupName);}
+    boolean popupVisible(List<View> views){for(View view:views)if(view.isAttachedToWindow()&&view.isShown())return true;return false;}
+    void closePopup()throws Exception{List<View> old=new ArrayList<>(opened);sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIdleSync();if(popupVisible(old)){int[] xy=new int[2];ui(()->root.getLocationOnScreen(xy));long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,xy[0]+2,xy[1]+2,0),up=MotionEvent.obtain(now,now+30,MotionEvent.ACTION_UP,xy[0]+2,xy[1]+2,0);try{sendPointerSync(down);sendPointerSync(up);}finally{down.recycle();up.recycle();}}await(()->!popupVisible(old),"Popup dismissed: "+path+"/"+popupName);}
     void backToMain()throws Exception{for(int i=0;i<4&&!extraRoots().isEmpty();i++){sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIdleSync();}await(()->extraRoots().isEmpty(),"Dialog dismissed");}
     void invoke(Object object,String name,Class<?>[] types,Object... args){try{Method method=object.getClass().getDeclaredMethod(name,types);method.setAccessible(true);method.invoke(object,args);}catch(Exception e){throw new RuntimeException(e);}}
     void paintUnchecked(View view,String name){try{paint(view,name);}catch(IOException e){throw new RuntimeException(e);}}

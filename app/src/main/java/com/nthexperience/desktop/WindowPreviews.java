@@ -190,7 +190,7 @@ final class WindowPreviews {
         int height=Aero.dp(context,(sticky?179:149)+(mediaControls?36:0));
         LinearLayout shell=Aero.column(context);
         shell.setContentDescription(group==null?(cards.size()>1?"Browser tab previews":"Window preview for "+cards.get(0).title):group);
-        shell.setBackground(Aero.gloss(context,new int[]{0xff6088ab,0xff365a7c,0xff183c5d},6,0xff9dbbd0));
+        shell.setBackground(context instanceof MainActivity?((MainActivity)context).tenShellSurface():new android.graphics.drawable.ColorDrawable(TenStyle.surface(context)));
         HorizontalScrollView scroll=new HorizontalScrollView(context);scroll.setHorizontalScrollBarEnabled(cards.size()>2);
         if(!sticky)scroll.setOnHoverListener((v,event)->{
             main.removeCallbacks(dismissFolderHover);
@@ -233,6 +233,7 @@ final class WindowPreviews {
                 MediaPlayback playback=((MediaPanel)((DesktopWindow)target.source).body).playback();
                 addMediaControls(card,playback,refreshControls);
             }
+            TenAppearance.bind(card);
             card.setOnClickListener(v->{dismiss();target.open.run();});
             card.setOnHoverListener((v,event)->{
                 boolean over=event.getActionMasked()!=MotionEvent.ACTION_HOVER_EXIT;
