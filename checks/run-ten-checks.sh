@@ -12,7 +12,7 @@ collect() {
   adb exec-out run-as "$launcher" cat files/ten7-feed-live.tsv > screenshots/ten7-feed-live.tsv 2>/dev/null || true
   adb exec-out run-as "$launcher" cat files/ten9-accent-matrix.tsv > screenshots/ten9-accent-matrix.tsv 2>/dev/null || true
   for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
-    case "$name" in ten18-*.png|ten18-*.tsv|ten20-*.png) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
+    case "$name" in ten18-*.png|ten18-*.tsv|ten20-*.png|ten21-*.png|ten21-*.tsv) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
   done
   adb logcat -d -t 500 > screenshots/device-log.txt || true
 }
@@ -27,6 +27,9 @@ run_suite() {
   if ! grep -q 'PASS:' "$output"; then failed=1; fi
   if grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$output"; then failed=1; fi
 }
+if ! timeout -k 3s 1500s adb shell am instrument -w "$launcher.test/com.nthexperience.desktop.TenThemeTextSmoke" | tee ten-theme-text-smoke.txt; then failed=1; fi
+if ! grep -q "PASS:" ten-theme-text-smoke.txt || grep -Eq "FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED" ten-theme-text-smoke.txt; then failed=1; fi
+if [[ "$failed" != 0 ]]; then exit "$failed"; fi
 run_suite TenNotaSmoke ten-nota-smoke.txt
 if [[ "$failed" != 0 ]]; then exit "$failed"; fi
 adb shell am force-stop "$launcher"

@@ -27,12 +27,14 @@ final class TenAppearance {
         GradientColors(int[] colors){source=colors.clone();applied=colors.clone();}
     }
     static void context(Context c){c.getTheme().applyStyle(dark(c)?R.style.TenDarkControls:R.style.TenLightControls,true);}
+    static PopupMenu popupMenu(Context c,View anchor){return new PopupMenu(new ContextThemeWrapper(c,dark(c)?R.style.TenDarkPopupTheme:R.style.TenLightPopupTheme),anchor);}
     static void preserve(View view){view.setTag(R.id.ten_appearance_preserve,Boolean.TRUE);}
     static void bind(View root){if(root==null)return;if(root.getTag(R.id.ten_appearance_binding)==null){Binding binding=new Binding(root);root.setTag(R.id.ten_appearance_binding,binding);root.addOnAttachStateChangeListener(binding);if(root.isAttachedToWindow())binding.onViewAttachedToWindow(root);}apply(root);}
-    private static final class Binding implements View.OnAttachStateChangeListener,ViewTreeObserver.OnPreDrawListener {
-        final View root;ViewTreeObserver observer;Binding(View root){this.root=root;}
-        public void onViewAttachedToWindow(View view){observer=view.getViewTreeObserver();observer.addOnPreDrawListener(this);apply(root);}
-        public void onViewDetachedFromWindow(View view){if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);observer=null;}
+    private static final class Binding implements View.OnAttachStateChangeListener,ViewTreeObserver.OnPreDrawListener,android.content.SharedPreferences.OnSharedPreferenceChangeListener {
+        final View root;ViewTreeObserver observer;android.content.SharedPreferences prefs;Binding(View root){this.root=root;}
+        public void onViewAttachedToWindow(View view){observer=view.getViewTreeObserver();observer.addOnPreDrawListener(this);prefs=view.getContext().getSharedPreferences("desktop",0);prefs.registerOnSharedPreferenceChangeListener(this);apply(root);}
+        public void onViewDetachedFromWindow(View view){if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);observer=null;if(prefs!=null)prefs.unregisterOnSharedPreferenceChangeListener(this);prefs=null;}
+        public void onSharedPreferenceChanged(android.content.SharedPreferences p,String key){if(key!=null&&(key.equals("ten_apps_dark")||key.equals("ten_accent")||key.equals("ten_shell_style")))root.post(()->{if(root.isAttachedToWindow()){apply(root);root.invalidate();}});}
         public boolean onPreDraw(){apply(root);return true;}
     }
     private static final class Original {Drawable source,applied;ColorStateList text,appliedText,hint,appliedHint;boolean mapped,wasDark,wasAccent,controls;int accent,controlAccent,surfaceKey;boolean controlDark;}

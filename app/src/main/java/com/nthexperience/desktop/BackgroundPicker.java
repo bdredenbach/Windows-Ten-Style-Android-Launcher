@@ -145,7 +145,7 @@ final class BackgroundPicker extends LinearLayout {
     private void clearDraft(){java.util.Iterator<String> iterator=draft.keys();while(iterator.hasNext()){iterator.next();iterator.remove();}}
     private Spinner spinner(String[] values,String description){
         Spinner spinner=new Spinner(getContext());spinner.setContentDescription(description);
-        spinner.setAdapter(new ArrayAdapter<>(getContext(),android.R.layout.simple_spinner_dropdown_item,values));return spinner;
+        TenChoiceAdapter.attach(spinner,values);return spinner;
     }
     private void listen(Spinner spinner,java.util.function.IntConsumer select){
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){

@@ -43,8 +43,7 @@ final class DesktopSounds {
         DesktopStore store=new DesktopStore(context);
         TextView title=Aero.text(context,"Sound scheme",13,Aero.INK);body.addView(title);
         Spinner schemes=new Spinner(context);schemes.setContentDescription("Desktop sound scheme");
-        ArrayAdapter<String> adapter=new ArrayAdapter<>(context,android.R.layout.simple_spinner_dropdown_item,SoundSchemes.NAMES);
-        schemes.setAdapter(adapter);schemes.setSelection(SoundSchemes.index(scheme(store)));
+        TenChoiceAdapter.attach(schemes,SoundSchemes.NAMES);schemes.setSelection(SoundSchemes.index(scheme(store)));
         schemes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             public void onItemSelected(AdapterView<?> parent,View view,int position,long id){store.prefs.edit().putString(SCHEME,SoundSchemes.IDS[position]).apply();}
             public void onNothingSelected(AdapterView<?> parent){}
