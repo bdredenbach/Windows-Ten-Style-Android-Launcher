@@ -2,7 +2,7 @@
 
 Ports the native Nota behavior from the supplied Eight 0.7.8 handoff into Ten. This is the launcher assistant, separate from the standalone Nth Nota canvas app.
 
-All six categories keep their indices and display their matching description, instruction paragraph and composer hint. Guidance and real replies use separate views/data. Changing category preserves the reply; Copy reply and Save to Notepad use that reply only and stay disabled in guidance-only state. New command clears the current composer, reply and writing origin without deleting history. It stays beside the category selector in compact windows.
+All six categories keep their indices and display their matching description, instruction paragraph and composer hint. Guidance and real replies use separate views/data. Changing category preserves the reply; Copy reply and Save to Notepad use that reply only and stay disabled in guidance-only state. New command clears the current composer, reply and writing origin without deleting history. It stays beside the category selector in compact windows. When the keyboard leaves very little height, Send joins that row, the composer shows one visible line without truncating its text, and sending dismisses the keyboard so the reply or guidance can be read. The normal controls return as space becomes available.
 
 Fresh app commands still resolve locally on Send. An exact app match opens once; ambiguity waits for a labeled icon choice. Launcher activities sharing a label and package now include the activity name. Imported passages, cleared source context, restored writing, history, private text and model replies do not gain command authority. Replacing a passage or starting a new command invalidates the previous request ID before cancellation, so a late result cannot replace the new passage.
 
@@ -26,7 +26,30 @@ Writing retains the local-first/free optional cloud stack. Model preparation rem
 
 ## Verification
 
-Local build and unit validation: 18 tests pass, app/test/fixture/install-probe APKs compile, packaged runner/permission checks pass, and tile/settings/consent/command checks pass. Native verification and final package hashes are recorded below when complete.
+Verified application source: `6122b0ab4d4c4e29b893006f1192c7e512afd4b5`. [PR #1](https://github.com/bdredenbach/Windows-Ten-Style-Android-Launcher/pull/1) merged that exact tested tree as `24a7a4571cc7868258eb464892a67697f7382f6b`.
+
+[Completed regression run](https://github.com/bdredenbach/Windows-Ten-Style-Android-Launcher/actions/runs/42505557099).
+
+| Check | Result |
+| --- | --- |
+| Application/test/fixture/install-probe compilation | PASS in both CI jobs |
+| Unit tests | 18/18 PASS in both jobs |
+| Android 11 / API 30 | All 25 native scenarios PASS |
+| Android 16 / API 36 | All 25 native scenarios PASS |
+| Packaged runners, permissions, tile/settings/consent/command checks | PASS |
+| Nota visual review | Final category/portrait and both landscape rotations, light/dark and real Android 11 keyboard screenshots reviewed |
+| Signing identity | Existing Ten preview certificate retained; v2/v3 verified |
+| APK alignment | PASS, including 16 KiB page alignment |
+| Application payload | All 453 non-signature entries exactly match both CI APKs |
+| Download ZIP | CRC and embedded APK/notes byte equality PASS |
+
+The 25 scenarios comprise fourteen Ten suites, a stopped-process Nota check and ten shared engine scenarios. The focused Nota scenario exercises a controlled writing backend through the real assistant, all category/reply states, history/import/private boundaries, independent 15,000-character desktop drafts, moving windows, recreation, backup rejection and actual compact Send/keyboard interaction.
+
+Signed APK SHA-256: `6e155ed6426140e1e872db6806a21bfd9e99e17b703cef598f420e62c57d6da0`.
+
+Download ZIP SHA-256: `6f474d6bb1b88058e79a5aef8cc6c2f69ee844b753f9db5c32d5a2c2411722ae`.
+
+Install the signed 0.20.0 preview over the existing Ten installation to keep its desktop setup and notes.
 
 Physical Pixel 10/Android 17, live AICore model preparation/inference and live cloud writing are not newly validated by this port. The native writing fixture exercises the real assistant dispatch/result/cancellation path using controlled local results without model downloads or cloud quota.
 
