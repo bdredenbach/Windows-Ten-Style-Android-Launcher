@@ -230,7 +230,7 @@ final class MediaPanel extends LinearLayout implements Player.Listener {
     }
     private StateListDrawable navigationSurface(boolean dark, boolean selected) {
         Context context = getContext();
-        StateListDrawable surface = new StateListDrawable();
+        StateListDrawable surface = new Aero.ThemeStates();
         int start = dark ? 0xff3877ad : 0xfff7fcff;
         int end = dark ? 0xff193b65 : 0xffb5d8f0;
         int border = dark ? 0xff7cadcd : 0xff8ab5d3;

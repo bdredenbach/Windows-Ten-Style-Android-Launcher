@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.21.0 — readable theme text, dropdowns and control highlights.** Fixes Nota and shared selector/menu palettes, caption and tray highlights, taskbar previews, Calculator/Media Player states, Aero gradients and puzzle labels. The full 17-theme light/dark portrait/landscape audit passed on Android 11 and 16, alongside the existing regression suites. See [the changes and verification](docs/TEN_0_21_THEME_TEXT.md).
+
 **0.20.0 — clearer Nth Nota categories and independent desktop drafts.** Every category has its own summary, instructions and hint. Real replies stay separate from guidance, New command is available in compact windows, and each desktop keeps its own full draft, writing origin and reply. Private text is excluded from automatic saved state. See [the port and verification](docs/TEN_0_20_NOTA.md).
 
 **0.19.0 — one browser Nota button.** Removes the duplicate Nota button beside the address bar. The title-bar Nota button still brings browser selections or the page reference into Nota, and the address field gains the freed toolbar space. See [the change and verification](docs/TEN_0_19_BROWSER_NOTA.md).
@@ -34,7 +36,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.20.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.21.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 

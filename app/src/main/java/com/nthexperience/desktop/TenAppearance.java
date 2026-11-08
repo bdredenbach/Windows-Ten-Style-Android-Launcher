@@ -19,7 +19,7 @@ final class TenAppearance {
     static double luma(int color){return .2126*Color.red(color)+.7152*Color.green(color)+.0722*Color.blue(color);}
     private static boolean neutral(int color){int max=Math.max(Color.red(color),Math.max(Color.green(color),Color.blue(color))),min=Math.min(Color.red(color),Math.min(Color.green(color),Color.blue(color)));return max-min<46;}
     static int foreground(Context c,int color){if(!dark(c)||Color.alpha(color)==0)return color;int a=color&0xff000000;if(neutral(color)){double l=luma(color);return a|(l>200?0x00f2f2f2:l>90?0x00cccccc:0x00f2f2f2);}if(contrast(color,0xff333333)<4.5)return a|(TenAccent.readable(color,true)&0xffffff);return color;}
-    static int surface(Context c,int color){if(!dark(c)||Color.alpha(color)==0)return color;int a=color&0xff000000;if(neutral(color)){double l=luma(color);if(l>245)return a|0x001e1e1e;if(l>225)return a|0x00262626;if(l>195)return a|0x00333333;if(l>140)return a|0x00505050;return color;}if(luma(color)>175&&Color.blue(color)>=Color.red(color))return a|(TenStyle.mix(0xff272727,TenStyle.accent(c),.22f)&0xffffff);return color;}
+    static int surface(Context c,int color){if(!dark(c)||Color.alpha(color)==0)return color;int a=color&0xff000000;if(neutral(color)){double l=luma(color);if(l>245)return a|0x001e1e1e;if(l>225)return a|0x00262626;if(l>195)return a|0x00333333;if(l>140)return a|0x00505050;return color;}if(luma(color)>110&&Color.blue(color)>=Color.red(color))return a|(TenStyle.mix(0xff272727,TenStyle.accent(c),.22f)&0xffffff);return color;}
     private static final java.util.Map<Drawable,Integer> originalColors=new java.util.WeakHashMap<>();
     private static final java.util.Map<GradientDrawable,GradientColors> gradientColors=new java.util.WeakHashMap<>();
     private static final class GradientColors {
@@ -27,12 +27,14 @@ final class TenAppearance {
         GradientColors(int[] colors){source=colors.clone();applied=colors.clone();}
     }
     static void context(Context c){c.getTheme().applyStyle(dark(c)?R.style.TenDarkControls:R.style.TenLightControls,true);}
+    static PopupMenu popupMenu(Context c,View anchor){return new PopupMenu(new ContextThemeWrapper(c,dark(c)?R.style.TenDarkPopupTheme:R.style.TenLightPopupTheme),anchor);}
     static void preserve(View view){view.setTag(R.id.ten_appearance_preserve,Boolean.TRUE);}
     static void bind(View root){if(root==null)return;if(root.getTag(R.id.ten_appearance_binding)==null){Binding binding=new Binding(root);root.setTag(R.id.ten_appearance_binding,binding);root.addOnAttachStateChangeListener(binding);if(root.isAttachedToWindow())binding.onViewAttachedToWindow(root);}apply(root);}
-    private static final class Binding implements View.OnAttachStateChangeListener,ViewTreeObserver.OnPreDrawListener {
-        final View root;ViewTreeObserver observer;Binding(View root){this.root=root;}
-        public void onViewAttachedToWindow(View view){observer=view.getViewTreeObserver();observer.addOnPreDrawListener(this);apply(root);}
-        public void onViewDetachedFromWindow(View view){if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);observer=null;}
+    private static final class Binding implements View.OnAttachStateChangeListener,ViewTreeObserver.OnPreDrawListener,android.content.SharedPreferences.OnSharedPreferenceChangeListener {
+        final View root;ViewTreeObserver observer;android.content.SharedPreferences prefs;Binding(View root){this.root=root;}
+        public void onViewAttachedToWindow(View view){observer=view.getViewTreeObserver();observer.addOnPreDrawListener(this);prefs=view.getContext().getSharedPreferences("desktop",0);prefs.registerOnSharedPreferenceChangeListener(this);apply(root);}
+        public void onViewDetachedFromWindow(View view){if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);observer=null;if(prefs!=null)prefs.unregisterOnSharedPreferenceChangeListener(this);prefs=null;}
+        public void onSharedPreferenceChanged(android.content.SharedPreferences p,String key){if(key!=null&&(key.equals("ten_apps_dark")||key.equals("ten_accent")||key.equals("ten_shell_style")))root.post(()->{if(root.isAttachedToWindow()){apply(root);root.invalidate();}});}
         public boolean onPreDraw(){apply(root);return true;}
     }
     private static final class Original {Drawable source,applied;ColorStateList text,appliedText,hint,appliedHint;boolean mapped,wasDark,wasAccent,controls;int accent,controlAccent,surfaceKey;boolean controlDark;}
@@ -96,7 +98,8 @@ final class TenAppearance {
         return false;
     }
     static void enable(Context c,Drawable drawable){
-        if(drawable instanceof ColorDrawable){int color=originalColors.computeIfAbsent(drawable,key->((ColorDrawable)key).getColor());int mapped=surface(c,color);if(((ColorDrawable)drawable).getColor()!=mapped)((ColorDrawable)drawable).setColor(mapped);}
+        if(drawable instanceof TenStyle.Hover){TenStyle.Hover hover=(TenStyle.Hover)drawable;hover.appThemed=true;hover.appearance();}
+        else if(drawable instanceof ColorDrawable){int color=originalColors.computeIfAbsent(drawable,key->((ColorDrawable)key).getColor());int mapped=surface(c,color);if(((ColorDrawable)drawable).getColor()!=mapped)((ColorDrawable)drawable).setColor(mapped);}
         else if(drawable instanceof Aero.ThemePanel){Aero.ThemePanel panel=(Aero.ThemePanel)drawable;panel.appThemed=true;panel.appearance();}
         else if(drawable instanceof Aero.LiteralPanel)return;
         else if(drawable instanceof GradientDrawable)gradient(c,(GradientDrawable)drawable);

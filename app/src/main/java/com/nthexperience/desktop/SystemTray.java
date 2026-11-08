@@ -39,23 +39,23 @@ final class SystemTray extends LinearLayout {
     SystemTray(Context c,FrameLayout workspace,AeroWallpaper wallpaper,Host host){
         super(c);notices=c.getSharedPreferences("seven_action_center",0);prefs=c.getSharedPreferences("desktop",0);expanded=getResources().getConfiguration().screenWidthDp>=720;brightness=new BrightnessControl((android.app.Activity)c);this.workspace=workspace;this.wallpaper=wallpaper;this.host=host;connections=c.getSystemService(ConnectivityManager.class);audio=c.getSystemService(AudioManager.class);power=c.getSystemService(PowerManager.class);setGravity(Gravity.CENTER_VERTICAL);
         String[] names={"Battery status","Network status","Volume control","Brightness control"};String[] pages={"battery","network","volume","brightness"};
-        for(int i=0;i<names.length;i++){TrayIcon icon=new TrayIcon(c,i);icon.setContentDescription(names[i]);icon.setFocusable(true);icon.setBackground(Aero.selection(c));String target=pages[i];icon.setOnClickListener(v->show(target));addView(icon,new LayoutParams(dp(44),dp(48)));icons.add(icon);}
+        for(int i=0;i<names.length;i++){TrayIcon icon=new TrayIcon(c,i);icon.setContentDescription(names[i]);icon.setFocusable(true);icon.setBackground(TenStyle.hover(c,Color.TRANSPARENT));String target=pages[i];icon.setOnClickListener(v->show(target));addView(icon,new LayoutParams(dp(44),dp(48)));icons.add(icon);}
         taskManager = new AeroIcon(c, "taskmanager");
         taskManager.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         taskManager.setFocusable(true);
         taskManager.setContentDescription("Task Manager");
         taskManager.setTooltipText("Task Manager");
-        taskManager.setBackground(Aero.selection(c));
+        taskManager.setBackground(TenStyle.hover(c,Color.TRANSPARENT));
         taskManager.setOnClickListener(v -> host.open("@taskmanager"));
         addView(taskManager, new LayoutParams(dp(44), dp(48)));
         actionCenter=new TrayFlag(c);
         actionCenter.setFocusable(true);
         actionCenter.setContentDescription("Action Center");
         actionCenter.setTooltipText("Action Center");
-        actionCenter.setBackground(Aero.selection(c));
+        actionCenter.setBackground(TenStyle.hover(c,Color.TRANSPARENT));
         actionCenter.setOnClickListener(v->show("actioncenter"));
         actionCenter.setVisibility(GONE);
-        compactStatus=Aero.text(c,"⌃",21,TenStyle.text(c));compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(Aero.selection(c));compactStatus.setOnClickListener(v->show("controls"));compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
+        compactStatus=Aero.text(c,"⌃",21,TenStyle.text(c));compactStatus.setGravity(Gravity.CENTER);compactStatus.setContentDescription("Device controls");compactStatus.setFocusable(true);compactStatus.setBackground(TenStyle.hover(c,Color.TRANSPARENT));compactStatus.setOnClickListener(v->show("controls"));compactStatus.setOnLongClickListener(v->{show("controls");return true;});addView(compactStatus,0,new LayoutParams(dp(44),dp(48)));updateIconVisibility();
     }
     @Override protected void onMeasure(int widthSpec,int heightSpec){
         sizeIcons();
@@ -97,7 +97,7 @@ final class SystemTray extends LinearLayout {
     private void refresh(){main.post(()->{if(running)update();});}
     private int topInset;
     void bounds(int left,int right,int top){topInset=top;bounds(left,right);}
-    void bounds(int left,int right){leftInset=left;rightInset=right;if(cover==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)frame.getLayoutParams();p.width=Math.min(dp(324),Math.max(1,workspace.getWidth()-left-right-dp(12)));p.height=Math.min(dp(page.equals("calendar")?395:page.equals("actioncenter")?310:page.equals("controls")?350:285),Math.max(1,workspace.getHeight()-topInset-dp(10)));p.rightMargin=right+dp(6);frame.setLayoutParams(p);}
+    void bounds(int left,int right){leftInset=left;rightInset=right;if(cover==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)frame.getLayoutParams();int width=Math.min(dp(324),Math.max(1,workspace.getWidth()-left-right-dp(12))),height=Math.min(dp(page.equals("calendar")?395:page.equals("actioncenter")?310:page.equals("controls")?350:285),Math.max(1,workspace.getHeight()-topInset-dp(10))),margin=right+dp(6);if(p.width!=width||p.height!=height||p.rightMargin!=margin){p.width=width;p.height=height;p.rightMargin=margin;frame.setLayoutParams(p);}}
     boolean dismiss(){if(cover==null)return false;workspace.removeView(cover);cover=null;summary=null;volume=null;page="";tracking=false;main.removeCallbacks(tick);return true;}
     void show(String value){
         if(value.equals(page)&&cover!=null){dismiss();return;}dismiss();host.opening();page=value;

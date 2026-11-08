@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** Native text/surface audit, retained browser inputs and actual rendered control artwork. */
-public final class TenDarkModeSmoke extends TenThemeSmoke {
+public class TenDarkModeSmoke extends TenThemeSmoke {
     final LinkedHashMap<String,String> failures=new LinkedHashMap<>();
     final StringBuilder report=new StringBuilder("Surface\tText\tForeground\tBackground\tContrast\tRole\tResult\n");
     final List<String> surfaces=new ArrayList<>();

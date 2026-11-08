@@ -24,4 +24,32 @@
         <item name="android:popupBackground">#292929</item>
     </style>
     <item type="id" name="ten_appearance_accent"/>
+    <style name="TenDarkPopupTheme" parent="android:style/ThemeOverlay.Material.Dark">
+        <item name="android:colorBackground">#292929</item>
+        <item name="android:colorForeground">#F2F2F2</item>
+        <item name="android:textColorPrimary">@color/ten_popup_text_dark</item>
+        <item name="android:textColorSecondary">@color/ten_popup_text_dark</item>
+        <item name="android:colorControlNormal">#CCCCCC</item>
+        <item name="android:popupMenuStyle">@style/TenDarkPopupMenu</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TenDarkPopupText</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TenDarkPopupText</item>
+    </style>
+    <style name="TenLightPopupTheme" parent="android:style/ThemeOverlay.Material.Light">
+        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:colorForeground">#18232C</item>
+        <item name="android:textColorPrimary">@color/ten_popup_text_light</item>
+        <item name="android:textColorSecondary">@color/ten_popup_text_light</item>
+        <item name="android:colorControlNormal">#666666</item>
+        <item name="android:popupMenuStyle">@style/AeroPopupMenu</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TenLightPopupText</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TenLightPopupText</item>
+    </style>
+    <style name="TenDarkPopupText" parent="android:style/TextAppearance.Material.Widget.PopupMenu.Large">
+        <item name="android:textColor">@color/ten_popup_text_dark</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="TenLightPopupText" parent="android:style/TextAppearance.Material.Widget.PopupMenu.Large">
+        <item name="android:textColor">@color/ten_popup_text_light</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>
