@@ -28,6 +28,7 @@ run_suite() {
   if grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$output"; then failed=1; fi
 }
 run_suite TenNotaSmoke ten-nota-smoke.txt
+if [[ "$failed" != 0 ]]; then exit "$failed"; fi
 adb shell am force-stop "$launcher"
 if ! timeout 240s adb shell am instrument -w -e phase cold "$launcher.test/com.nthexperience.desktop.TenNotaSmoke" | tee ten-nota-cold-smoke.txt; then failed=1; fi
 if ! grep -q "PASS:" ten-nota-cold-smoke.txt || grep -Eq "FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED" ten-nota-cold-smoke.txt; then failed=1; fi
