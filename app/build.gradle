@@ -2,6 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.nthexperience.desktop'
     compileSdk 36
+    testOptions { unitTests.includeAndroidResources = true }
     buildFeatures { buildConfig = true }
     defaultConfig {
         applicationId rootProject.ext.launcherApplicationId
@@ -27,3 +28,5 @@ dependencies {
     implementation "androidx.webkit:webkit:1.13.0"
     implementation "androidx.media3:media3-exoplayer:1.10.1"
 }
+
+dependencies { testImplementation "org.robolectric:robolectric:4.16.1" }
