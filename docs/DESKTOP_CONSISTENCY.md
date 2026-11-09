@@ -29,3 +29,5 @@ Run with Java 17 and Android SDK 36:
 `DesktopConsistencyTest` covers five source fixtures in each receiving launcher (25 source/destination combinations across the repositories), legacy Quick Launch/background handling, the historical Eight format, strict same-variant rejection, malformed/incomplete files, partial restore and undo, stock-background names inside themes, cold icon-cache reload, failed scans, damaged caches and generation-specific Task Manager navigation. Eight, Ten and Eleven also exercise older-backup membership migration and compatible imported desktop banks/positions.
 
 The local unit tests and APK/instrumentation-APK builds are the validation for this change. Android device/emulator instrumentation suites are compiled but have not been executed in this workspace; existing CI runs the device suites. These are source changes for review, not a newly signed production release.
+
+The corrected companion baselines are Vista 0.26.1 and Seven 0.7.1. Eight 0.7.12, Ten 0.26.0 and Eleven 0.8.2 match the user’s existing version numbers. First-scan catalog failures also skip external-task refresh instead of passing it an unavailable catalog.

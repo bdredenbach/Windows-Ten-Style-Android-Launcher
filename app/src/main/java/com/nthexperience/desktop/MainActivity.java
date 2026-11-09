@@ -249,7 +249,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             List<AppCatalog.Entry> cached=DesktopCache.read(getApplicationContext());
                 if(cached!=null)main.post(()->{if(destroyed||restoringBackup||generation!=scanGeneration||!entries.isEmpty())return;for(AppCatalog.Entry e:cached)entries.put(e.id,e);startMenu.entries(cached);renderDesktop();renderTaskbar();});
                 apps=DesktopCache.load(getApplicationContext());
-            List<AppCatalog.Entry> result=apps;ExternalTasks.refresh(getApplicationContext(),store,result);
+            List<AppCatalog.Entry> result=apps;if(result!=null)ExternalTasks.refresh(getApplicationContext(),store,result);
             main.post(()->{if(destroyed||restoringBackup||generation!=scanGeneration)return;scanPending=false;if(result==null){if(scanAgain){scanAgain=false;scanApps();}return;}taskColors.clear();entries.clear();for(AppCatalog.Entry e:result)entries.put(e.id,e);startMenu.entries(result);renderDesktop();renderTaskbar();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null&&tool.body instanceof VistaShell)((VistaShell)tool.body).refreshApps();if(scanAgain){scanAgain=false;scanApps();}});
         });
     }

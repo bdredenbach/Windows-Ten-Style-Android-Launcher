@@ -106,6 +106,10 @@ public class DesktopConsistencyTest {
         DesktopCache.invalidate();Context failing=new ContextWrapper(context){@Override public PackageManager getPackageManager(){throw new IllegalStateException("Package service unavailable");}};
         assertEquals(1,DesktopCache.load(failing).size());
     }
+    @Test public void firstScanFailureDoesNotInventAnEmptySuccessfulCatalog() throws Exception {
+        Context failing=new ContextWrapper(context){@Override public PackageManager getPackageManager(){throw new IllegalStateException("Package service unavailable");}};
+        assertNull(DesktopCache.load(failing));assertNull(DesktopCache.read(context));
+    }
     @Test public void damagedCacheIsRebuildable() throws Exception {
         try(FileOutputStream out=new FileOutputStream(new File(context.getCacheDir(),"desktop-apps-v1.json"))){out.write("{broken".getBytes(StandardCharsets.UTF_8));}
         assertNull(DesktopCache.read(context));assertNotNull(DesktopCache.load(context));
