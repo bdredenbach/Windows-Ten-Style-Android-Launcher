@@ -61,7 +61,7 @@ jobs:
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
-          target: ${{ matrix.api == 30 && 'default' || 'aosp_atd' }}
+          target: ${{ matrix.api == 30 && 'default' || matrix.orientation == 'portrait' && matrix.mode == 'light' && 'google_apis' || 'aosp_atd' }}
           profile: pixel_2
           ram-size: 2048M
           heap-size: 384M
