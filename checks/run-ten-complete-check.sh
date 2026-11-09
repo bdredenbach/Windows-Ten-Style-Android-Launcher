@@ -11,7 +11,7 @@ collect() {
 trap collect EXIT
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb install -r installprobe/build/outputs/apk/debug/installprobe-debug.apk
+adb install -r fixture/build/outputs/apk/debug/fixture-debug.apk
 adb shell pm clear "$launcher"
 adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard

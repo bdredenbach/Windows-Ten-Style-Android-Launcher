@@ -46,7 +46,7 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
  }
  @Override android.view.accessibility.AccessibilityNodeInfo node(android.view.accessibility.AccessibilityNodeInfo current,String text){
   if(current==null)return null;
-  if(text.equalsIgnoreCase(String.valueOf(current.getText()))||text.equalsIgnoreCase(String.valueOf(current.getContentDescription())))return current;
+  if((text.equals("OK")&&"Uninstall".equalsIgnoreCase(String.valueOf(current.getText())))||text.equalsIgnoreCase(String.valueOf(current.getText()))||text.equalsIgnoreCase(String.valueOf(current.getContentDescription())))return current;
   for(int i=0;i<current.getChildCount();i++){android.view.accessibility.AccessibilityNodeInfo found=node(current.getChild(i),text);if(found!=null)return found;}return null;
  }
  @Override void systemClick(String label)throws Exception{
@@ -59,7 +59,7 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
  }
  private boolean installed(String pkg){try{home.getPackageManager().getApplicationInfo(pkg,0);return true;}catch(PackageManager.NameNotFoundException missing){return false;}}
  private void uninstall()throws Exception{
-  String pkg="com.nthexperience.desktop.installprobe",id=pkg+"/.Probe";
+  String pkg="com.nthexperience.desktop.fixture",id=pkg+"/.TaskActivity";
   check(installed(pkg),"Disposable uninstall probe installed");
   for(boolean confirm:new boolean[]{false,true}){
    ui(()->{
