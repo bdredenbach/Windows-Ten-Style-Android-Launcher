@@ -24,6 +24,12 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
    check(TenSmoke.find(root,WelcomeCenter.class)!=null,"Classic Welcome Center remains behind setup");
    if(title.equals("Set up Nth Explorer"))shot("ten28-file-guide-portrait");
    if(title.equals("Set up Usage Access")){
+    systemClick("OK");awaitSystemPackage("com.android.settings");
+    check(!ExternalTasks.permitted(home),"Usage Access starts off for the return regression");
+    check(getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK),"Return from Android Usage Access without granting it");awaitSystem(title);
+    check(new InitializationState(home).step()==InitializationState.Step.USAGE,"Denied or ungranted Usage Access returns to the same guide");
+    shot("ten29-usage-return-guide");recreateHome();awaitSystem(title);
+    check(new InitializationState(home).step()==InitializationState.Step.USAGE,"Ungranted Usage Access guide survives recreation");
     shot("ten28-usage-guide-portrait");
     if(Build.VERSION.SDK_INT>=33){
      check(node(getUiAutomation().getRootInActiveWindow(),"Open App info")!=null,"Illustrated guide exposes App info recovery");
@@ -50,7 +56,7 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
   recreateHome();await(()->home.hasWindowFocus(),"Focus after recreation");
   check(new InitializationState(home).step()==InitializationState.Step.DONE,"Completed setup does not replay after recreation");
   if(complete)uninstall();
-  result.putString("stream","PASS: classic Welcome Center and illustrated scrollable guides; native ordered setup; Later leaves optional access off; in-progress recreation; completion survives recreation; saved city retained"+(complete?"; Android approximate-only grant; real Start tile uninstall menu, cancellation preserves pins, confirmation removes only the disposable probe and its pin":"")+"\n");finish(Activity.RESULT_OK,result);
+  result.putString("stream","PASS: ungranted Usage Access returns to the same guide before App info; recovery remains available after recreation; explicit Later continues setup; classic Welcome Center and illustrated scrollable guides; native ordered setup; Later leaves optional access off; completion survives recreation; saved city retained"+(complete?"; Android approximate-only grant; real Start tile uninstall menu, cancellation preserves pins, confirmation removes only the disposable probe and its pin":"")+"\n");finish(Activity.RESULT_OK,result);
  }catch(Throwable error){try{shot("ten27-setup-failure");}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(error));finish(Activity.RESULT_CANCELED,result);}}
  private void awaitSystemPackage(String pkg)throws Exception{
   long end=SystemClock.uptimeMillis()+15000;

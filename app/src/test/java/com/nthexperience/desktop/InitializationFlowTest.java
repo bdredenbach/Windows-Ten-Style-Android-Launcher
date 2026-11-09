@@ -50,9 +50,22 @@ public class InitializationFlowTest {
     @Test public void existingGrantsAreSkippedAndCompletionIsDeviceLocal()throws Exception{
         granted.addAll(Arrays.asList(Step.HOME,Step.FILES,Step.USAGE,Step.NOTIFICATIONS,Step.BRIGHTNESS,Step.LOCATION));finishEmptyFolderCheck();assertEquals(Step.DONE,new InitializationState(activity).step());assertFalse(DesktopBackup.snapshot(store).toString().contains(InitializationState.PREFS));assertFalse(store.prefs.contains("step"));
     }
-    @Test public void settingsReturnWaitsForFocusAndThenOffersNotifications(){
+    @Test public void grantedUsageReturnWaitsForFocusAndThenOffersNotifications(){
         granted.addAll(Arrays.asList(Step.HOME,Step.FILES));assertTrue(flow.pending());assertEquals(Step.USAGE,flow.state.step());enable();assertEquals(InitializationFlow.USAGE,flow.state.waiting());Intent launched=shadowOf(activity).getNextStartedActivityForResult().intent;assertEquals(Settings.ACTION_USAGE_ACCESS_SETTINGS,launched.getAction());
-        flow.result(InitializationFlow.USAGE,Activity.RESULT_CANCELED,null);assertTrue(flow.pending());assertEquals(Step.USAGE,flow.state.step());flow.paused();host.ready=false;flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());host.ready=true;flow.pending();assertEquals(Step.NOTIFICATIONS,flow.state.step());assertTitle("Allow Notifications Access");enable();assertEquals(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS,shadowOf(activity).getNextStartedActivityForResult().intent.getAction());
+        flow.result(InitializationFlow.USAGE,Activity.RESULT_CANCELED,null);assertTrue(flow.pending());assertEquals(Step.USAGE,flow.state.step());flow.paused();granted.add(Step.USAGE);host.ready=false;flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());host.ready=true;flow.pending();assertEquals(Step.NOTIFICATIONS,flow.state.step());assertTitle("Allow Notifications Access");enable();assertEquals(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS,shadowOf(activity).getNextStartedActivityForResult().intent.getAction());
+    }
+    @Test public void deniedUsageReturnReopensGuideForAppInfoThenLaterContinues(){
+        flow.state.prefs.edit().putInt("step",Step.USAGE.ordinal()).commit();flow.pending();enable();assertEquals(Settings.ACTION_USAGE_ACCESS_SETTINGS,shadowOf(activity).getNextStartedActivityForResult().intent.getAction());
+        flow.paused();flow.result(InitializationFlow.USAGE,Activity.RESULT_CANCELED,null);flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());assertEquals(0,flow.state.waiting());assertTitle("Set up Usage Access");assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        dialog().getButton(AlertDialog.BUTTON_NEUTRAL).performClick();shadowOf(Looper.getMainLooper()).idle();assertEquals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,shadowOf(activity).getNextStartedActivityForResult().intent.getAction());
+        flow.paused();flow.result(InitializationFlow.USAGE_INFO,Activity.RESULT_CANCELED,null);flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());assertTitle("Set up Usage Access");
+        later();flow.pending();assertEquals(Step.NOTIFICATIONS,flow.state.step());assertTitle("Allow Notifications Access");
+    }
+    @Test public void usageReturnChecksActualGrantInsteadOfSettingsResult(){
+        flow.state.prefs.edit().putInt("step",Step.USAGE.ordinal()).commit();
+        for(int attempt=0;attempt<2;attempt++){
+            flow.pending();enable();shadowOf(activity).getNextStartedActivityForResult();flow.paused();flow.result(InitializationFlow.USAGE,Activity.RESULT_OK,null);flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());assertTitle("Set up Usage Access");assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        }
     }
     @Test public void usageGuideKeepsTheIllustrationAndAppInfoReturnsToTheSameStep(){
         flow.state.prefs.edit().putInt("step",Step.USAGE.ordinal()).commit();flow.pending();assertTitle("Set up Usage Access");
@@ -71,8 +84,14 @@ public class InitializationFlowTest {
     @Test public void closingForRecreationKeepsCurrentStep(){
         flow.pending();later();flow.pending();assertEquals(Step.FILES,flow.state.step());flow.close();flow=new TestFlow();flow.resumed();flow.pending();assertEquals(Step.FILES,flow.state.step());assertTitle("Set up Nth Explorer");
     }
-    @Test public void pendingSettingsSurviveRecreation(){
-        granted.addAll(Arrays.asList(Step.HOME,Step.FILES));flow.pending();enable();flow.paused();flow.close();flow=new TestFlow();flow.resumed();flow.pending();assertEquals(Step.NOTIFICATIONS,flow.state.step());assertTitle("Allow Notifications Access");
+    @Test public void deniedUsageReturnSurvivesRecreationWithoutSkipping(){
+        granted.addAll(Arrays.asList(Step.HOME,Step.FILES));flow.pending();enable();flow.paused();flow.close();flow=new TestFlow();flow.resumed();flow.pending();assertEquals(Step.USAGE,flow.state.step());assertTitle("Set up Usage Access");later();assertEquals(Step.NOTIFICATIONS,flow.state.step());
+    }
+    @Test public void grantedUsageReturnSurvivesRecreation(){
+        granted.addAll(Arrays.asList(Step.HOME,Step.FILES));flow.pending();enable();flow.paused();granted.add(Step.USAGE);flow.close();flow=new TestFlow();flow.resumed();flow.pending();assertEquals(Step.NOTIFICATIONS,flow.state.step());assertTitle("Allow Notifications Access");
+    }
+    @Test public void otherSettingsReturnsStillAdvanceWhenAccessIsDeclined(){
+        flow.state.prefs.edit().putInt("step",Step.NOTIFICATIONS.ordinal()).commit();flow.pending();enable();flow.paused();flow.result(InitializationFlow.NOTIFICATIONS,Activity.RESULT_CANCELED,null);flow.resumed();flow.pending();assertEquals(Step.BRIGHTNESS,flow.state.step());assertTitle("Modify System Settings (Brightness)");
     }
     @Test public void restoredBackupQueuesOnlyFolderRepairAndClearsDeferrals(){
         for(int i=0;i<Step.DONE.ordinal();i++)flow.state.advance();flow.state.defer("old");InitializationState.restored(activity);assertEquals(Step.FOLDERS,flow.state.step());assertTrue(flow.state.deferred().isEmpty());flow.state.prefs.edit().putInt("step",Step.USAGE.ordinal()).commit();InitializationState.restored(activity);assertEquals(Step.USAGE,flow.state.step());
