@@ -7,7 +7,7 @@ aapt = sdk / 'build-tools' / '35.0.0' / 'aapt'
 def manifest(path):
     return subprocess.check_output([str(aapt), 'dump', 'xmltree', path, 'AndroidManifest.xml'], text=True)
 tests = manifest('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
-for runner in ('TenTaskbarSizeSmoke', 'TenSmoke', 'TenPolishSmoke', 'TenShellSmoke', 'TenThemeSmoke', 'TenWorkspaceSmoke', 'TenThemeMatrixSmoke', 'TenFeedSmoke', 'TenCommandsSmoke', 'TenAccentSmoke', 'TenReferenceSmoke', 'TenAuditSmoke', 'TenInteractionSmoke', 'TenDarkModeSmoke', 'TenNotaSmoke', 'TenThemeTextSmoke'):
+for runner in ('TenInitializationSmoke', 'TenTaskbarSizeSmoke', 'TenSmoke', 'TenPolishSmoke', 'TenShellSmoke', 'TenThemeSmoke', 'TenWorkspaceSmoke', 'TenThemeMatrixSmoke', 'TenFeedSmoke', 'TenCommandsSmoke', 'TenAccentSmoke', 'TenReferenceSmoke', 'TenAuditSmoke', 'TenInteractionSmoke', 'TenDarkModeSmoke', 'TenNotaSmoke', 'TenThemeTextSmoke'):
     assert 'com.nthexperience.desktop.' + runner in tests, runner + ' is missing'
 assert 'com.nthexperience.desktop.ten.test' in tests
 assert 'com.nthexperience.desktop.ten' in tests

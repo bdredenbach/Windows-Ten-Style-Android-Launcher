@@ -21,6 +21,7 @@ public class GadgetSmoke extends AeroSmoke {
     @Override public void onCreate(Bundle args){ownSuite=args==null||args.getString("suite")==null;topOnly=args!=null&&Boolean.parseBoolean(args.getString("top-only","false"));super.onCreate(args);}
     @Override public void onStart(){if(!ownSuite){super.onStart();return;}Bundle result=new Bundle();Application application=(Application)getTargetContext().getApplicationContext();application.registerActivityLifecycleCallbacks(lifecycle);try{
         DesktopStore store=new DesktopStore(getTargetContext());getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).putInt("boot",StartupExperience.boot(getTargetContext())).commit();store.prefs.edit().putBoolean("weather_follow",false).remove("gadget_data").remove("feed_url").remove("feed_items").commit();
+        ShellTestSetup.complete(getTargetContext());
         if(topOnly){
             previousStartup=store.prefs.getInt("startup_mode",0);previousWelcome=store.prefs.getBoolean("welcome_on_start",true);
             getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("show_status_bar",true).commit();

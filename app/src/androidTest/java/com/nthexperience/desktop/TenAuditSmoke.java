@@ -12,6 +12,7 @@ public final class TenAuditSmoke extends TenThemeSmoke {
  @Override public void onStart(){Bundle result=new Bundle();try{
   store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).commit();TenThemes.TEN.get(0).apply(store);
   getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
   home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Shell ready");
   Set<String> ids=new HashSet<>();for(TenSettingsCatalog.Page page:TenSettingsCatalog.PAGES)check(ids.add(page.id),"Unique Settings page: "+page.id);
   for(int orientation:new int[]{ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE}){

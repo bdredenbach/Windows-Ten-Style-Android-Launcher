@@ -21,6 +21,7 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
   store.prefs.edit().clear().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).commit();
   getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();
   getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
   home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();settle();
   ui(()->{
    check(!store.prefs.getBoolean("ten_accent_shell",true)&&!store.prefs.getBoolean("ten_accent_titles",true),"Fresh shell and captions have no accent fill");

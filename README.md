@@ -89,3 +89,7 @@ Independent Nth project; not affiliated with Microsoft. Windows is a Microsoft t
 The [49-image reference audit](docs/TEN_0_12_REFERENCE_AUDIT.md) records every archive screenshot and the Android equivalents. `TenAuditSmoke` navigates all 48 Settings pages in both orientations and app modes, checks inventory/search/destination routes and selected quick actions across 24 accents in both shell modes. The broader regression reuses actual Browser, Photo Gallery, Media Player, Explorer, storage/setup/revocation/resize and file-opening engines, including separate-UID selected-file grants and Package Installer fixtures.
 
 The [0.13 interaction pass](docs/TEN_0_13_INTERACTIONS.md) adds a scrollable taskbar default with fixed Nota button, themed device controls, interactive new-desktop guidance, installed-app icon cards and inclusive shake/restore behavior. `TenInteractionSmoke` exercises those flows and physical title-bar gestures on both OS images.
+
+## Shared desktop consistency update
+
+See [desktop caching, restore compatibility and Task Manager changes](docs/DESKTOP_CONSISTENCY.md) for the current source changes and validation scope.

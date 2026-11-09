@@ -22,6 +22,7 @@ public class AeroSmoke extends LauncherSmoke {
     @Override public void onStart(){if(legacy){super.onStart();return;}Bundle result=new Bundle();Application app=(Application)getTargetContext().getApplicationContext();app.registerActivityLifecycleCallbacks(lifecycle);try{
         DesktopStore store=new DesktopStore(getTargetContext());android.content.SharedPreferences session=getTargetContext().getSharedPreferences(StartupExperience.SESSION,0);
         store.prefs.edit().putInt("aero_opacity",85).putInt("aero_intensity",45).putBoolean("aero_transparency",true).putInt("startup_mode",0).putBoolean("startup_sound",false).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",false).commit();session.edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).putInt("boot",StartupExperience.boot(getTargetContext())).commit();
+        ShellTestSetup.complete(getTargetContext());
         store.usagePrefs.edit().putBoolean(DesktopStore.TASKBAR_USAGE,false).commit();
         shell("cmd role add-role-holder --user 0 android.app.role.HOME "+getTargetContext().getPackageName());
         Intent launch=new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);activity=(MainActivity)startActivitySync(launch);root=activity.getWindow().getDecorView();waitForIdleSync();Thread.sleep(450);refresh();
