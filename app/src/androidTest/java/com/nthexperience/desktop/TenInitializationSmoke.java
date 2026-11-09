@@ -25,7 +25,12 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
    if(title.equals("Set up Nth Explorer"))shot("ten28-file-guide-portrait");
    if(title.equals("Set up Usage Access")){
     shot("ten28-usage-guide-portrait");
-    if(Build.VERSION.SDK_INT>=33){check(node(getUiAutomation().getRootInActiveWindow(),"Open App info")!=null,"Illustrated guide exposes App info recovery");}
+    if(Build.VERSION.SDK_INT>=33){
+     check(node(getUiAutomation().getRootInActiveWindow(),"Open App info")!=null,"Illustrated guide exposes App info recovery");
+     systemClick("Open App info");awaitSystemPackage("com.android.settings");
+     check(getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK),"Android App info returns to guide");awaitSystem(title);
+     check(new InitializationState(home).step()==InitializationState.Step.USAGE,"Reviewing App info preserves the Usage Access step");
+    }
     ui(()->home.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));await(()->root.getWidth()>root.getHeight(),"Usage guide landscape");awaitSystem(title);shot("ten28-usage-guide-landscape");
     ui(()->home.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT));await(()->root.getHeight()>root.getWidth(),"Usage guide portrait");awaitSystem(title);
    }
@@ -47,6 +52,10 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
   if(complete)uninstall();
   result.putString("stream","PASS: classic Welcome Center and illustrated scrollable guides; native ordered setup; Later leaves optional access off; in-progress recreation; completion survives recreation; saved city retained"+(complete?"; Android approximate-only grant; real Start tile uninstall menu, cancellation preserves pins, confirmation removes only the disposable probe and its pin":"")+"\n");finish(Activity.RESULT_OK,result);
  }catch(Throwable error){try{shot("ten27-setup-failure");}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(error));finish(Activity.RESULT_CANCELED,result);}}
+ private void awaitSystemPackage(String pkg)throws Exception{
+  long end=SystemClock.uptimeMillis()+15000;
+  while(SystemClock.uptimeMillis()<end){android.view.accessibility.AccessibilityNodeInfo window=getUiAutomation().getRootInActiveWindow();if(window!=null&&pkg.contentEquals(window.getPackageName()))return;Thread.sleep(80);}throw new AssertionError("Android screen unavailable: "+pkg);
+ }
  private void recreateHome()throws Exception{
   MainActivity previous=home;BlockingQueue<MainActivity> next=new LinkedBlockingQueue<>();Application app=(Application)getTargetContext().getApplicationContext();
   Application.ActivityLifecycleCallbacks callback=new Application.ActivityLifecycleCallbacks(){public void onActivityResumed(Activity a){if(a instanceof MainActivity&&a!=previous)next.offer((MainActivity)a);}public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityStopped(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}public void onActivityDestroyed(Activity a){}};
