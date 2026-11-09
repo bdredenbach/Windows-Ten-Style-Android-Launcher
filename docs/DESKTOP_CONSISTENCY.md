@@ -31,3 +31,15 @@ Run with Java 17 and Android SDK 36:
 The local unit tests and APK/instrumentation-APK builds are the validation for this change. Android device/emulator instrumentation suites are compiled but have not been executed in this workspace; existing CI runs the device suites. These are source changes for review, not a newly signed production release.
 
 The corrected companion baselines are Vista 0.26.1 and Seven 0.7.1. Eight 0.7.12, Ten 0.26.0 and Eleven 0.8.2 match the user’s existing version numbers. First-scan catalog failures also skip external-task refresh instead of passing it an unavailable catalog.
+
+## Extended taskbars and rendering caches
+
+The companion Vista, Seven and Eight patches fit labels above extended taskbars. This variant retains its established grid geometry and reuses unchanged placement plans.
+
+All five variants now share static built-in artwork in a bounded 4 MiB bitmap cache keyed by icon kind, pixel size, padding, density and UI mode. Existing drawing commands remain unchanged; live gadget faces are separate. Folder names, shortcut aliases and normalized preference lists reuse parsed snapshots until their raw saved data changes. Mutable folder/list return values remain independent so edits cannot accidentally corrupt the cache. Desktop placement plans are reused until dimensions, orientation, cutouts, shortcut membership or saved positions change. An unchanged in-memory app catalog no longer recreates the desktop and hidden Start contents on every Home/resume.
+
+`LauncherRenderingTest` checks geometry reuse/invalidation, mutable model safety, static icon reuse and bounded cache size. The Vista/Seven/Eight companion suites also check expanded taskbars, two-line labels, larger system text, whole overflow rows and temporary fitting without rewriting saved positions. Phone/emulator timing and visual checks remain pending; the APKs are development-signed test builds.
+
+Ten defers Start tile and All apps construction until their surface is visible. It indexes built-in/installed results once per catalog/name/link change, groups pins in a single pass, and retains tile views between openings until pins, names, sizes, groups, width or appearance change. Live tile contents refresh independently without rebuilding their views; unchanged live text/layout values no longer request redundant layout work. The sRGB channel conversion used by contrast calculations uses an exact 256-value lookup.
+
+`StartPerformanceTest` uses all 43 Nth tiles, 32 folders with 12 members each and 128 shortcut aliases. Before this change, the fixture built 43 hidden tiles and read each folder/alias preference 33,411 times. The initial revised fixture built zero hidden tiles and read those preferences 44/87 times. These are work counts under Robolectric, not phone latency measurements. Regression checks also cover 200 installed apps, unchanged catalog reuse, deferred hidden updates, search visibility, rename/resize/regroup invalidation and retention of the same tile views when Start reopens.

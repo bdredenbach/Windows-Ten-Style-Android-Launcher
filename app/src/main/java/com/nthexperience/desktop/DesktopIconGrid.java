@@ -13,6 +13,8 @@ final class DesktopIconGrid extends ViewGroup {
     private int tileWidth,tileHeight,displayHeight,preferredWidth,preferredHeight,viewportHeight,layoutHeight,plannedX,plannedY;
     private float displayScale=1;
     // Saved positions and collision checks stay in the normal taskbar canvas.
+    private String lastPlanKey,lastPositions,lastDesktops;private int cachedBottom,planBuilds;
+    int planBuildCount(){return planBuilds;}
     private final List<Rect> cutouts=new ArrayList<>(),positions=new ArrayList<>();
     DesktopIconGrid(Context context,DesktopStore store,String orientation){super(context);this.store=store;key=orientation;setLayerType(LAYER_TYPE_SOFTWARE,null);}
     void orientation(String orientation){key=orientation;requestLayout();}
@@ -45,12 +47,19 @@ final class DesktopIconGrid extends ViewGroup {
         boolean snap=store.prefs.getBoolean("snap_desktop",true);
         displayHeight=DesktopMetrics.fittedRow(Math.max(1,layoutHeight),Math.max(1,viewportHeight),h,snap);
         displayScale=DesktopMetrics.rowScale(Math.max(1,layoutHeight),Math.max(1,viewportHeight),h,displayHeight,snap);
-        int[] origin=new int[2];getLocationOnScreen(origin);plannedX=origin[0];plannedY=origin[1];positions.clear();for(int i=0;i<count;i++)positions.add(null);
+        int[] origin=new int[2];getLocationOnScreen(origin);plannedX=origin[0];plannedY=origin[1];String raw=store.prefs.getString("ten_desktop_items",store.prefs.getString(key,"{}")),desktops=store.prefs.getString("ten_desktops","");
+        StringBuilder signature=new StringBuilder(key).append(':').append(width).append(':').append(w).append(':').append(h).append(':').append(viewportHeight).append(':').append(plannedX).append(':').append(plannedY).append(':').append(cutouts.hashCode()).append(':').append(store.prefs.getBoolean("snap_desktop",true)).append(':').append(store.prefs.getBoolean("desktop_auto_arrange",false));signature.append(':').append(layoutHeight);
+        for(int i=0;i<count;i++)signature.append('|').append(getChildAt(i).getTag());String planKey=signature.toString();
+        if(!planKey.equals(lastPlanKey)||!java.util.Objects.equals(raw,lastPositions)||!java.util.Objects.equals(desktops,lastDesktops)){
+            planBuilds++;
+positions.clear();for(int i=0;i<count;i++)positions.add(null);
         JSONObject all=saved();int bottom=Math.max(layoutHeight,h);float density=getResources().getDisplayMetrics().density;
         int extent=bottom;for(int i=0;i<count;i++){JSONObject point=all.optJSONObject(String.valueOf(getChildAt(i).getTag()));if(point!=null)extent=Math.max(extent,Math.round(DesktopGeometry.clamp((float)point.optDouble("y",0),0,60000)*density)+h);}
         for(int i=0;i<count;i++){JSONObject point=all.optJSONObject(String.valueOf(getChildAt(i).getTag()));if(point==null)continue;Rect cell=at((float)point.optDouble("x",0)*Math.max(0,width-w),(float)point.optDouble("y",0)*density,width,extent,snap);if(!blocked(cell)&&(!snap||!occupied(cell,positions))){positions.set(i,cell);bottom=Math.max(bottom,cell.bottom);}}
         int columns=Math.max(1,width/w),rows=Math.max(1,Math.max(layoutHeight/h,(count+columns-1)/columns));
         for(int i=0;i<count;i++)if(positions.get(i)==null){boolean found=false;for(int extra=0;!found;extra++){for(int column=0;column<columns&&!found;column++)for(int row=0;row<rows+extra&&!found;row++){Rect cell=new Rect(column*w,row*h,(column+1)*w,(row+1)*h);if(!blocked(cell)&&!occupied(cell,positions)){positions.set(i,cell);bottom=Math.max(bottom,cell.bottom);found=true;}}}}
+            cachedBottom=bottom;lastPlanKey=planKey;lastPositions=raw;lastDesktops=desktops;
+        }
         for(int i=0;i<count;i++){View child=getChildAt(i);if(child instanceof android.widget.LinearLayout){android.widget.LinearLayout tile=(android.widget.LinearLayout)child;if(tile.getChildCount()>0){int labelHeight=0;if(tile.getChildCount()>1&&tile.getChildAt(1).getVisibility()!=GONE){android.widget.TextView label=(android.widget.TextView)tile.getChildAt(1);android.graphics.Paint.FontMetricsInt font=label.getPaint().getFontMetricsInt();labelHeight=label.getLineHeight()+(label.getIncludeFontPadding()?font.bottom-font.top:font.descent-font.ascent)+label.getCompoundPaddingTop()+label.getCompoundPaddingBottom();}int size=DesktopMetrics.icon(Aero.dp(getContext(),store.iconSize()),w,displayHeight,tile.getPaddingLeft()+tile.getPaddingRight()+Aero.dp(getContext(),4),tile.getPaddingTop()+tile.getPaddingBottom(),labelHeight);View icon=tile.getChildAt(0);ViewGroup.LayoutParams lp=icon.getLayoutParams();if(lp.width!=size||lp.height!=size){lp.width=size;lp.height=size;icon.setLayoutParams(lp);}}}child.measure(MeasureSpec.makeMeasureSpec(w,MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(displayHeight,MeasureSpec.EXACTLY));}int displayedBottom=Math.max(1,viewportHeight);for(Rect position:positions)if(position!=null)displayedBottom=Math.max(displayedBottom,display(position).bottom);setMeasuredDimension(width,resolveSize(displayedBottom,heightSpec));
     }
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){for(int i=0;i<getChildCount()&&i<positions.size();i++){Rect p=display(positions.get(i));getChildAt(i).layout(p.left,p.top,p.right,p.bottom);}int[] origin=new int[2];getLocationOnScreen(origin);if(origin[0]!=plannedX||origin[1]!=plannedY)post(this::requestLayout);}
