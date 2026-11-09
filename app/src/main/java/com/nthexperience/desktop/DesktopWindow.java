@@ -33,6 +33,8 @@ final class DesktopWindow extends LinearLayout {
     private Placement placement=Placement.FLOATING;
     private int normalW, normalH,safeTop,safeRight;
     private float positionX=.5f,positionY=.33f;
+    // Keep floating positions in pixels during live work-area changes. Fractions are for saved layouts.
+    private float floatingLeft=Float.NaN,floatingTop=Float.NaN;
     private final DesktopStore store;
     private String geometryKey,captionKind="",orientationKey,desktopSuffix="";
     final String toolId;
@@ -156,7 +158,7 @@ final class DesktopWindow extends LinearLayout {
         systemMenu.item("Minimize or restore other windows","empty",shake);
         if(!toolId.equals("@nota"))systemMenu.item("Ask Nth Nota","notes",()->askNota.run());systemMenu.separator();systemMenu.item("Close","close",this::closeWindow);ContextMenus.show(systemMenu,anchor,x,y);}
     void dismissSystemMenu(){if(systemMenu!=null){systemMenu.dismiss();systemMenu=null;}}
-    void arrange(int x,int y,int width,int height){settle();placement=Placement.FLOATING;normalW=Math.max(1,width);normalH=Math.max(1,height);positionX=DesktopGeometry.fraction(x,hostWidth()-normalW);positionY=DesktopGeometry.fraction(y,host.getHeight()-safeTop-normalH);fitToHost();saveGeometry();}
+    void arrange(int x,int y,int width,int height){settle();placement=Placement.FLOATING;normalW=Math.max(1,width);normalH=Math.max(1,height);floatingLeft=x;floatingTop=Math.max(0,y-safeTop);fitToHost();saveGeometry();}
     String caption(){return titleLabel.getText().toString();}
     void caption(String title){titleLabel.setText(title);titleLabel.setContentDescription(title+". Drag to move window.");}
     boolean minimizing(){return minimizing;}
@@ -293,8 +295,7 @@ final class DesktopWindow extends LinearLayout {
         updatePlacementButton(placement);
         normalW=resizeBounds.width();
         normalH=resizeBounds.height();
-        positionX=DesktopGeometry.fraction(resizeBounds.left,hostWidth()-normalW);
-        positionY=DesktopGeometry.fraction(resizeBounds.top-safeTop,host.getHeight()-safeTop-normalH);
+        rememberFloatingPosition();
         saveGeometry();
         changed.run();
     }
@@ -385,8 +386,7 @@ final class DesktopWindow extends LinearLayout {
         moveCaption(e);
         Placement target=preview;
         if(target==Placement.FLOATING){
-            positionX=DesktopGeometry.fraction(getX(),hostWidth()-floatingWidth());
-            positionY=DesktopGeometry.fraction(getY()-safeTop,host.getHeight()-safeTop-floatingHeight());
+            rememberFloatingPosition();
         }
         captionTracking=false;
         captionDragging=false;
@@ -443,15 +443,24 @@ final class DesktopWindow extends LinearLayout {
             resizeCorner=0;
         }
         if(captionTracking&&(dragWidth!=hostWidth()||dragTop!=safeTop||dragHeight!=host.getHeight())){
-            resetCaptionDrag();
+            // Insets or taskbar changes must not cancel a finger that is still moving the caption.
+            dragWidth=hostWidth();dragTop=safeTop;dragHeight=host.getHeight();
+            if(captionDragging){
+                setX(clamp(getX(),0,Math.max(0,hostWidth()-floatingWidth())));
+                setY(clamp(getY(),safeTop,Math.max(safeTop,host.getHeight()-floatingHeight())));
+                resize(floatingWidth(),floatingHeight());
+                if(preview!=Placement.FLOATING)snapOutline.setBounds(fittedBounds(preview));
+            }
         }
         if(captionDragging)return;
         Placement target=effectivePlacement();
         updatePlacementButton(target);
         if(target==Placement.FLOATING){
             int width=floatingWidth(),height=floatingHeight();
-            setX(positionX*Math.max(0,hostWidth()-width));
-            setY(safeTop+positionY*Math.max(0,workHeight()-height));
+            if(Float.isNaN(floatingLeft))floatingLeft=positionX*Math.max(0,hostWidth()-width);
+            if(Float.isNaN(floatingTop))floatingTop=positionY*Math.max(0,workHeight()-height);
+            setX(clamp(floatingLeft,0,Math.max(0,hostWidth()-width)));
+            setY(safeTop+clamp(floatingTop,0,Math.max(0,workHeight()-height)));
             resize(width,height);
         } else {
             Rect bounds=fittedBounds(target);
@@ -459,6 +468,12 @@ final class DesktopWindow extends LinearLayout {
             setY(bounds.top);
             resize(bounds.width(),bounds.height());
         }
+    }
+
+    private void rememberFloatingPosition(){
+        floatingLeft=getX();floatingTop=getY()-safeTop;
+        positionX=DesktopGeometry.fraction(floatingLeft,hostWidth()-floatingWidth());
+        positionY=DesktopGeometry.fraction(floatingTop,workHeight()-floatingHeight());
     }
 
     private void updatePlacementButton(Placement target){
@@ -488,13 +503,15 @@ final class DesktopWindow extends LinearLayout {
 
     JSONObject geometry(){
         JSONObject result=new JSONObject();float density=getResources().getDisplayMetrics().density;
-        GadgetLayout.put(result,"x",positionX);GadgetLayout.put(result,"y",positionY);GadgetLayout.put(result,"w",normalW/density);GadgetLayout.put(result,"h",normalH/density);GadgetLayout.put(result,"maximized",maximized());
+        float x=Float.isNaN(floatingLeft)?positionX:DesktopGeometry.fraction(floatingLeft,hostWidth()-floatingWidth());
+        float y=Float.isNaN(floatingTop)?positionY:DesktopGeometry.fraction(floatingTop,workHeight()-floatingHeight());
+        GadgetLayout.put(result,"x",x);GadgetLayout.put(result,"y",y);GadgetLayout.put(result,"w",normalW/density);GadgetLayout.put(result,"h",normalH/density);GadgetLayout.put(result,"maximized",maximized());
         if(placement==Placement.LEFT||placement==Placement.RIGHT)GadgetLayout.put(result,"snap",placement.name());
         return result;
     }
     void saveGeometry(){store.prefs.edit().putString(geometryKey,geometry().toString()).apply();}
     void desktopScope(String id){if(body instanceof TenNotaPanel)((TenNotaPanel)body).moveToDesktop(id);desktopSuffix=id.equals("desktop-1")?"":"_desktop_"+id;geometryKey="window_"+orientationKey+"_"+toolId+desktopSuffix;}
-    void orientation(String key){saveGeometry();JSONObject previous=geometry();orientationKey=key;geometryKey="window_"+key+"_"+toolId+desktopSuffix;readGeometry(previous);}
+    void orientation(String key){if(key.equals(orientationKey)){fitToHost();return;}saveGeometry();JSONObject previous=geometry();orientationKey=key;geometryKey="window_"+key+"_"+toolId+desktopSuffix;readGeometry(previous);floatingLeft=Float.NaN;floatingTop=Float.NaN;}
     void readGeometry(JSONObject fallback){
         JSONObject value=fallback;String saved=store.prefs.getString(geometryKey,null);if(saved!=null)try{value=new JSONObject(saved);}catch(JSONException ignored){}
         if(value==null)return;
@@ -510,6 +527,7 @@ final class DesktopWindow extends LinearLayout {
         }
     }
     private void applyGeometry(JSONObject value,Placement target){
+        floatingLeft=Float.NaN;floatingTop=Float.NaN;
         positionX=DesktopGeometry.clamp((float)value.optDouble("x",.5),0,1);positionY=DesktopGeometry.clamp((float)value.optDouble("y",.33),0,1);
         normalW=Aero.dp(getContext(),DesktopGeometry.clamp((float)value.optDouble("w",520),180,MAX_SAVED_SIZE));
         normalH=Aero.dp(getContext(),DesktopGeometry.clamp((float)value.optDouble("h",490),180,MAX_SAVED_SIZE));
