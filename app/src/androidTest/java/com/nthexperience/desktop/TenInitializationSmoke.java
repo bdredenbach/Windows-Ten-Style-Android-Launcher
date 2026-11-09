@@ -44,11 +44,17 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
   Application.ActivityLifecycleCallbacks callback=new Application.ActivityLifecycleCallbacks(){public void onActivityResumed(Activity a){if(a instanceof MainActivity&&a!=previous)next.offer((MainActivity)a);}public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityStopped(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}public void onActivityDestroyed(Activity a){}};
   app.registerActivityLifecycleCallbacks(callback);try{ui(home::recreate);home=next.poll(20,TimeUnit.SECONDS);check(home!=null,"Home recreated");root=home.getWindow().getDecorView();}finally{app.unregisterActivityLifecycleCallbacks(callback);}
  }
+ @Override android.view.accessibility.AccessibilityNodeInfo node(android.view.accessibility.AccessibilityNodeInfo current,String text){
+  if(current==null)return null;
+  if(text.equalsIgnoreCase(String.valueOf(current.getText()))||text.equalsIgnoreCase(String.valueOf(current.getContentDescription())))return current;
+  for(int i=0;i<current.getChildCount();i++){android.view.accessibility.AccessibilityNodeInfo found=node(current.getChild(i),text);if(found!=null)return found;}return null;
+ }
  @Override void systemClick(String label)throws Exception{
   android.view.accessibility.AccessibilityNodeInfo item=awaitSystem(label);
   android.graphics.Rect bounds=new android.graphics.Rect();item.getBoundsInScreen(bounds);
   for(int n=0;item!=null&&n<6;n++,item=item.getParent())if(item.isClickable()&&item.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)){waitForIdleSync();Thread.sleep(180);return;}
   long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,0,bounds.centerX(),bounds.centerY(),0),up=MotionEvent.obtain(now,now+60,1,bounds.centerX(),bounds.centerY(),0);
+  down.setSource(InputDevice.SOURCE_TOUCHSCREEN);up.setSource(InputDevice.SOURCE_TOUCHSCREEN);
   try{check(getUiAutomation().injectInputEvent(down,true)&&getUiAutomation().injectInputEvent(up,true),"Click system control: "+label);}finally{down.recycle();up.recycle();}waitForIdleSync();Thread.sleep(180);
  }
  private boolean installed(String pkg){try{home.getPackageManager().getApplicationInfo(pkg,0);return true;}catch(PackageManager.NameNotFoundException missing){return false;}}
