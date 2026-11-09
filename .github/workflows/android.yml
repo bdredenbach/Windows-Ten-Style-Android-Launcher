@@ -49,7 +49,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.orientation == 'portrait' && matrix.mode == 'light'
         with:
-          name: Nth-Desktop-Ten-0.27.0-api-${{ matrix.api }}
+          name: Nth-Desktop-Ten-0.28.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Enable emulator acceleration
         run: |
@@ -61,7 +61,7 @@ jobs:
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
-          target: ${{ matrix.api == 30 && 'default' || 'aosp_atd' }}
+          target: ${{ matrix.api == 30 && 'default' || matrix.orientation == 'portrait' && matrix.mode == 'light' && 'google_apis' || 'aosp_atd' }}
           profile: pixel_2
           ram-size: 2048M
           heap-size: 384M
