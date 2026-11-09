@@ -167,7 +167,10 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(destroyed||workspace==null||workspace.getWidth()==0)return;int width=workspace.getWidth(),height=workspace.getHeight();if(tray!=null){tray.fitWidth(width);tray.bounds(desktopCutoutLeft,desktopCutoutRight,windowTopInset);}if(tenTasks!=null)tenTasks.safeInsets(desktopCutoutLeft,desktopCutoutRight,windowTopInset);if(tenActions!=null)tenActions.safeInsets(desktopCutoutLeft,desktopCutoutRight,windowTopInset);if(tenNews!=null)tenNews.bounds(desktopCutoutLeft,desktopCutoutRight,windowTopInset);
             WindowInsets current=root.getRootWindowInsets();java.util.List<android.graphics.Rect> holes=new ArrayList<>();
             if(current!=null&&Build.VERSION.SDK_INT>=28&&current.getDisplayCutout()!=null)holes.addAll(current.getDisplayCutout().getBoundingRects());
-            desktop.configure(dp(store.tileWidth()),dp(store.tileHeight()),holes);desktop.viewport(Math.max(1,height-desktopScroll.getPaddingTop()-desktopScroll.getPaddingBottom()));
+            desktop.configure(dp(store.tileWidth()),dp(store.tileHeight()),holes);// The extra taskbar row reduces the visible area, not the configured icon spacing.
+            int iconHeight=Math.max(1,height-desktopScroll.getPaddingTop()-desktopScroll.getPaddingBottom());
+            int gridHeight=Math.max(1,shell.getHeight()-shell.getPaddingTop()-shell.getPaddingBottom()-dp(48)-desktopScroll.getPaddingTop()-desktopScroll.getPaddingBottom());
+            desktop.viewport(iconHeight,gridHeight);
             for(DesktopWindow tool:windows.values())tool.safeTop(windowTopInset);
             if (startMenu != null) {
                 boolean portrait = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT;
