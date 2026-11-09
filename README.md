@@ -1,5 +1,7 @@
 # Nth Desktop Ten
 
+**0.24.0 — stable window positions.** Floating windows and configured desktop icon rows keep their positions when the taskbar expands or contracts. Live workspace changes no longer cancel a caption drag. See [the verified window fix](docs/TEN_0_24_WINDOWS.md).
+
 **0.23.0 — refined system icons.** Uses the owner-supplied Windows 10 pack for 15 refreshed folder/file/control icons and a native Task Manager icon, with original transparent 256-pixel artwork throughout. See [the icon pass](docs/TEN_0_23_ICONS.md).
 
 **0.22.0 — extended taskbar and fresh-install defaults.** Choose a normal 48 dp row or a 96 dp taskbar with apps above the controls. Change it in Personalization → Taskbar or the taskbar hold menu. Fresh installations use a neutral dark shell, White accent selection with accent fills off, and all three Start switches enabled. Existing choices stay saved.
@@ -40,7 +42,7 @@
 **0.3.0 — Ten taskbar, News and interests, and Nota throughout the launcher.** Adds a more compact, flat taskbar with running-app markers, a real taskbar news dashboard, slot-directed window transitions, contextual Nota actions, source-safe reply application, local writing history, and an Android text share/selection target. See the [review of all 49 reference images](docs/TEN_0_3_SCREENSHOT_REVIEW.md).
 
 
-A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.23.0**. Android 8.0+; targets Android 16.
+A Windows 10 inspired Android launcher by **An Nth Experience**. Current preview: **0.24.0**. Android 8.0+; targets Android 16.
 
 Package: `com.nthexperience.desktop.ten`. Installs alongside Nth Desktop Seven and Vista.
 
