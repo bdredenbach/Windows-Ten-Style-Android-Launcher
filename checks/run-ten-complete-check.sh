@@ -5,7 +5,7 @@ collect() {
   mkdir -p screenshots
   adb logcat -d -t 500 > screenshots/complete-device-log.txt || true
   for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
-    case "$name" in ten27-*.png) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
+    case "$name" in ten27-*.png|ten28-*.png) adb exec-out run-as "$launcher" cat "files/$name" > "screenshots/$name" 2>/dev/null || true;; esac
   done
 }
 trap collect EXIT

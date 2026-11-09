@@ -17,14 +17,22 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
   store=new DesktopStore(getTargetContext());store.prefs.edit().clear().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putString("weather_city","Saved city").commit();
   getTargetContext().getSharedPreferences(InitializationState.PREFS,0).edit().clear().commit();
   getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().clear().commit();
-  getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().clear().putBoolean("seen",true).putBoolean("welcome_seen",true).commit();
+  getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().clear().putBoolean("seen",true).putBoolean("welcome_seen",false).commit();
   home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();
-  for(String title:new String[]{"Default Launcher","Enable File Browsing","Enable Usage Access","Allow Notifications Access","Modify System Settings (Brightness)"}){
+  for(String title:new String[]{"Default Launcher","Set up Nth Explorer","Set up Usage Access","Allow Notifications Access","Modify System Settings (Brightness)"}){
    awaitSystem(title);
-   if(title.equals("Enable File Browsing")){recreateHome();awaitSystem(title);}
+   check(TenSmoke.find(root,WelcomeCenter.class)!=null,"Classic Welcome Center remains behind setup");
+   if(title.equals("Set up Nth Explorer"))shot("ten28-file-guide-portrait");
+   if(title.equals("Set up Usage Access")){
+    shot("ten28-usage-guide-portrait");
+    if(Build.VERSION.SDK_INT>=33){check(node(getUiAutomation().getRootInActiveWindow(),"Open App info")!=null,"Illustrated guide exposes App info recovery");}
+    ui(()->home.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));await(()->root.getWidth()>root.getHeight(),"Usage guide landscape");awaitSystem(title);shot("ten28-usage-guide-landscape");
+    ui(()->home.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT));await(()->root.getHeight()>root.getWidth(),"Usage guide portrait");awaitSystem(title);
+   }
+   if(title.equals("Set up Nth Explorer")){recreateHome();awaitSystem(title);}
    systemClick("Later");
   }
-  awaitSystem("Allow Location");
+  awaitSystem("Allow Location");shot("ten28-location-guide");
   if(complete){
    systemClick(Build.VERSION.SDK_INT>=31?"Choose location access":"Use approximate location");
    if(Build.VERSION.SDK_INT>=31)systemClick("Approximate");
@@ -37,7 +45,7 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
   recreateHome();await(()->home.hasWindowFocus(),"Focus after recreation");
   check(new InitializationState(home).step()==InitializationState.Step.DONE,"Completed setup does not replay after recreation");
   if(complete)uninstall();
-  result.putString("stream","PASS: native ordered setup; Later leaves optional access off; in-progress recreation; completion survives recreation; saved city retained"+(complete?"; Android approximate-only grant; real Start tile uninstall menu, cancellation preserves pins, confirmation removes only the disposable probe and its pin":"")+"\n");finish(Activity.RESULT_OK,result);
+  result.putString("stream","PASS: classic Welcome Center and illustrated scrollable guides; native ordered setup; Later leaves optional access off; in-progress recreation; completion survives recreation; saved city retained"+(complete?"; Android approximate-only grant; real Start tile uninstall menu, cancellation preserves pins, confirmation removes only the disposable probe and its pin":"")+"\n");finish(Activity.RESULT_OK,result);
  }catch(Throwable error){try{shot("ten27-setup-failure");}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(error));finish(Activity.RESULT_CANCELED,result);}}
  private void recreateHome()throws Exception{
   MainActivity previous=home;BlockingQueue<MainActivity> next=new LinkedBlockingQueue<>();Application app=(Application)getTargetContext().getApplicationContext();
