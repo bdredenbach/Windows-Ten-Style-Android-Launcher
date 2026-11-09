@@ -36,8 +36,9 @@ class InitializationFlow {
             if(!left&&!returned)return true;
             // Some Settings implementations send a result before their activity takes focus.
             if(!left&&SystemClock.uptimeMillis()-launchedAt<400){main.removeCallbacks(wake);main.postDelayed(wake,400);return true;}
-            // Reviewing restricted settings is guidance, not a skipped Usage Access choice.
-            if(state.waiting()==USAGE_INFO){state.clearWaiting();host.changed();}
+            // Returning from either Usage Access screen is not a completed permission choice.
+            // Recheck the actual grant below; denial/Back must keep App info recovery available.
+            if(state.waiting()==USAGE||state.waiting()==USAGE_INFO){state.clearWaiting();host.changed();}
             else completedStep();
         }
         while(state.step()!=Step.DONE){
@@ -63,7 +64,7 @@ class InitializationFlow {
         LinearLayout content=Aero.column(activity);Aero.pad(content,16);
         content.addView(paragraph(message));
         if(step==Step.USAGE&&Build.VERSION.SDK_INT>=33){
-            TextView recovery=paragraph("If Android says ‘App was denied access’, you may need to allow restricted settings first. Tap Open App info below, open the three-dot menu (⋮), and choose Allow restricted settings if shown. Then press Back to return to this guide and tap OK to try Usage Access.");
+            TextView recovery=paragraph("If Android says ‘App was denied access’, tap Close, then press Back to return to this guide. Tap Open App info below, open the three-dot menu (⋮), and choose Allow restricted settings if shown. Then press Back to return here and tap OK to try Usage Access again.");
             recovery.setPadding(0,Aero.dp(activity,12),0,Aero.dp(activity,10));content.addView(recovery);
             content.addView(new UsageAccessExample(activity),new LinearLayout.LayoutParams(-1,-2));
         }
