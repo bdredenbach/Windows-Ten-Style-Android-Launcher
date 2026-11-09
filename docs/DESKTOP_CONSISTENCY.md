@@ -43,3 +43,24 @@ All five variants now share static built-in artwork in a bounded 4 MiB bitmap ca
 Ten defers Start tile and All apps construction until their surface is visible. It indexes built-in/installed results once per catalog/name/link change, groups pins in a single pass, and retains tile views between openings until pins, names, sizes, groups, width or appearance change. Live tile contents refresh independently without rebuilding their views; unchanged live text/layout values no longer request redundant layout work. The sRGB channel conversion used by contrast calculations uses an exact 256-value lookup.
 
 `StartPerformanceTest` uses all 43 Nth tiles, 32 folders with 12 members each and 128 shortcut aliases. Before this change, the fixture built 43 hidden tiles and read each folder/alias preference 33,411 times. The initial revised fixture built zero hidden tiles and read those preferences 44/87 times. These are work counts under Robolectric, not phone latency measurements. Regression checks also cover 200 installed apps, unchanged catalog reuse, deferred hidden updates, search visibility, rename/resize/regroup invalidation and retention of the same tile views when Start reopens.
+
+## Ordered initialization and restored folders
+
+After the existing startup introduction, all five desktops use the same device-local setup sequence:
+
+1. Default Launcher.
+2. Enable File Browsing.
+3. Enable Usage Access.
+4. Allow Notifications Access (Android Notification access for showing the phone's notifications).
+5. Modify System Settings (Brightness).
+6. Fix unlinked folders from a restored backup.
+
+Granted steps are skipped. Each permission remains optional; Later/cancellation advances, and unavailable Settings activities do not block setup. Pending Android requests and progress survive recreation. An interrupted folder transaction can be retried, and a fresh launch clears an orphaned picker request. The existing Welcome/start surface follows this flow. The introduction artwork and boot-playback policy are retained. Setup progress and Android grants are excluded from desktop backups.
+
+A successful restore/undo queues folder repair after any remaining setup steps. Folder checks and path lookup run on the worker. Reconnecting a root updates its existing Computer link, favorites and desktop folder-shortcut pages without recreating shortcut IDs, titles, positions or unrelated preferences. Descendants are verified by document IDs or resolved by unique folder names. Missing/ambiguous subfolders are kept, and partial repairs can be retried with **Fix linked folders** in Backup and Restore. A plan is applied only by its live setup flow and only if the referenced saved data has not changed.
+
+Links to a known Nth storage provider can translate to this desktop's own provider when its file permission is already granted; this verifies the destination path and does not transfer permission from another app. Other folders use Android's folder picker and retain its read grant. The setup cannot grant Android permissions itself.
+
+Eight, Ten and Eleven use their existing notification-listener components. Vista and Seven gain the same in-memory listener support, protected by Android's notification-listener binding permission, and phone notifications on their classic tray surfaces. In Vista, Notification Center is available from Device controls (hold the tray chevron); Seven also shows phone notifications in its existing Action Center. Notification content remains in memory and respects the existing locked-phone filtering.
+
+`InitializationFlowTest` exercises the ordered dialogs, granted-step skipping, Settings intents, denial/cancellation, focus/recreation, interrupted/orphaned requests, unavailable Settings, notification-service declarations and last-step folder repair. `FolderRepairTest` exercises root/favorite/shortcut updates, preserved identities/layouts, concurrent-edit protection, partial repairs, de-duplication, real provider grants/path lookup, and missing/ambiguous descendants. The instrumentation APK is compiled; Android device/emulator instrumentation is not run in this workspace.
