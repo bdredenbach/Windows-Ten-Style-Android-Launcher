@@ -4,6 +4,12 @@ import org.json.*;
 final class TenStartData {
  static final String KEY="ten_start_groups";final DesktopStore store;
  TenStartData(DesktopStore s){store=s;}
+ void installNthTiles(boolean fresh){
+  List<String> names=fresh?new ArrayList<>():groups();for(String name:TenStartCatalog.GROUPS)if(!names.contains(name)&&names.size()<12)names.add(name);
+  List<String> pins=fresh?new ArrayList<>():new ArrayList<>(store.startPins());android.content.SharedPreferences.Editor edit=store.prefs.edit();
+  for(TenStartCatalog.App app:TenStartCatalog.APPS){if(!pins.contains(app.id)&&pins.size()<DesktopStore.MAX_START_PINS)pins.add(app.id);if(fresh||!store.prefs.contains("ten_group_"+app.id))edit.putString("ten_group_"+app.id,names.contains(app.group)?app.group:names.get(0));if(fresh||!store.prefs.contains("ten_size_"+app.id))edit.putString("ten_size_"+app.id,app.size);}
+  edit.putString(KEY,new JSONArray(names).toString());if(fresh)edit.putString("ten_start_tile_scale","Normal").putBoolean("ten_start_apps",false).putBoolean("ten_live_tiles",true);edit.apply();store.startPins(pins);
+ }
  static List<String> parse(String text)throws JSONException{JSONArray data=new JSONArray(text);if(data.length()<1||data.length()>12)throw new JSONException("Use one to twelve tile groups");List<String> names=new ArrayList<>();for(int i=0;i<data.length();i++){String s=data.getString(i);if(s.trim().isEmpty()||s.length()>40||names.contains(s))throw new JSONException("Invalid tile group name");names.add(s);}return names;}
  List<String> groups(){try{return parse(store.prefs.getString(KEY,"[\"Productivity\",\"Explore\"]"));}catch(JSONException e){return new ArrayList<>(Arrays.asList("Productivity","Explore"));}}
  String group(String id){List<String> names=groups();String value=store.prefs.getString("ten_group_"+id,names.get(0));return names.contains(value)?value:names.get(0);}
