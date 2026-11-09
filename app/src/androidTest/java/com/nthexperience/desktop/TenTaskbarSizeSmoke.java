@@ -40,9 +40,10 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
    shot("ten22-extended-"+tag);
    ui(()->{home.open("setting:page:taskbar");VistaControlPanel panel=TenSmoke.find(root,VistaControlPanel.class);check(((CheckBox)TenSmoke.text(panel,"Extended taskbar")).isChecked(),"Control Panel reflects extended size");((CheckBox)TenSmoke.text(panel,"Extended taskbar")).performClick();});settle();ui(()->geometry(false,"Control Panel "+tag));
    ui(()->((CheckBox)TenSmoke.text(TenSmoke.find(root,VistaControlPanel.class),"Extended taskbar")).performClick());settle();ui(()->geometry(true,"Control Panel "+tag));
+   ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();});settle();
    ui(()->{HorizontalScrollView strip=(HorizontalScrollView)root.findViewWithTag("taskbar-items");strip.scrollTo(10000,0);});settle();
    ui(()->{check(((HorizontalScrollView)root.findViewWithTag("taskbar-items")).getScrollX()>0,"Extended app row scrolls "+tag);check(TenSmoke.description(bar(),"Search").isShown()&&TenSmoke.description(bar(),"Task View").isShown(),"Lower controls remain visible while app row scrolls");});
-   ui(()->TenSmoke.description(bar(),"Taskbar controls").performLongClick());menu("Extended taskbar");settle();
+   ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.applyTenAppearance();TenSmoke.description(bar(),"Taskbar controls").performLongClick();});menu("Extended taskbar");settle();
    ui(()->{geometry(false,tag);home.open("ten-setting:taskbar");check(!((Switch)TenSmoke.text(TenSmoke.find(root,TenSettings.class),"Extended taskbar")).isChecked(),"Menu choice reflected in Settings");});
    shot("ten22-normal-"+tag);
   }
