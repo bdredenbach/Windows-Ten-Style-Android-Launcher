@@ -55,6 +55,7 @@ public final class MediaSmoke extends Instrumentation {
                 check(item != null, "Media type recognized: " + name);
                 files.add(item);
             }
+            ShellTestSetup.complete(getTargetContext());
             home = (MainActivity) startActivitySync(new Intent(Intent.ACTION_MAIN)
                     .setComponent(new ComponentName(getTargetContext(), MainActivity.class))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));

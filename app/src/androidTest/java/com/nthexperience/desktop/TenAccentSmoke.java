@@ -39,9 +39,17 @@ public final class TenAccentSmoke extends TenThemeSmoke {
             home.open(folderId);windows().get(folderId).maximize();TenAppearance.apply(folder);
         });waitForIdleSync();
         final int[] labels={0};ui(()->{labels[0]=labels(folder);check(labels[0]>0,"Visible shortcut labels exist");EditText note=(EditText)TenSmoke.description(windows().get("@notes"),"Notepad text");check(TenAppearance.contrast(note.getCurrentTextColor(),TenAppearance.background(home))>=4.5,"Notepad stays readable");for(int i=0;i<3;i++)chrome(folder.getChildAt(i),new int[]{TenAppearance.background(home)});StartMenu start=TenSmoke.find(root,StartMenu.class);TenSmoke.description(root,"Start menu").performClick();});waitForIdleSync();
-        ui(()->{StartMenu start=TenSmoke.find(root,StartMenu.class);Rect apps=new Rect(),tiles=new Rect(),bounds=new Rect();check(start.getGlobalVisibleRect(bounds)&&start.apps.getGlobalVisibleRect(apps)&&start.tiles.getGlobalVisibleRect(tiles)&&apps.right<=tiles.left&&tiles.right<=bounds.right,"App list and tiles share Start in both orientations");check(TenAccent.contrast(TenStyle.text(home),TenStyle.surface(home))>=4.5,"Shell text stays readable");for(View tile:start.tileViews.values())for(int i=0;i<((ViewGroup)tile).getChildCount();i++){View child=((ViewGroup)tile).getChildAt(i);if(child instanceof TextView)check(TenAccent.contrast(((TextView)child).getCurrentTextColor(),0xff3b3b3b)>=4.5,"Tile labels keep their own foreground");}start.hide();});
+        ui(()->{StartMenu start=TenSmoke.find(root,StartMenu.class);Rect apps=new Rect(),tiles=new Rect(),bounds=new Rect();check(start.getGlobalVisibleRect(bounds)&&start.apps.getGlobalVisibleRect(apps)&&start.tiles.getGlobalVisibleRect(tiles)&&apps.right<=tiles.left&&tiles.right<=bounds.right,"App list and tiles share Start in both orientations");check(TenAccent.contrast(TenStyle.text(home),TenStyle.surface(home))>=4.5,"Shell text stays readable");for(View tile:start.tileViews.values())tileLabels(tile);start.hide();});
         if((color==0xff107c10||color==0xffffffff||color==0xff000000)&&dark)shot("ten9-"+(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"portrait-":"landscape-")+name.toLowerCase(Locale.ROOT));
         combinations++;table.append(orientation==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT?"Portrait":"Landscape").append('\t').append(dark?"Dark":"Light").append('\t').append(name).append('\t').append(Integer.toHexString(color)).append('\t').append(labels[0]).append("\tPASS\n");
+    }
+    void tileLabels(View tile){
+        Drawable background=tile.getBackground().getCurrent();
+        int[] surfaces=null;
+        if(background instanceof ColorDrawable)surfaces=new int[]{((ColorDrawable)background).getColor()};
+        else if(background instanceof GradientDrawable){GradientDrawable fill=(GradientDrawable)background;surfaces=fill.getColors();if(surfaces==null&&fill.getColor()!=null)surfaces=new int[]{fill.getColor().getDefaultColor()};}
+        check(surfaces!=null&&surfaces.length>0,"Tile exposes its actual background");
+        for(int i=0;i<((ViewGroup)tile).getChildCount();i++){View child=((ViewGroup)tile).getChildAt(i);if(child instanceof TextView&&child.getVisibility()==View.VISIBLE)for(int surface:surfaces)check(TenAccent.contrast(((TextView)child).getCurrentTextColor(),surface)>=4.5,"Tile label contrasts with its own rendered color: "+((TextView)child).getText());}
     }
     void chrome(View view,int[] inherited){
         if(view.getVisibility()!=View.VISIBLE)return;
