@@ -1,0 +1,280 @@
+{
+  "archive": "7tsp_windows_10_system_icons_by_ardentaa_dfe8n0v.7z",
+  "archive_sha256": "ae83af86dc3c0e643038df3a4908756be5d188ec82216c7c3ac830cfec916021",
+  "conversion": "Parsed Microsoft .res RT_GROUP_ICON/RT_ICON records, reconstructed the ICO directory and decoded the existing 256 x 256 frame to transparent RGBA PNG. No artwork edits or upscaling.",
+  "icons": [
+    {
+      "resource": "win10_folder",
+      "kinds": [
+        "files",
+        "folderapps"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 4,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "db8c257529e1ffcc2db9f01ef54d619b54bfc23c2d562516e5517b2112430b84",
+      "png_sha256": "14ab489a982356e33666d7be8babf96375c926584894a77862d16ce259dc4ff7",
+      "previous_png_sha256": "9d6dc91f40b5b40733dec095d25571058526af2c160bebca3229b05ed6254aae"
+    },
+    {
+      "resource": "win10_explorer",
+      "kinds": [
+        "file-explorer"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 1023,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "4d959e554ad357a0b2428723febae6d2a10bc83ec41f0b425b1cb9fcbd0e27f2",
+      "png_sha256": "e8683a6811b1166b78ed90819983d9a5bfd808e8c9ec758d1e89ed0e523fb245",
+      "previous_png_sha256": "1b4d919f0fda048f3b2a33f7de70d735a59fb4246385a170e55c57480283af00"
+    },
+    {
+      "resource": "win10_documents",
+      "kinds": [
+        "documents"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 112,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "29be54a98c80235cfb9e1d5e4cb9b5cd44ea2853b30a8aeae45e7b1815d9a81e",
+      "png_sha256": "47c897d24a8bf3ddf7878eab6e0970dbf0f73c2bfe027588a709cdf9d895213e",
+      "previous_png_sha256": "8238fbbbd0ed154ae210f03e2aa9d4ea43faf502a9d5aa0b79f64abdd69ec690"
+    },
+    {
+      "resource": "win10_pictures",
+      "kinds": [
+        "pictures"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 113,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "8152f9141250d2cab0e0edc45b4515fb95037c5c5ade49389179df0ebcf0fe91",
+      "png_sha256": "a159e1b762c33ff5d01f627c0e1bb1846e6ae73afabf1c017a0349ed20942d8d",
+      "previous_png_sha256": "02f6b07bbb3cf655d5de9ec4acad5e726c2dc1be10dbe51ff83a01e732e710ed"
+    },
+    {
+      "resource": "win10_music",
+      "kinds": [
+        "music"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 108,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "b435a60da1f64dfffd1f28389606d9bd494e4aae826757ffdd031ebfbdebe358",
+      "png_sha256": "e0a84485463b7900bea42c74b1ea79a6f1867384574bf42194fe65ee2b57b464",
+      "previous_png_sha256": "990ade92ac078db37b8ecaaafc5b1d045c7193ff0471ba7f9d31946086293b16"
+    },
+    {
+      "resource": "win10_videos",
+      "kinds": [
+        "videos"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 189,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "5d873e0f6aa0dc48d86bb110f1bda1defa89c82aac9f640b2fedb8aedd355957",
+      "png_sha256": "1b566ef9bb4fb9b884cbe5261110725257f5ad1e6652f87ead8c973b6fc6217e",
+      "previous_png_sha256": "42fd2e850707e7f10b975ce081e0095b896669b52e4e08b25e44885b9871c16b"
+    },
+    {
+      "resource": "win10_downloads",
+      "kinds": [
+        "downloads"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 184,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "c6209f895ae7ee92fc330c99e07a74ed7191ca25236388fd161c1ac6ad2cd59d",
+      "png_sha256": "a5a69d6d30caa2490a761a36e6d4a37267d1c55ee62af6be3a01282f3ca2e485",
+      "previous_png_sha256": "86b838e54c726ac7536506175068d567d7c7469697fb891fc0e8fc86fecd527d"
+    },
+    {
+      "resource": "win10_control_panel",
+      "kinds": [
+        "control"
+      ],
+      "source_resource_file": "Resources/shell32.dll.mun.res",
+      "source_group": 22,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "9bda23dc0a86dccf98cc92627e984b32a8be78c143f7507e34732350393e6fe8",
+      "group_sha256": "5cc9033647927371041e255b0b54e6b24d77af5b3523c3f8408b8849c4d43155",
+      "png_sha256": "76be5d0152b459d0417c1653521b8ffee2139e7b8c3e9096d24e4a8f65b1d576",
+      "previous_png_sha256": "7612d1460b454f5a76938764ca6e808497ccf657a1ca90cdecfb67fe7cac9f8a"
+    },
+    {
+      "resource": "win10_picture_file",
+      "kinds": [
+        "picturefile"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 132,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "44e653aa1b1116c6a6e5947a90fed64a6e89086c669b05b5369c715eb039a454",
+      "png_sha256": "4ba331e709f0138840c0bfd0f799b91c61e185ebffa72683ecaa34efa38ff315",
+      "previous_png_sha256": "f96a4ee4a1fbdb692090b1f52c8a92e86daebc4580d55b6c7f3d43e8e13623dd"
+    },
+    {
+      "resource": "win10_video_file",
+      "kinds": [
+        "videofile"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 133,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "b62c8635f5dc396e3361d4b88e4c20ebdfef4892f0a43e88b28ce4a4cef9ea90",
+      "png_sha256": "6931ee3c2dae1d34c7ded32166116c6f2de1fd0bc656dda4a921af4bbfe9cf68",
+      "previous_png_sha256": "2e0d1874dcb7c5f16af7570b6eaa2fc204df5492245542a0a9725177b419952c"
+    },
+    {
+      "resource": "win10_font",
+      "kinds": [
+        "fonts"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 124,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "46990a223cbb886df774da20dfd6000ed334853c8f0134dc7f2ed6094662b5a0",
+      "png_sha256": "b3b2a905617ca166d0828e29ba04222e355a38e5af61e992575ea202b79f48c4",
+      "previous_png_sha256": "3d62e17c24d56fc206e5df643d02907c441531f4d673dfc08adf04ea0a679349"
+    },
+    {
+      "resource": "win10_document_file",
+      "kinds": [
+        "documentfile"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 90,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "b48fe3b4d22149c91e5a6b3fcacf81a7fccbf9a9169ae7a45dce71a949183cc1",
+      "png_sha256": "6e2d8a175a3ed733f4d511414147a0deaf5a559a5976ea1f6b0b51536122e82c",
+      "previous_png_sha256": "cd6d187aad5dcdcd4e1c12c14f9498d1ad46ed9de870047d6b647128ef3ae163"
+    },
+    {
+      "resource": "win10_music_file",
+      "kinds": [
+        "musicfile"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 131,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "f13465b2a8c42dff3812d12c510ca6de5bc0ea2c0d1464ac98bff1df113fe178",
+      "png_sha256": "8ec4ed3272d37f525a4767c66d39852ac0aff1b2deb1c1ce3ffd5af8227ed286",
+      "previous_png_sha256": "5a6a9f84962cdd6400b58d402f42beed850c11521a98c00798801891c37409ab"
+    },
+    {
+      "resource": "win10_delete",
+      "kinds": [
+        "delete"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 89,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "5777ca28e98165f381b1c07640466c4166499854e5bc2cf815801a36ecd5ac28",
+      "png_sha256": "529b105c97e1ab77de9b7fe5e66861eb8783f7d1acd90da415ef673fb220c364",
+      "previous_png_sha256": "8f8da217d67dead9ca5eca85355f1f6cfd5427284e9448eece0a29103b58a5bd"
+    },
+    {
+      "resource": "win10_personalize",
+      "kinds": [
+        "appearance"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 197,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "553c261958038a6b3e4d07db1b89f4202a24afdebd0eb677b8e80f80a9552986",
+      "png_sha256": "6476e7155b04358ab80a09479723119196308454afc80cfb2461b11c51698799",
+      "previous_png_sha256": "470b08a073072a961a782673f237f3eca2f65e61c3d5c34cc9152f0ed226d943"
+    },
+    {
+      "resource": "win10_task_manager",
+      "kinds": [
+        "taskmanager"
+      ],
+      "source_resource_file": "Resources/imageres.dll.mun.res",
+      "source_group": 150,
+      "language": 1033,
+      "selected_size": [
+        256,
+        256
+      ],
+      "source_resource_sha256": "0a53bf47ccc089b23d5487a9c78407c41fba29dc9db656a2763296cd2efa0f83",
+      "group_sha256": "c5cb2673a1d473ccba8d7d0a5fb6822fe57596da0b4d81c2a0d8981531c7f1d1",
+      "png_sha256": "68552ff398eee51400bad8ce493d43c1a748354fd2c80a63dda30d95c288ae14",
+      "previous_png_sha256": null
+    }
+  ]
+}
