@@ -59,13 +59,14 @@ public final class TenInitializationSmoke extends TenThemeSmoke {
  }
  private boolean installed(String pkg){try{home.getPackageManager().getApplicationInfo(pkg,0);return true;}catch(PackageManager.NameNotFoundException missing){return false;}}
  private void uninstall()throws Exception{
-  String pkg="com.nthexperience.desktop.fixture",id=pkg+"/.TaskActivity";
+  String pkg="com.nthexperience.desktop.fixture",id=new ComponentName(pkg,pkg+".TaskActivity").flattenToString();
   check(installed(pkg),"Disposable uninstall probe installed");
+  List<AppCatalog.Entry> catalog=AppCatalog.load(home);check(catalog.stream().anyMatch(app->app.id.equals(id)),"Fixture has a real launcher catalog entry");
   for(boolean confirm:new boolean[]{false,true}){
    ui(()->{
     store.startPins(Collections.singletonList(id));store.prefs.edit().putBoolean("ten_start_apps",false).commit();
-    StartMenu start=TenSmoke.find(root,StartMenu.class);start.entries(Collections.singletonList(new AppCatalog.Entry(id,"Nth install probe",null)));start.show(false);
-   });waitForIdleSync();
+    StartMenu start=TenSmoke.find(root,StartMenu.class);start.entries(catalog);start.show(false);
+   });waitForIdleSync();await(()->TenSmoke.find(root,StartMenu.class).tileViews.containsKey(id),"Installed fixture tile available after catalog refresh");
    ui(()->{View tile=TenSmoke.find(root,StartMenu.class).tileViews.get(id);check(tile!=null,"Real installed-app tile rendered");check(tile.performLongClick(),"Tile hold opens its context menu");});
    systemClick("Uninstall");awaitSystem("Cancel");
    if(!confirm){systemClick("Cancel");await(()->home.hasWindowFocus(),"Canceled uninstall returns to Home");check(installed(pkg)&&store.startPins().contains(id),"Cancellation keeps app and pin");}
