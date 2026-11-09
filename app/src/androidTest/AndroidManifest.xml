@@ -23,6 +23,7 @@
         <activity android:name="com.nthexperience.desktop.TestAwayActivity" android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
         <activity android:name="com.nthexperience.desktop.PickerCallerActivity" android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
+    <instrumentation android:name="com.nthexperience.desktop.TenTaskbarSizeSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.StorageSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.ContinuitySmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.PhotoSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
