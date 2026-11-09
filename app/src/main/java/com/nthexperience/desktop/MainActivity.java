@@ -91,8 +91,8 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     private boolean destroyed,scanPending,scanAgain,receiverRegistered;
     private int scanGeneration,columns;
     private OnBackInvokedCallback backCallback;
-    private final BroadcastReceiver packages=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent i){scanApps();}};
-    private final BroadcastReceiver timeChanged=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent i){updateClock();}};
+    private final BroadcastReceiver packages=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent i){DesktopCache.invalidate();scanApps();}};
+    private final BroadcastReceiver timeChanged=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent i){updateClock();if(Intent.ACTION_LOCALE_CHANGED.equals(i.getAction())){DesktopCache.invalidate();scanApps();}}};
     private final android.content.SharedPreferences.OnSharedPreferenceChangeListener tenShellPrefs=(prefs,key)->{if(key!=null&&(key.equals("weather_json")||key.equals("weather_city")||key.equals("weather_f")||key.equals("feed_items")||key.equals("ten_news_mode")))main.post(()->{if(!destroyed)updateNewsChip();});};
     private final Runnable taskbarRender=()->{if(!destroyed)renderTaskbar();};
     private final Runnable desktopRender=()->{if(!destroyed)renderDesktop();};
@@ -246,9 +246,11 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(destroyed)return;if(scanPending){scanAgain=true;return;}scanPending=true;int generation=++scanGeneration;
         worker.execute(()->{
             List<AppCatalog.Entry> apps;
-            try{apps=AppCatalog.load(getApplicationContext());}catch(RuntimeException e){apps=new ArrayList<>();}
+            List<AppCatalog.Entry> cached=DesktopCache.read(getApplicationContext());
+                if(cached!=null)main.post(()->{if(destroyed||restoringBackup||generation!=scanGeneration||!entries.isEmpty())return;for(AppCatalog.Entry e:cached)entries.put(e.id,e);startMenu.entries(cached);renderDesktop();renderTaskbar();});
+                apps=DesktopCache.load(getApplicationContext());
             List<AppCatalog.Entry> result=apps;ExternalTasks.refresh(getApplicationContext(),store,result);
-            main.post(()->{if(destroyed||restoringBackup||generation!=scanGeneration)return;scanPending=false;taskColors.clear();entries.clear();for(AppCatalog.Entry e:result)entries.put(e.id,e);startMenu.entries(result);renderDesktop();renderTaskbar();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null&&tool.body instanceof VistaShell)((VistaShell)tool.body).refreshApps();if(scanAgain){scanAgain=false;scanApps();}});
+            main.post(()->{if(destroyed||restoringBackup||generation!=scanGeneration)return;scanPending=false;if(result==null){if(scanAgain){scanAgain=false;scanApps();}return;}taskColors.clear();entries.clear();for(AppCatalog.Entry e:result)entries.put(e.id,e);startMenu.entries(result);renderDesktop();renderTaskbar();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null&&tool.body instanceof VistaShell)((VistaShell)tool.body).refreshApps();if(scanAgain){scanAgain=false;scanApps();}});
         });
     }
     int desktopGridWidth(){return desktop==null?0:desktop.getWidth();}
@@ -830,7 +832,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         desktopMenu=new DesktopContextMenu(this,"Desktop context menu");
         desktopMenu.submenu("View","appearance",()->desktopViewMenu(x,y));
         desktopMenu.submenu("Sort by","programs",()->desktopSortMenu(x,y));
-        desktopMenu.item("Refresh","refresh",()->{scanApps();services.refresh();});
+        desktopMenu.item("Refresh","refresh",()->{DesktopCache.invalidate();scanApps();services.refresh();});
         desktopMenu.separator();
         desktopMenu.item("Paste","paste",!ExplorerClipboard.shortcuts.isEmpty(),()->{
             try{ExplorerClipboard.paste(store,"desktop");desktopChanged();}
