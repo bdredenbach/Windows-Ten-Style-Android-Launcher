@@ -39,6 +39,7 @@ final class DesktopStore {
     void fileManagers(List<String> ids){save("file_manager_apps",ids);}
     List<String> photos(){return list("gadget_photos",new ArrayList<>());}
     void photos(List<String> ids){save("gadget_photos",ids);}
+    static final int MAX_START_PINS=128;
     List<String> startPins(){return list("start_pins",Arrays.asList("@browser","@notes"));}
     void startPins(List<String> ids){save("start_pins",ids);}
     List<String> recents() { return list("recents", new ArrayList<>()); }
@@ -99,7 +100,7 @@ final class DesktopStore {
         SharedPreferences.Editor edit = prefs.edit().putString("app_folders", all.toString());
         if(prefs.contains(TenDesktopItems.KEY))TenDesktopItems.recycle(this,edit,id,positions);else folderMembership(edit, "shortcuts", desktop(), id, positions, 512);
         folderMembership(edit, "quick_launch", quickLaunch(), id, positions, MAX_QUICK);
-        folderMembership(edit, "start_pins", startPins(), id, positions, 32);
+        folderMembership(edit, "start_pins", startPins(), id, positions, MAX_START_PINS);
         if (!edit.commit()) throw new java.io.IOException("The folder change could not be saved. Recovery data was kept.");
     }
     private void folderMembership(SharedPreferences.Editor edit, String key, List<String> ids,

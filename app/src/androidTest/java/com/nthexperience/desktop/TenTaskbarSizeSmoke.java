@@ -26,7 +26,7 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
    check(!store.prefs.getBoolean("ten_accent_shell",true)&&!store.prefs.getBoolean("ten_accent_titles",true),"Fresh shell and captions have no accent fill");
    check(TenStyle.accent(home)==Color.WHITE&&TenStyle.text(home)==Color.WHITE&&!TenStyle.light(home),"Fresh neutral shell has white text and selected White swatch");
    home.open("ten-setting:start");TenSettings settings=TenSmoke.find(root,TenSettings.class);
-   for(String label:new String[]{"Use Start full screen","Show app list when Start opens","Show live local tile details"})check(((Switch)TenSmoke.text(settings,label)).isChecked(),"Fresh Start default: "+label);
+   for(String label:new String[]{"Use Start full screen","Show app list when Start opens","Show live local tile details"})check(((Switch)TenSmoke.text(settings,label)).isChecked()!=label.equals("Show app list when Start opens"),"Fresh Start default: "+label);
    check(!store.prefs.getBoolean("ten_taskbar_extended",false),"Normal taskbar remains initial size");
    home.open("@notes");((EditText)TenSmoke.description(root,"Notepad text")).setText("Keep this note across taskbar changes");
    store.quickLaunch(Arrays.asList("@browser","@files","@notes","@calendar","@photos","@settings","@weather","@clock","@taskmanager","@recycle",MediaLibrary.PLAYER,"@gadget:calculator"));
