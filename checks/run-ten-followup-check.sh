@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 launcher=com.nthexperience.desktop.ten
+failed=0
 collect() {
  mkdir -p screenshots
  for name in $(adb shell run-as "$launcher" ls files 2>/dev/null | tr -d '\r'); do
@@ -15,9 +16,8 @@ adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 run() {
  local runner="$1"; shift
  local log="ten-followup-$runner.txt"
- timeout -k 3s 600s adb shell am instrument -w "$@" "$launcher.test/com.nthexperience.desktop.$runner" | tee "$log"
- grep -q 'PASS:' "$log"
- ! grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$log"
+ if ! timeout -k 3s 600s adb shell am instrument -w "$@" "$launcher.test/com.nthexperience.desktop.$runner" | tee "$log"; then failed=1; fi
+ if ! grep -q 'PASS:' "$log" || grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' "$log"; then failed=1; fi
 }
 adb shell input keyevent KEYCODE_WAKEUP
 adb shell wm dismiss-keyguard
@@ -31,3 +31,4 @@ done
 adb shell am force-stop "$launcher"
 adb shell pm clear "$launcher"
 run StorageSmoke
+exit "$failed"
