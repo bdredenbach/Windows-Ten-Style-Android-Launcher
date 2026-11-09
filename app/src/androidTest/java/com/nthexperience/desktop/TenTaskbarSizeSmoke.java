@@ -43,7 +43,7 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
    ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();});settle();
    ui(()->{HorizontalScrollView strip=(HorizontalScrollView)root.findViewWithTag("taskbar-items");strip.scrollTo(10000,0);});settle();
    ui(()->{check(((HorizontalScrollView)root.findViewWithTag("taskbar-items")).getScrollX()>0,"Extended app row scrolls "+tag);check(TenSmoke.description(bar(),"Search").isShown()&&TenSmoke.description(bar(),"Task View").isShown(),"Lower controls remain visible while app row scrolls");});
-   ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.applyTenAppearance();TenSmoke.description(bar(),"Taskbar controls").performLongClick();});menu("Extended taskbar");settle();
+   ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.applyTenAppearance();});settle();ui(()->TenSmoke.description(bar(),"Taskbar controls").performLongClick());menu("Extended taskbar");settle();
    ui(()->{geometry(false,tag);home.open("ten-setting:taskbar");check(!((Switch)TenSmoke.text(TenSmoke.find(root,TenSettings.class),"Extended taskbar")).isChecked(),"Menu choice reflected in Settings");});
    shot("ten22-normal-"+tag);
   }
@@ -78,5 +78,5 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
  void settle(){waitForIdleSync();SystemClock.sleep(350);}
  void ui(Runnable run)throws Exception{FutureTask<Void> task=new FutureTask<>(run,null);home.runOnUiThread(task);task.get(15,TimeUnit.SECONDS);}
  void check(boolean value,String message){if(!value)throw new AssertionError(message);}
- void shot(String name)throws Exception{settle();Bitmap b=getUiAutomation().takeScreenshot();if(b!=null)try(OutputStream out=new FileOutputStream(new File(getTargetContext().getFilesDir(),name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}finally{b.recycle();}}
+ void shot(String name)throws Exception{settle();final Bitmap[] image=new Bitmap[1];ui(()->{image[0]=Bitmap.createBitmap(root.getWidth(),root.getHeight(),Bitmap.Config.ARGB_8888);root.draw(new Canvas(image[0]));});Bitmap b=image[0];if(b!=null)try(OutputStream out=new FileOutputStream(new File(getTargetContext().getFilesDir(),name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}finally{b.recycle();}}
 }
