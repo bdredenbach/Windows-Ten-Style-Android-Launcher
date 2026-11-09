@@ -35,6 +35,7 @@ public class LauncherSmoke extends Instrumentation {
         ((Application)getTargetContext().getApplicationContext()).registerActivityLifecycleCallbacks(lifecycle);
         try {
             getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).putInt("boot",StartupExperience.boot(getTargetContext())).commit();
+        ShellTestSetup.complete(getTargetContext());
             migrationChecks();
             Intent launch=new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             progress("starting launcher activity");activity=(MainActivity)startActivitySync(launch);progress("activity started; waiting for UI idle");waitForIdleSync();root=activity.getWindow().getDecorView();

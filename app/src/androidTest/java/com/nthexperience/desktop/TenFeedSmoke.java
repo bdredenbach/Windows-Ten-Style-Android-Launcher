@@ -21,6 +21,7 @@ public final class TenFeedSmoke extends TenThemeSmoke {
     @Override public void onStart(){Bundle output=new Bundle();try{
         store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putBoolean("ten_news_images",false).putBoolean("weather_follow",false).commit();TenThemes.TEN.get(2).apply(store);
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
         home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Shell ready");
         parsing();firstRetry();network();configuration();liveFeeds();
         output.putString("stream","PASS: streamed multi-megabyte and gzip RSS, Atom/relative links/encoding, bounded input and DTD rejection, immediate manual retry, cached-story and previous-feed retention, HTTP/HTML diagnostics, Retry-After, cancelled stale response protection, inline Connect feedback and both orientations; live source outcomes are in ten7-feed-live.tsv\n");finish(Activity.RESULT_OK,output);

@@ -49,7 +49,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.orientation == 'portrait' && matrix.mode == 'light'
         with:
-          name: Nth-Desktop-Ten-0.26.0-api-${{ matrix.api }}
+          name: Nth-Desktop-Ten-0.27.0-api-${{ matrix.api }}
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Enable emulator acceleration
         run: |

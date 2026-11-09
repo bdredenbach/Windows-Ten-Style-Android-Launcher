@@ -18,6 +18,7 @@ public final class TenStartTilesSmoke extends TenThemeSmoke {
  @Override public void onStart(){Bundle result=new Bundle();try{
   store=new DesktopStore(getTargetContext());store.prefs.edit().clear().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).commit();
   getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
   home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.find(root,StartMenu.class)!=null,"Start ready");start=TenSmoke.find(root,StartMenu.class);
   ui(()->{check(!store.prefs.getBoolean("ten_start_apps",true)&&store.prefs.getBoolean("ten_full_start",false)&&store.prefs.getBoolean("ten_live_tiles",false),"New installs show live tiles first");check(store.startPins().equals(TenStartCatalog.ids()),"All 43 Nth apps pinned exactly once");check(new TenStartData(store).groups().equals(Arrays.asList(TenStartCatalog.GROUPS)),"Six default categories");start.show(false);});settle();
   allActions();liveData();menusAndSettings();
@@ -30,6 +31,7 @@ public final class TenStartTilesSmoke extends TenThemeSmoke {
  }catch(Throwable e){try{shot("ten25-failure");StringBuilder tree=new StringBuilder();dump(getUiAutomation().getRootInActiveWindow(),tree,0);Bundle status=new Bundle();status.putString("stream","Active UI at failure:\n"+tree);sendStatus(1,status);}catch(Exception ignored){}result.putString("stream","FAIL: "+android.util.Log.getStackTraceString(e));finish(Activity.RESULT_CANCELED,result);}}
  void allActions()throws Exception{ui(()->{
   List<String> opened=new ArrayList<>();StartMenu spy=new StartMenu(home,new StartMenu.Actions(){public void open(String id){opened.add(id);}public void options(View anchor,String id){}public void home(){}public void settings(){}public boolean isHome(){return true;}},store,TenSmoke.find(root,AeroWallpaper.class));
+  check(spy.tileViews.isEmpty(),"Hidden Start defers its tiles");spy.show(false);
   for(TenStartCatalog.App app:TenStartCatalog.APPS){View tile=spy.tileViews.get(app.id);check(tile!=null,"Tile resolves: "+app.id);check(DesktopBackup.shortcut(app.id,new JSONObject(),false),"Tile has a real built-in destination: "+app.id);tile.performClick();check(opened.get(opened.size()-1).equals(app.id),"Tile routes to its own app: "+app.id);}check(opened.size()==43,"Every Nth app route checked");
   start.tileViews.get("@notes").performClick();check(windows().get("@notes")!=null,"Actual Notepad tile launches a window");home.open("start-menu:");start.tileViews.get("@gadget:calculator").performClick();check(windows().containsKey("@gadget:calculator"),"Actual Calculator tile launches");home.open("start-menu:");
  });settle();}

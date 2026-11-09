@@ -21,6 +21,7 @@ public class TenThemeSmoke extends Instrumentation {
     @Override public void onStart(){Bundle result=new Bundle();try{
         store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putBoolean("ten_full_start",false).putString("ten_nota_draft","").remove(TenNotaDrafts.KEY).commit();TenThemes.TEN.get(0).apply(store);
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
         home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Shell ready");
         branding();themes();portable();run();
         ui(()->{TenThemes.TEN.get(0).apply(store);home.applyTenAppearance();home.open("@taskmanager");View performance=TenSmoke.description(root,"Task Manager Performance");check(performance!=null,"Performance tab available");performance.performClick();});shot("ten4-performance");

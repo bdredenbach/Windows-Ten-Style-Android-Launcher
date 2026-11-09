@@ -34,7 +34,7 @@ public class InitializationFlowTest {
     private final Set<Step> granted=EnumSet.noneOf(Step.class);
     private class TestHost implements InitializationFlow.Host {boolean ready=true;int changes,wakes;public boolean ready(){return ready;}public boolean home(){return granted.contains(Step.HOME);}public boolean requestHome(){return true;}public void changed(){changes++;}public void wake(){wakes++;}}
     private class TestFlow extends InitializationFlow {TestFlow(){super(activity,store,host,Runnable::run);}@Override boolean granted(Step step){return granted.contains(step);}}
-    @Before public void setup(){controller=Robolectric.buildActivity(Activity.class).setup();activity=controller.get();store=new DesktopStore(activity);store.prefs.edit().clear().commit();activity.getSharedPreferences(InitializationState.PREFS,0).edit().clear().commit();host=new TestHost();flow=new TestFlow();flow.resumed();}
+    @Before public void setup(){controller=Robolectric.buildActivity(Activity.class).setup();activity=controller.get();store=new DesktopStore(activity);store.prefs.edit().clear().commit();activity.getSharedPreferences(InitializationState.PREFS,0).edit().clear().commit();activity.getSharedPreferences(StartupExperience.SESSION,0).edit().clear().commit();activity.getSharedPreferences(StorageAccess.PREFS,0).edit().clear().commit();host=new TestHost();flow=new TestFlow();flow.resumed();}
     @After public void close(){flow.close();controller.pause().stop().destroy();}
     private AlertDialog dialog(){AlertDialog dialog=ShadowAlertDialog.getLatestAlertDialog();assertNotNull(dialog);assertTrue(dialog.isShowing());return dialog;}
     private void assertTitle(String title){assertTrue("Dialog contains title: "+title,contains(dialog().getWindow().getDecorView(),title));}
@@ -91,6 +91,20 @@ public class InitializationFlowTest {
 
     @Test public void locationRequestsBothPermissionsForAndroidAccuracyChoice(){
         flow.state.prefs.edit().putInt("step",Step.LOCATION.ordinal()).commit();store.prefs.edit().putString("weather_city","Saved city").commit();flow.pending();assertTitle("Allow Location");enable();org.robolectric.shadows.ShadowActivity.PermissionsRequest request=shadowOf(activity).getLastRequestedPermission();assertEquals(InitializationFlow.LOCATION,request.requestCode);assertArrayEquals(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,android.Manifest.permission.ACCESS_COARSE_LOCATION},request.requestedPermissions);flow.permissionResult(InitializationFlow.LOCATION);flow.paused();flow.resumed();flow.pending();assertEquals(Step.FOLDERS,flow.state.step());assertEquals("Saved city",store.prefs.getString("weather_city",""));
+    }
+    @Test public void originalReleaseSetupDoesNotRepeatEarlierSteps(){
+        flow.state.prefs.edit().clear().commit();
+        activity.getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        activity.getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();
+        InitializationState migrated=new InitializationState(activity);
+        assertEquals(Step.LOCATION,migrated.step());
+        migrated.advance();migrated.advance();
+        assertEquals(Step.DONE,new InitializationState(activity).step());
+    }
+    @Test public void unfinishedOriginalReleaseStillStartsWithHome(){
+        flow.state.prefs.edit().clear().commit();
+        activity.getSharedPreferences(StartupExperience.SESSION,0).edit().clear().commit();
+        assertEquals(Step.HOME,new InitializationState(activity).step());
     }
     @Test public void oldCompletedSetupOffersLocationOnce(){
         flow.state.prefs.edit().putInt("flow_version",1).putInt("step",6).commit();InitializationState migrated=new InitializationState(activity);assertEquals(Step.LOCATION,migrated.step());migrated.advance();assertEquals(Step.FOLDERS,new InitializationState(activity).step());

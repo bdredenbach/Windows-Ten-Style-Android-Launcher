@@ -25,6 +25,7 @@ public final class TenNotaSmoke extends TenThemeSmoke {
         store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).commit();
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();
         getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
         getTargetContext().getSharedPreferences("ten-nota-ai-privacy",0).edit().putBoolean("cloud-allowed",false).putInt("consent-version",1).commit();
         home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Shell ready");
         if(phase.equals("cold")){cold();out.putString("stream","PASS: two full ordinary Nota drafts, replies, tasks and origins restored independently after a stopped process, with no private passage in preferences or backup\n");}

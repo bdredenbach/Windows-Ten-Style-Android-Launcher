@@ -27,6 +27,7 @@ public final class TenThemeTextSmoke extends TenDarkModeSmoke {
         check(Arrays.asList("all","portrait","landscape").contains(orientationFilter)&&Arrays.asList("all","light","dark").contains(modeFilter),"Valid matrix partition");expected=17*(orientationFilter.equals("all")?2:1)*(modeFilter.equals("all")?2:1);
         store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("taskbar_apps",false).putBoolean("weather_follow",false).putString("feed_url","").remove(TenNotaDrafts.KEY).putString("ten_nota_draft","").commit();
         getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
         presets.addAll(TenThemes.TEN);presets.addAll(TenThemes.AERO);TenThemes.TEN.get(0).apply(store);
         home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();await(()->TenSmoke.description(root,"Start menu")!=null,"Desktop ready");
         for(int orientation:new int[]{ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE}){

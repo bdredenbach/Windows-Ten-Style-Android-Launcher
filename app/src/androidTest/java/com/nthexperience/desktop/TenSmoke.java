@@ -18,6 +18,7 @@ public final class TenSmoke extends Instrumentation {
  @Override public void onStart(){Bundle result=new Bundle();try{
   store=new DesktopStore(getTargetContext());store.prefs.edit().putInt("startup_mode",2).putBoolean("welcome_on_start",false).putBoolean("reduce_motion",true).putBoolean("sidebar_visible",false).putBoolean("taskbar_apps",false).commit();
   getTargetContext().getSharedPreferences(StorageAccess.PREFS,0).edit().putBoolean("seen",true).commit();getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).putBoolean(StartupExperience.HOME_OFFERED,true).commit();
+        ShellTestSetup.complete(getTargetContext());
   home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();waitForIdleSync();
   check(getTargetContext().getPackageName().equals("com.nthexperience.desktop.ten"),"Separate Ten identity");
   ui(()->{home.open("@notes");home.open("@search");StartMenu start=find(root,StartMenu.class);check(start!=null,"Start present");start.search.setText("Nth Nota");View row=description(start,"Open Nth Nota");check(row!=null,"Nota searchable");row.performClick();});waitForIdleSync();

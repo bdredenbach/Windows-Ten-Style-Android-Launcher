@@ -45,7 +45,7 @@ adb shell appops set --uid "$launcher" MANAGE_EXTERNAL_STORAGE allow
 adb shell appops set "$launcher" WRITE_SETTINGS deny
 facet media MediaSmoke
 fresh
-facet setup StorageSmoke -e suite storage -e phase setup
+facet setup TenInitializationSmoke
 fresh
 adb shell appops set --uid "$launcher" MANAGE_EXTERNAL_STORAGE allow
 facet storage StorageSmoke -e suite storage -e phase access
