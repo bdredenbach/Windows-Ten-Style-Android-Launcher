@@ -3,7 +3,7 @@ package com.nthexperience.desktop;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 
-/** Original Windows 10 build 10125 artwork supplied by the project owner. */
+/** Owner-supplied Windows 10 artwork; per-resource sources are recorded in docs. */
 final class TenIconAssets {
     static int resource(String kind) {
         switch (kind) {
@@ -37,6 +37,7 @@ final class TenIconAssets {
             case "sound": return R.drawable.win10_sound;
             case "puzzle": return R.drawable.win10_games;
             case "fonts": return R.drawable.win10_font;
+            case "taskmanager": return R.drawable.win10_task_manager;
             default: return 0;
         }
     }
