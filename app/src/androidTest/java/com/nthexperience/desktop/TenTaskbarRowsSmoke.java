@@ -46,7 +46,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
     @Override void check(boolean ok,String message){checks++;super.check(ok,message);}
     List<String> geometryRow(int row){List<String> result=new ArrayList<>();TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++){View c=items.getChildAt(i);if(TenTaskbarItems.row(c)==row)result.add(TaskbarReorder.key(c)+":"+bounds(c));}return result;}
     void checkRow(String id,int row,String message)throws Exception{ui(()->{View child=slot(id);check(child!=null&&TenTaskbarItems.row(child)==row&&child.getTop()==row*Aero.dp(home,48),message);});}
-    void touch(int action,float x,float y,long down){MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,x,y,0);event.setSource(InputDevice.SOURCE_TOUCHSCREEN);check(getUiAutomation().injectInputEvent(event,true),"Native row input accepted");event.recycle();}
+    void touch(int action,float x,float y,long down){MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,x,y,0);event.setSource(InputDevice.SOURCE_TOUCHSCREEN);check(getUiAutomation().injectInputEvent(event,false),"Native row input accepted");event.recycle();}
     void timedTouch(int action,float x,float y,long down,long time){MotionEvent event=MotionEvent.obtain(down,time,action,x,y,0);event.setSource(InputDevice.SOURCE_TOUCHSCREEN);check(getUiAutomation().injectInputEvent(event,true),"Timed native row swipe accepted");event.recycle();}
     void swipeRow(int row)throws Exception{TenTaskbarItems items=find(TenTaskbarItems.class);int[] at=new int[2];items.getLocationOnScreen(at);float start=at[0]+items.rowEnd(row)-Aero.dp(home,8),end=at[0]+items.rowStart(row)+Aero.dp(home,8),y=at[1]+Aero.dp(home,row*48+24);long now=SystemClock.uptimeMillis();timedTouch(MotionEvent.ACTION_DOWN,start,y,now,now);for(int i=1;i<=6;i++)timedTouch(MotionEvent.ACTION_MOVE,start+(end-start)*i/6,y,now,now+i*14);timedTouch(MotionEvent.ACTION_UP,end,y,now,now+98);}
 
@@ -80,16 +80,16 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
         nativeDrop("@photos",0,true,false);checkRow("@photos",0,"Native mouse drag moves the single pin to the upper row");
         ui(()->{closeAll();store.quickLaunch(Arrays.asList("@photos","@browser","@recycle","@calendar","@clock","@weather"));store.prefs.edit().remove(TaskbarRows.KEY).putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();for(String id:new String[]{"@notes","@settings","@gadget:calculator","@welcome","@taskmanager"})home.open(id);});settle();
         for(int row=0;row<2;row++){
-            final int current=row;ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
+            final int current=row;progress("native wheel and edge drag in row "+row);ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
             List<String> opposite=geometryRow(1-row);wheel(row);settle();
             check(find(TenTaskbarItems.class).rowScroll(row)>0,"Native mouse wheel scrolls the selected row");check(opposite.equals(geometryRow(1-row)),"Mouse wheel leaves opposite row geometry unchanged");
             ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
             opposite=geometryRow(1-row);View source=null;TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++)if(TenTaskbarItems.row(items.getChildAt(i))==row){source=items.getChildAt(i);break;}
             float[] point=touchPoint(source);int[] at=new int[2];items.getLocationOnScreen(at);long now=SystemClock.uptimeMillis();
-            touch(MotionEvent.ACTION_DOWN,point[0],point[1],now);Thread.sleep(185);touch(MotionEvent.ACTION_MOVE,point[0]+dp(14),point[1],now);Thread.sleep(100);
-            float y=at[1]+dp(row*48+24);touch(MotionEvent.ACTION_MOVE,at[0]+items.rowEnd(row)-dp(3),y,now);Thread.sleep(400);
-            int right=items.rowScroll(row);check(right>0,"Native drag edge scroll advances the hovered row");check(opposite.equals(geometryRow(1-row)),"Drag edge scroll leaves opposite row unchanged");
-            touch(MotionEvent.ACTION_MOVE,at[0]+items.rowStart(row)+dp(3),y,now);Thread.sleep(400);check(items.rowScroll(row)<right,"Left edge scroll returns toward the beginning");
+            touch(MotionEvent.ACTION_DOWN,point[0],point[1],now);Thread.sleep(185);touch(MotionEvent.ACTION_MOVE,point[0]+dp(14),point[1],now);Thread.sleep(100);await(this::dragging,"The native gesture enters drag mode before an edge hover: row "+row);
+            float y=at[1]+dp(row*48+24);touch(MotionEvent.ACTION_MOVE,at[0]+items.rowEnd(row)-dp(3),y,now);await(()->items.rowScroll(current)>0,"Native drag edge scroll advances the hovered row "+row);
+            int right=items.rowScroll(row);check(right>0,"Native drag edge scroll advances the hovered row "+row);check(opposite.equals(geometryRow(1-row)),"Drag edge scroll leaves opposite row unchanged");
+            touch(MotionEvent.ACTION_MOVE,at[0]+items.rowStart(row)+dp(3),y,now);await(()->items.rowScroll(current)<right,"Left edge scroll returns toward the beginning in row "+row);check(items.rowScroll(row)<right,"Left edge scroll returns toward the beginning");
             touch(MotionEvent.ACTION_UP,at[0]+items.rowStart(row)+dp(3),y,now);settle();
         }
     }
@@ -101,12 +101,14 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
     }
     void pointer(int action,float x,float y,long down,boolean mouse){
         MotionEvent.PointerProperties prop=new MotionEvent.PointerProperties();prop.id=0;prop.toolType=mouse?MotionEvent.TOOL_TYPE_MOUSE:MotionEvent.TOOL_TYPE_FINGER;MotionEvent.PointerCoords coords=new MotionEvent.PointerCoords();coords.x=x;coords.y=y;coords.pressure=action==MotionEvent.ACTION_UP?0:1;coords.size=1;
-        MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,1,new MotionEvent.PointerProperties[]{prop},new MotionEvent.PointerCoords[]{coords},0,mouse&&action!=MotionEvent.ACTION_UP?MotionEvent.BUTTON_PRIMARY:0,1,1,0,0,mouse?InputDevice.SOURCE_MOUSE:InputDevice.SOURCE_TOUCHSCREEN,0);check(getUiAutomation().injectInputEvent(event,true),"Native pointer input accepted");event.recycle();
+        MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,1,new MotionEvent.PointerProperties[]{prop},new MotionEvent.PointerCoords[]{coords},0,mouse&&action!=MotionEvent.ACTION_UP?MotionEvent.BUTTON_PRIMARY:0,1,1,0,0,mouse?InputDevice.SOURCE_MOUSE:InputDevice.SOURCE_TOUCHSCREEN,0);check(getUiAutomation().injectInputEvent(event,false),"Native pointer input accepted");event.recycle();
     }
     void wheel(int row){TenTaskbarItems items=find(TenTaskbarItems.class);int[] at=new int[2];items.getLocationOnScreen(at);MotionEvent.PointerProperties p=new MotionEvent.PointerProperties();p.id=0;p.toolType=MotionEvent.TOOL_TYPE_MOUSE;MotionEvent.PointerCoords c=new MotionEvent.PointerCoords();c.x=at[0]+(items.rowStart(row)+items.rowEnd(row))/2f;c.y=at[1]+dp(row*48+24);c.setAxisValue(MotionEvent.AXIS_VSCROLL,-4);long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(now,now,MotionEvent.ACTION_SCROLL,1,new MotionEvent.PointerProperties[]{p},new MotionEvent.PointerCoords[]{c},0,0,1,1,0,0,InputDevice.SOURCE_MOUSE,0);check(getUiAutomation().injectInputEvent(event,true),"Native mouse wheel accepted");event.recycle();}
 
     void tapSlot(String id)throws Exception{ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.stopScrolling();items.scrollRowTo(TenTaskbarItems.row(slot(id)),0);});settle();float[] at=touchPoint(slot(id));long now=SystemClock.uptimeMillis();timedTouch(MotionEvent.ACTION_DOWN,at[0],at[1],now,now);timedTouch(MotionEvent.ACTION_UP,at[0],at[1],now,now+60);settle();}
 
     void progress(String label){Bundle out=new Bundle();out.putString("stream","CHECK: "+label+"\n");sendStatus(1,out);}
+
+    boolean dragging(){try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("taskbarReorder");f.setAccessible(true);return ((TaskbarReorder)f.get(home)).dragging();}catch(Exception e){throw new RuntimeException(e);}}
 
 }

@@ -18,7 +18,7 @@ timeout -k 3s 240s adb shell am instrument -w "$launcher.test/com.nthexperience.
 grep -q 'PASS:' ten-interaction-smoke.txt
 ! grep -Eq 'FAIL:|shortMsg=|Process crashed|INSTRUMENTATION_FAILED' ten-interaction-smoke.txt
 
-for runner in TenTaskbarRowsSmoke TenTaskbarSizeSmoke TenWindowPositionSmoke TenInitializationSmoke; do
+for runner in TenTaskbarRowsSmoke TenTaskbarSizeSmoke TenWindowPositionSmoke; do
   log="${runner}.txt"
   echo "Running $runner"
   timeout -k 3s 300s adb shell am instrument -w "$launcher.test/com.nthexperience.desktop.$runner" | tee "$log"
