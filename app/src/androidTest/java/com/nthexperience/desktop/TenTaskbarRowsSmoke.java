@@ -23,6 +23,8 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
             ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.stopScrolling();items.scrollRowTo(0,0);items.scrollRowTo(1,0);store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.refreshTen();});settle();
             dragAcross("@photos",0);checkRow("@photos",0,"Idle pin dragged to top");
             dragAcross("@notes",1);checkRow("@notes",1,"Running app dragged to bottom");
+            tapSlot("@photos");ui(()->check(windows().get("@photos")!=null&&windows().get("@photos").getParent()!=null,"Moved pin opens its actual app with native touch"));
+            ui(()->windows().get("@notes").minimize());settle();tapSlot("@notes");ui(()->check(windows().get("@notes").isShown(),"Moved running task restores with native touch"));
             String saved=store.prefs.getString(TaskbarRows.KEY,"");
             ui(()->{home.open("@photos");try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("windows");f.setAccessible(true);Map<?,?> windows=(Map<?,?>)f.get(home);((DesktopWindow)windows.get("@notes")).closeWindow();}catch(Exception e){throw new RuntimeException(e);}});settle();
             checkRow("@photos",0,"Pin retains chosen row after launch");ui(()->home.open("@notes"));settle();checkRow("@notes",1,"Running app retains chosen bottom row after reopen");
@@ -100,5 +102,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
         MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,1,new MotionEvent.PointerProperties[]{prop},new MotionEvent.PointerCoords[]{coords},0,mouse&&action!=MotionEvent.ACTION_UP?MotionEvent.BUTTON_PRIMARY:0,1,1,0,0,mouse?InputDevice.SOURCE_MOUSE:InputDevice.SOURCE_TOUCHSCREEN,0);check(getUiAutomation().injectInputEvent(event,true),"Native pointer input accepted");event.recycle();
     }
     void wheel(int row){TenTaskbarItems items=find(TenTaskbarItems.class);int[] at=new int[2];items.getLocationOnScreen(at);MotionEvent.PointerProperties p=new MotionEvent.PointerProperties();p.id=0;p.toolType=MotionEvent.TOOL_TYPE_MOUSE;MotionEvent.PointerCoords c=new MotionEvent.PointerCoords();c.x=at[0]+(items.rowStart(row)+items.rowEnd(row))/2f;c.y=at[1]+dp(row*48+24);c.setAxisValue(MotionEvent.AXIS_VSCROLL,-4);long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(now,now,MotionEvent.ACTION_SCROLL,1,new MotionEvent.PointerProperties[]{p},new MotionEvent.PointerCoords[]{c},0,0,1,1,0,0,InputDevice.SOURCE_MOUSE,0);check(getUiAutomation().injectInputEvent(event,true),"Native mouse wheel accepted");event.recycle();}
+
+    void tapSlot(String id)throws Exception{ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.stopScrolling();items.scrollRowTo(TenTaskbarItems.row(slot(id)),0);});settle();float[] at=touchPoint(slot(id));long now=SystemClock.uptimeMillis();timedTouch(MotionEvent.ACTION_DOWN,at[0],at[1],now,now);timedTouch(MotionEvent.ACTION_UP,at[0],at[1],now,now+60);settle();}
 
 }
