@@ -92,9 +92,12 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
             opposite=geometryRow(1-row);View source=null;TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++)if(TenTaskbarItems.row(items.getChildAt(i))==row){source=items.getChildAt(i);break;}
             float[] point=touchPoint(source);int[] at=new int[2];items.getLocationOnScreen(at);long now=SystemClock.uptimeMillis();
             touch(MotionEvent.ACTION_DOWN,point[0],point[1],now);Thread.sleep(185);touch(MotionEvent.ACTION_MOVE,point[0]+dp(14),point[1],now);Thread.sleep(100);await(this::dragging,"The native gesture enters drag mode before an edge hover: row "+row);
-            float y=at[1]+dp(row*48+24);touch(MotionEvent.ACTION_MOVE,at[0]+items.rowEnd(row)-dp(3),y,now);await(()->items.rowScroll(current)>0,"Native drag edge scroll advances the hovered row "+row);
+            float y=at[1]+dp(row*48+24),edgeX=at[0]+items.rowEnd(row)-dp(3);
+            for(int step=1;step<=6;step++){touch(MotionEvent.ACTION_MOVE,point[0]+(edgeX-point[0])*step/6,y,now);Thread.sleep(40);}
+            touch(MotionEvent.ACTION_MOVE,edgeX,y,now);progress("right edge delivery row "+row+": "+dragTrace()+"; range="+items.rowRange(row)+"; target="+edgeX+","+y);
+            await(()->items.rowScroll(current)>0,"Native drag edge scroll advances the hovered row "+row+"; "+dragTrace());
             int right=items.rowScroll(row);check(right>0,"Native drag edge scroll advances the hovered row "+row);check(opposite.equals(geometryRow(1-row)),"Drag edge scroll leaves opposite row unchanged");
-            touch(MotionEvent.ACTION_MOVE,at[0]+items.rowStart(row)+dp(3),y,now);await(()->items.rowScroll(current)<right,"Left edge scroll returns toward the beginning in row "+row);check(items.rowScroll(row)<right,"Left edge scroll returns toward the beginning");
+            for(int step=1;step<=6;step++){touch(MotionEvent.ACTION_MOVE,edgeX+(at[0]+items.rowStart(row)+dp(3)-edgeX)*step/6,y,now);Thread.sleep(40);}touch(MotionEvent.ACTION_MOVE,at[0]+items.rowStart(row)+dp(3),y,now);await(()->items.rowScroll(current)<right,"Left edge scroll returns toward the beginning in row "+row);check(items.rowScroll(row)<right,"Left edge scroll returns toward the beginning");
             touch(MotionEvent.ACTION_UP,at[0]+items.rowStart(row)+dp(3),y,now);settle();
         }
     }
@@ -115,5 +118,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
     void progress(String label){Bundle out=new Bundle();out.putString("stream","CHECK: "+label+"\n");sendStatus(1,out);}
 
     boolean dragging(){try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("taskbarReorder");f.setAccessible(true);return ((TaskbarReorder)f.get(home)).dragging();}catch(Exception e){throw new RuntimeException(e);}}
+
+    String dragTrace(){try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("taskbarReorder");f.setAccessible(true);Object reorder=f.get(home);StringBuilder out=new StringBuilder();for(String name:new String[]{"rawX","rawY","closed","active"}){java.lang.reflect.Field value=TaskbarReorder.class.getDeclaredField(name);value.setAccessible(true);out.append(name).append('=').append(value.get(reorder)).append(' ');}return out.toString();}catch(Exception e){return e.toString();}}
 
 }
