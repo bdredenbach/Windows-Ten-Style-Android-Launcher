@@ -81,15 +81,10 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
         check(old.getAlpha()==1f&&rows.equals(store.prefs.getString(TaskbarRows.KEY,"{}"))&&order.equals(store.prefs.getString(TaskbarOrder.KEY,"")),"Interrupted native drag restores alpha and leaves saved placement unchanged");
         nativeDrop("@photos",0,false,true);checkRow("@photos",1,"Dropping outside the taskbar leaves the row unchanged");
         check(rows.equals(store.prefs.getString(TaskbarRows.KEY,"{}"))&&order.equals(store.prefs.getString(TaskbarOrder.KEY,"")),"Rejected drop does not save order or row");
-        nativeDrop("@photos",0,true,false);checkRow("@photos",0,"Native mouse drag moves the single pin to the upper row");
-        ui(()->{closeAll();store.quickLaunch(Arrays.asList("@photos","@browser","@recycle","@calendar","@clock","@weather"));store.prefs.edit().remove(TaskbarRows.KEY).putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();for(String id:new String[]{"@notes","@settings","@gadget:calculator","@welcome","@taskmanager"})home.open(id);});settle();
+        overflowFixture();
         for(int row=0;row<2;row++){
-            final int current=row;progress("native wheel and edge drag in row "+row);ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
-            List<String> opposite=geometryRow(1-row);wheel(row);settle();
-            check(find(TenTaskbarItems.class).rowScroll(row)>0,"Native mouse wheel scrolls the selected row");check(opposite.equals(geometryRow(1-row)),"Mouse wheel leaves opposite row geometry unchanged");
-            // Wheel hover may have opened the normal preview. Clear the previous input mode before a finger drag.
-            ui(()->{try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("previews");f.setAccessible(true);((WindowPreviews)f.get(home)).dismiss();}catch(Exception e){throw new RuntimeException(e);}find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
-            opposite=geometryRow(1-row);View source=null;TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++)if(TenTaskbarItems.row(items.getChildAt(i))==row){source=items.getChildAt(i);break;}
+            final int current=row;progress("native touch edge drag in row "+row);ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
+            List<String> opposite=geometryRow(1-row);View source=null;TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++)if(TenTaskbarItems.row(items.getChildAt(i))==row){source=items.getChildAt(i);break;}
             float[] point=touchPoint(source);int[] at=new int[2];items.getLocationOnScreen(at);long now=SystemClock.uptimeMillis();
             touch(MotionEvent.ACTION_DOWN,point[0],point[1],now);Thread.sleep(185);touch(MotionEvent.ACTION_MOVE,point[0]+dp(14),point[1],now);Thread.sleep(100);await(this::dragging,"The native gesture enters drag mode before an edge hover: row "+row);
             float y=at[1]+dp(row*48+24),edgeX=at[0]+items.rowEnd(row)-dp(3);
@@ -100,6 +95,18 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
             for(int step=1;step<=6;step++){touch(MotionEvent.ACTION_MOVE,edgeX+(at[0]+items.rowStart(row)+dp(3)-edgeX)*step/6,y,now);Thread.sleep(40);}touch(MotionEvent.ACTION_MOVE,at[0]+items.rowStart(row)+dp(3),y,now);await(()->items.rowScroll(current)<right,"Left edge scroll returns toward the beginning in row "+row);check(items.rowScroll(row)<right,"Left edge scroll returns toward the beginning");
             touch(MotionEvent.ACTION_UP,at[0]+items.rowStart(row)+dp(3),y,now);settle();
         }
+        // Keep all native touch cases ahead of mouse injection: API 30's virtual source transition can lose drag locations.
+        ui(()->{closeAll();store.quickLaunch(Collections.singletonList("@photos"));store.prefs.edit().remove(TaskbarRows.KEY).remove(TaskbarOrder.KEY).putBoolean("taskbar_show_labels",false).commit();home.applyTenAppearance();});settle();
+        nativeDrop("@photos",0,true,false);checkRow("@photos",0,"Native mouse drag moves the single pin to the upper row");
+        overflowFixture();
+        for(int row=0;row<2;row++){
+            progress("native mouse wheel in row "+row);ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
+            List<String> opposite=geometryRow(1-row);wheel(row);settle();
+            check(find(TenTaskbarItems.class).rowScroll(row)>0,"Native mouse wheel scrolls the selected row");check(opposite.equals(geometryRow(1-row)),"Mouse wheel leaves opposite row geometry unchanged");
+        }
+    }
+    void overflowFixture()throws Exception{
+        ui(()->{closeAll();store.quickLaunch(Arrays.asList("@photos","@browser","@recycle","@calendar","@clock","@weather"));store.prefs.edit().remove(TaskbarRows.KEY).putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();for(String id:new String[]{"@notes","@settings","@gadget:calculator","@welcome","@taskmanager"})home.open(id);});settle();
     }
     float[] touchPoint(View source){TenTaskbarItems items=find(TenTaskbarItems.class);int[] origin=new int[2],at=new int[2];source.getLocationOnScreen(origin);items.getLocationOnScreen(at);int row=TenTaskbarItems.row(source);float left=Math.max(origin[0],at[0]+items.rowStart(row)),right=Math.min(origin[0]+source.getWidth(),at[0]+items.rowEnd(row));check(right>left,"Drag source has visible pixels in its own row");return new float[]{(left+right)/2,origin[1]+source.getHeight()/2f};}
     void nativeDrop(String id,int targetRow,boolean mouse,boolean outside)throws Exception{
