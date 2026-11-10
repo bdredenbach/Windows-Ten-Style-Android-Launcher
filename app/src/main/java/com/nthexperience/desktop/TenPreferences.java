@@ -5,6 +5,7 @@ import java.util.*;
 /** Validate new portable settings before the existing atomic backup restore. */
 final class TenPreferences {
     static void validate(Map<String,Object> values)throws JSONException{
+        if(values.containsKey(TaskbarRows.KEY)){if(!(values.get(TaskbarRows.KEY) instanceof String))throw new JSONException("Invalid taskbar rows");TaskbarRows.parse((String)values.get(TaskbarRows.KEY));}
         if(values.containsKey("ten_font")&&!TenFonts.valid(String.valueOf(values.get("ten_font"))))throw new JSONException("Invalid launcher font");
         if(values.containsKey("ten_device_name")&&(!(values.get("ten_device_name") instanceof String)||((String)values.get("ten_device_name")).trim().isEmpty()||((String)values.get("ten_device_name")).length()>60))throw new JSONException("Invalid device name");
         TenThemes.validateExtras(new JSONObject(values));

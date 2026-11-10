@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /** Real controls, row geometry, saved state and fresh-install defaults. */
-public final class TenTaskbarSizeSmoke extends Instrumentation {
+public class TenTaskbarSizeSmoke extends Instrumentation {
  MainActivity home;View root;DesktopStore store;
  @Override public void onCreate(Bundle args){super.onCreate(args);start();}
  @Override public void onStart(){Bundle result=new Bundle();try{
@@ -42,8 +42,8 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
    ui(()->{home.open("setting:page:taskbar");VistaControlPanel panel=TenSmoke.find(root,VistaControlPanel.class);check(((CheckBox)TenSmoke.text(panel,"Extended taskbar")).isChecked(),"Control Panel reflects extended size");((CheckBox)TenSmoke.text(panel,"Extended taskbar")).performClick();});settle();ui(()->geometry(false,"Control Panel "+tag));
    ui(()->((CheckBox)TenSmoke.text(TenSmoke.find(root,VistaControlPanel.class),"Extended taskbar")).performClick());settle();ui(()->geometry(true,"Control Panel "+tag));
    ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",true).commit();home.applyTenAppearance();});settle();
-   ui(()->{HorizontalScrollView strip=(HorizontalScrollView)root.findViewWithTag("taskbar-items");strip.scrollTo(10000,0);});settle();
-   ui(()->{check(((HorizontalScrollView)root.findViewWithTag("taskbar-items")).getScrollX()>0,"Extended app row scrolls "+tag);check(TenSmoke.description(bar(),"Search").isShown()&&TenSmoke.description(bar(),"Task View").isShown(),"Lower controls remain visible while app row scrolls");});
+   ui(()->{HorizontalScrollView strip=(HorizontalScrollView)root.findViewWithTag("taskbar-items");((TenTaskbarItems)strip.getChildAt(0)).scrollRowTo(1,10000);});settle();
+   ui(()->{check(((TenTaskbarItems)((HorizontalScrollView)root.findViewWithTag("taskbar-items")).getChildAt(0)).rowScroll(1)>0,"Extended lower app row scrolls "+tag);check(TenSmoke.description(bar(),"Search").isShown()&&TenSmoke.description(bar(),"Task View").isShown(),"Lower controls remain visible while app row scrolls");});
    ui(()->{store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.applyTenAppearance();});settle();ui(()->TenSmoke.description(bar(),"Taskbar controls").performLongClick());menu("Extended taskbar");settle();
    ui(()->{geometry(false,tag);home.open("ten-setting:taskbar");check(!((Switch)TenSmoke.text(TenSmoke.find(root,TenSettings.class),"Extended taskbar")).isChecked(),"Menu choice reflected in Settings");});
    shot("ten22-normal-"+tag);
@@ -61,7 +61,7 @@ public final class TenTaskbarSizeSmoke extends Instrumentation {
   check(bar().getHeight()==dp(extended?96:48),"Taskbar exact height "+label);
   Rect bar=rect(bar()),controls=rect(TenSmoke.description(bar(),"Taskbar controls")),apps=rect(root.findViewWithTag("taskbar-items"));
   check(controls.bottom==bar.bottom&&controls.height()==dp(48),"Controls aligned to bottom "+label);
-  check(extended?apps.bottom==controls.top&&apps.top==bar.top:apps.top==controls.top,"App row placement "+label);
+  check(extended?apps.bottom==controls.bottom&&apps.top==bar.top:apps.top==controls.top,"App row placement "+label);
   for(String command:new String[]{"Start menu","Search","Task View","Device controls","Clock and calendar","Action Center","Show desktop"}){
    Rect r=rect(TenSmoke.description(bar(),command));check(r.width()>0&&r.left>=bar.left&&r.right<=bar.right&&r.top>=controls.top&&r.bottom<=controls.bottom,"Control within lower row: "+command+" "+label);
   }

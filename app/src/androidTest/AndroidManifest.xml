@@ -45,4 +45,5 @@
     <instrumentation android:name="com.nthexperience.desktop.TenStartTilesSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.TenDesktopLabelsSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
     <instrumentation android:name="com.nthexperience.desktop.TenInitializationSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
+    <instrumentation android:name="com.nthexperience.desktop.TenTaskbarRowsSmoke" android:targetPackage="${launcherApplicationId}" android:functionalTest="true" />
 </manifest>
