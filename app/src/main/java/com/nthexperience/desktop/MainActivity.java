@@ -200,7 +200,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         View appGap=new View(this);
         LinearLayout taskbar=new LinearLayout(this){
             @Override public boolean dispatchTouchEvent(MotionEvent event){
-                if(extended&&event.getX()>=appGap.getLeft()&&event.getX()<appGap.getRight())return false;
+                if(extended&&event.getActionMasked()==MotionEvent.ACTION_DOWN&&event.getX()>=appGap.getLeft()&&event.getX()<appGap.getRight())return false;
                 return super.dispatchTouchEvent(event);
             }
         };taskbar.setContentDescription("Taskbar controls");taskbar.setGravity(Gravity.CENTER_VERTICAL);taskbar.setClipChildren(false);taskbar.setPadding(0,0,0,0);
