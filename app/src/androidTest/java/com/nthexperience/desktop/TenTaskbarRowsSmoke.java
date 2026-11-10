@@ -83,7 +83,8 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
             final int current=row;progress("native wheel and edge drag in row "+row);ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
             List<String> opposite=geometryRow(1-row);wheel(row);settle();
             check(find(TenTaskbarItems.class).rowScroll(row)>0,"Native mouse wheel scrolls the selected row");check(opposite.equals(geometryRow(1-row)),"Mouse wheel leaves opposite row geometry unchanged");
-            ui(()->{find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
+            // Wheel hover may have opened the normal preview. Clear the previous input mode before a finger drag.
+            ui(()->{try{java.lang.reflect.Field f=MainActivity.class.getDeclaredField("previews");f.setAccessible(true);((WindowPreviews)f.get(home)).dismiss();}catch(Exception e){throw new RuntimeException(e);}find(TenTaskbarItems.class).scrollRowTo(0,0);find(TenTaskbarItems.class).scrollRowTo(1,0);});settle();
             opposite=geometryRow(1-row);View source=null;TenTaskbarItems items=find(TenTaskbarItems.class);for(int i=0;i<items.getChildCount();i++)if(TenTaskbarItems.row(items.getChildAt(i))==row){source=items.getChildAt(i);break;}
             float[] point=touchPoint(source);int[] at=new int[2];items.getLocationOnScreen(at);long now=SystemClock.uptimeMillis();
             touch(MotionEvent.ACTION_DOWN,point[0],point[1],now);Thread.sleep(185);touch(MotionEvent.ACTION_MOVE,point[0]+dp(14),point[1],now);Thread.sleep(100);await(this::dragging,"The native gesture enters drag mode before an edge hover: row "+row);
