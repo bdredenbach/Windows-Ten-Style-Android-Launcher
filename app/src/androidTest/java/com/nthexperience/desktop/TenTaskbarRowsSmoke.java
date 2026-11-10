@@ -12,6 +12,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
         getTargetContext().getSharedPreferences(StartupExperience.SESSION,0).edit().putBoolean("seen",true).putBoolean("welcome_seen",true).commit();
         home=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getTargetContext(),MainActivity.class)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));root=home.getWindow().getDecorView();settle();
         for(String alignment:new String[]{"dark","light","aero"}){
+            progress("independent rows in "+alignment);
             ui(()->{(alignment.equals("aero")?TenThemes.AERO.get(0):TenThemes.TEN.get(alignment.equals("light")?1:0)).apply(store);closeAll();for(String id:ExternalTasks.list())ExternalTasks.remove(id);store.prefs.edit().remove(TaskbarRows.KEY).putString("ten_news_mode","Hidden").putBoolean("taskbar_static",false).putBoolean("taskbar_show_labels",true).putBoolean("ten_taskbar_extended",true).commit();store.quickLaunch(Arrays.asList("@photos","@browser","@recycle","@calendar","@welcome","@clock"));home.applyTenAppearance();for(String id:new String[]{"@notes","@settings","@gadget:calculator","@welcome","@taskmanager"})home.open(id);});settle();
             ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.scrollRowTo(0,0);items.scrollRowTo(1,0);check(items.rowRange(0)>Aero.dp(home,60)&&items.rowRange(1)>Aero.dp(home,60),"Both rows actually overflow");});settle();
             Map<String,String> fixed=new LinkedHashMap<>();for(Map.Entry<String,View> e:fixedViews().entrySet())fixed.put(e.getKey(),bounds(e.getValue()));
@@ -64,6 +65,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
     void toggleMenu(){home.open("ten-setting:taskbar");((Switch)TenSmoke.text(TenSmoke.find(root,TenSettings.class),"Extended taskbar")).performClick();}
 
     void edgeCases()throws Exception{
+        progress("single slot, rejected/interrupted drops, mouse and row edge scrolling");
         ui(()->{closeAll();for(String id:ExternalTasks.list())ExternalTasks.remove(id);store.quickLaunch(Collections.singletonList("@photos"));store.prefs.edit().remove(TaskbarRows.KEY).remove(TaskbarOrder.KEY).putBoolean("taskbar_static",false).putBoolean("taskbar_show_labels",false).putString("ten_news_mode","Hidden").commit();home.applyTenAppearance();});settle();
         check(find(TenTaskbarItems.class).getChildCount()==1,"A single movable slot is present");
         dragAcross("@photos",0);checkRow("@photos",0,"Single pin can move into an empty upper row");
@@ -104,5 +106,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
     void wheel(int row){TenTaskbarItems items=find(TenTaskbarItems.class);int[] at=new int[2];items.getLocationOnScreen(at);MotionEvent.PointerProperties p=new MotionEvent.PointerProperties();p.id=0;p.toolType=MotionEvent.TOOL_TYPE_MOUSE;MotionEvent.PointerCoords c=new MotionEvent.PointerCoords();c.x=at[0]+(items.rowStart(row)+items.rowEnd(row))/2f;c.y=at[1]+dp(row*48+24);c.setAxisValue(MotionEvent.AXIS_VSCROLL,-4);long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(now,now,MotionEvent.ACTION_SCROLL,1,new MotionEvent.PointerProperties[]{p},new MotionEvent.PointerCoords[]{c},0,0,1,1,0,0,InputDevice.SOURCE_MOUSE,0);check(getUiAutomation().injectInputEvent(event,true),"Native mouse wheel accepted");event.recycle();}
 
     void tapSlot(String id)throws Exception{ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.stopScrolling();items.scrollRowTo(TenTaskbarItems.row(slot(id)),0);});settle();float[] at=touchPoint(slot(id));long now=SystemClock.uptimeMillis();timedTouch(MotionEvent.ACTION_DOWN,at[0],at[1],now,now);timedTouch(MotionEvent.ACTION_UP,at[0],at[1],now,now+60);settle();}
+
+    void progress(String label){Bundle out=new Bundle();out.putString("stream","CHECK: "+label+"\n");sendStatus(1,out);}
 
 }

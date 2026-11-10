@@ -226,13 +226,14 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             }
             @Override public boolean onTouchEvent(MotionEvent event){return !extended&&super.onTouchEvent(event);}
             @Override public void scrollTo(int x,int y){super.scrollTo(extended?0:x,y);}
-        };taskStrip=strip;strip.setTag("taskbar-items");strip.setHorizontalScrollBarEnabled(false);strip.setFillViewport(true);strip.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l>0&&taskViewportWidth!=r-l){taskViewportWidth=r-l;main.removeCallbacks(taskbarRender);main.post(taskbarRender);}});taskItems=new TenTaskbarItems(this,extended);((TenTaskbarItems)taskItems).restoreScroll(taskRowScroll);taskItems.setGravity(Gravity.CENTER_VERTICAL);strip.addView(taskItems,new HorizontalScrollView.LayoutParams(-2,-1));taskItems.getViewTreeObserver().addOnGlobalLayoutListener(()->{int max=Math.max(0,taskItems.getWidth()-strip.getWidth());if(strip.getScrollX()>max)strip.scrollTo(max,0);});FrameLayout taskClip=new FrameLayout(this);taskClip.setClipChildren(true);taskClip.addView(strip,new FrameLayout.LayoutParams(-1,-1));if(extended){
+        };taskStrip=strip;strip.setTag("taskbar-items");strip.setHorizontalScrollBarEnabled(false);strip.setFillViewport(true);strip.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l>0&&taskViewportWidth!=r-l){taskViewportWidth=r-l;main.removeCallbacks(taskbarRender);main.post(taskbarRender);}});taskItems=new TenTaskbarItems(this,extended);((TenTaskbarItems)taskItems).restoreScroll(taskRowScroll);taskItems.setGravity(Gravity.CENTER_VERTICAL);strip.addView(taskItems,new HorizontalScrollView.LayoutParams(-2,-1));taskItems.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{int max=Math.max(0,v.getWidth()-strip.getWidth());if(strip.getScrollX()>max)strip.scrollTo(max,0);});FrameLayout taskClip=new FrameLayout(this);taskClip.setClipChildren(true);taskClip.addView(strip,new FrameLayout.LayoutParams(-1,-1));if(extended){
             taskClip.setContentDescription("Taskbar app rows");taskbarFrame.addView(taskClip,new FrameLayout.LayoutParams(-1,dp(96),Gravity.BOTTOM));
             taskbar.addView(appGap,new LinearLayout.LayoutParams(0,dp(48),1));
-            taskbarFrame.getViewTreeObserver().addOnGlobalLayoutListener(()->{
-                TenTaskbarItems rows=(TenTaskbarItems)taskItems;
+            TenTaskbarItems rows=(TenTaskbarItems)taskItems;
+            View.OnLayoutChangeListener reservations=(v,l,t,r,b,ol,ot,or,ob)->{
                 if(rows.bottomBounds(appGap.getLeft(),appGap.getRight(),taskClip.getWidth())){main.removeCallbacks(taskbarRender);main.post(taskbarRender);}
-            });
+            };
+            appGap.addOnLayoutChangeListener(reservations);taskClip.addOnLayoutChangeListener(reservations);
         }else taskbar.addView(taskClip,new LinearLayout.LayoutParams(0,dp(48),1));
         for(View surface:new View[]{taskbarFrame,taskbar,taskClip,strip,taskItems})ContextMenus.bind(surface,(x,y)->taskbarMenu(surface,x,y));
         taskbarReorder=new TaskbarReorder(taskItems,strip,order->{
