@@ -19,6 +19,7 @@ public final class TenTaskbarRowsSmoke extends TenTaskbarSizeSmoke {
             check(find(TenTaskbarItems.class).rowScroll(0)>0,"Upper swipe moves upper row");check(geometryRow(1).equals(bottom),"Upper swipe leaves every bottom app stationary");
             top=geometryRow(0);swipeRow(1);waitFling();check(find(TenTaskbarItems.class).rowScroll(1)>0,"Lower swipe moves lower row");check(geometryRow(0).equals(top),"Lower swipe leaves every upper app stationary");
             for(Map.Entry<String,View> e:fixedViews().entrySet())check(fixed.get(e.getKey()).equals(bounds(e.getValue())),"Fixed controls never scroll: "+e.getKey());
+            int[] offsets=find(TenTaskbarItems.class).scrollPositions();ui(home::applyTenAppearance);settle();check(Arrays.equals(offsets,find(TenTaskbarItems.class).scrollPositions()),"Both offsets survive an appearance rebuild after measured reservations");
             ui(()->{TenTaskbarItems items=find(TenTaskbarItems.class);items.stopScrolling();items.scrollRowTo(0,0);items.scrollRowTo(1,0);store.prefs.edit().putBoolean("taskbar_show_labels",false).commit();home.refreshTen();});settle();
             dragAcross("@photos",0);checkRow("@photos",0,"Idle pin dragged to top");
             dragAcross("@notes",1);checkRow("@notes",1,"Running app dragged to bottom");

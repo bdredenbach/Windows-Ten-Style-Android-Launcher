@@ -10,7 +10,7 @@ import java.util.Map;
 final class TenTaskbarItems extends LinearLayout {
     boolean expanded;
     private int bottomOffset,bottomEnd=Integer.MAX_VALUE,viewport;
-    private final int[] rowWidth={0,0},rowScroll={0,0};
+    private final int[] rowWidth={0,0},rowScroll={0,0};private int[] pendingScroll;
     private final OverScroller[] fling;
     private boolean scrollable=true,panning,touching;private int touchRow;private float downX,downY,lastX;private VelocityTracker velocity;
     private static final class Slot extends LinearLayout.LayoutParams {
@@ -23,7 +23,7 @@ final class TenTaskbarItems extends LinearLayout {
     static int row(View child){return child.getLayoutParams() instanceof Slot?((Slot)child.getLayoutParams()).row:0;}
     void assignRows(Map<String,Integer> choices){for(int i=0;i<getChildCount();i++){View child=getChildAt(i);if(child.getLayoutParams() instanceof Slot){Slot p=(Slot)child.getLayoutParams();p.row=choices.getOrDefault(TaskbarReorder.key(child),p.running?0:1);}}requestLayout();}
     void expanded(boolean value){if(expanded!=value){expanded=value;stopScrolling();requestLayout();}}
-    void scrollable(boolean value){scrollable=value;if(!value){stopScrolling();rowScroll[0]=rowScroll[1]=0;requestLayout();}}
+    void scrollable(boolean value){scrollable=value;if(!value){stopScrolling();pendingScroll=null;rowScroll[0]=rowScroll[1]=0;requestLayout();}}
     int bottomOffset(){return bottomOffset;}
     int bottomRoom(int width){return Math.max(0,Math.min(width,bottomEnd)-bottomOffset);}
     boolean bottomBounds(int start,int end,int width){if(bottomOffset==start&&bottomEnd==end&&viewport==width)return false;bottomOffset=start;bottomEnd=end;viewport=width;requestLayout();invalidate();return true;}
@@ -35,8 +35,8 @@ final class TenTaskbarItems extends LinearLayout {
     boolean scrollRowBy(int row,int delta){return scrollRowTo(row,rowScroll[row]+delta);}
     boolean scrollRowTo(int row,int value){int next=scrollable?Math.max(0,Math.min(rowRange(row),value)):0;if(next==rowScroll[row])return false;rowScroll[row]=next;layoutRows();invalidate();return true;}
     void stopScrolling(){for(OverScroller scroller:fling)scroller.abortAnimation();}
-    int[] scrollPositions(){return rowScroll.clone();}
-    void restoreScroll(int[] positions){if(positions!=null&&positions.length==2){rowScroll[0]=positions[0];rowScroll[1]=positions[1];requestLayout();}}
+    int[] scrollPositions(){return pendingScroll!=null?pendingScroll.clone():rowScroll.clone();}
+    void restoreScroll(int[] positions){if(positions!=null&&positions.length==2){pendingScroll=positions.clone();requestLayout();}}
     int singleRowWidth(){int total=0;for(int i=0;i<getChildCount();i++){View child=getChildAt(i);if(child.getVisibility()==GONE)continue;LinearLayout.LayoutParams p=(LinearLayout.LayoutParams)child.getLayoutParams();total+=(p instanceof Slot?((Slot)p).preferredWidth:p.width)+p.rightMargin;}return total;}
     @Override protected void onMeasure(int width,int height){
         if(!expanded){super.onMeasure(width,height);return;}
@@ -51,6 +51,7 @@ final class TenTaskbarItems extends LinearLayout {
     @Override protected void onLayout(boolean changed,int left,int top,int right,int bottom){if(!expanded){super.onLayout(changed,left,top,right,bottom);return;}layoutRows();}
     private void layoutRows(){
         if(!expanded)return;
+        if(pendingScroll!=null&&viewport>0){rowScroll[0]=pendingScroll[0];rowScroll[1]=pendingScroll[1];pendingScroll=null;}
         for(int row=0;row<2;row++)rowScroll[row]=scrollable?Math.max(0,Math.min(rowRange(row),rowScroll[row])):0;
         int[] x={-rowScroll[0],bottomOffset-rowScroll[1]};int height=Aero.dp(getContext(),48);
         for(int i=0;i<getChildCount();i++){View child=getChildAt(i);if(child.getVisibility()==GONE)continue;LinearLayout.LayoutParams p=(LinearLayout.LayoutParams)child.getLayoutParams();int row=row(child),y=row*height;child.layout(x[row],y,x[row]+child.getMeasuredWidth(),y+child.getMeasuredHeight());x[row]+=child.getMeasuredWidth()+p.rightMargin;}

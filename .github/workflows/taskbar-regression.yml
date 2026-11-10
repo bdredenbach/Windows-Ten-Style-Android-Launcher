@@ -33,7 +33,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ten-taskbar-${{ github.ref }}
+  group: ten-taskbar-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   taskbar:
