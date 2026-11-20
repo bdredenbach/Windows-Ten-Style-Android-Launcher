@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import org.json.*;
 
 @androidx.media3.common.util.UnstableApi
-public final class MainActivity extends Activity implements StartMenu.Actions {
+public final class MainActivity extends Activity implements StartMenu.Actions, TenNotaChat.Desktop {
     private DesktopStore store;private TenDesktops tenDesktops;
     private LinearLayout tenNotaButton;
     private TenTaskView tenTasks;private TenActionCenter tenActions;private TenNewsFlyout tenNews;private LinearLayout newsButton;private TextView newsText;
@@ -209,8 +209,8 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         TenStyle.Glyph taskViewButton=new TenStyle.Glyph(this,"taskview",TenStyle.text(this));taskViewButton.setContentDescription("Task View");taskViewButton.setPadding(dp(6),dp(12),dp(6),dp(12));taskViewButton.setTooltipText("Task View");taskViewButton.setFocusable(true);taskViewButton.setBackground(TenStyle.hover(this,Color.TRANSPARENT));taskViewButton.setOnClickListener(v->open("@taskview"));taskbar.addView(taskViewButton,new LinearLayout.LayoutParams(dp(36),dp(48)));
 
 
-        tenNotaButton=taskButton("@nota","Nth Nota",false);tenNotaButton.setTag(R.id.taskbar_order_key,"@nota");tenNotaButton.setContentDescription("Open Nth Nota");tenNotaButton.setTooltipText("Nth Nota");tenNotaButton.setOnClickListener(v->{boolean overview=(tenTasks!=null&&tenTasks.overlay!=null)||startMenu.getVisibility()==View.VISIBLE;if(tenTasks!=null)tenTasks.dismiss();startMenu.hide();previews.dismiss();if(tray!=null)tray.dismiss();if(tenNews!=null)tenNews.dismiss();DesktopWindow nota=notaTaskWindow();if(!overview&&nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing())nota.minimize();else open("@nota");});taskbar.addView(tenNotaButton,new LinearLayout.LayoutParams(dp(48),dp(48)));
-        ContextMenus.bind(tenNotaButton,(x,y)->{DesktopContextMenu menu=new DesktopContextMenu(this,"Nth Nota taskbar menu");menu.item("Open Nth Nota","notes",()->open("@nota"));DesktopWindow nota=notaTaskWindow();if(nota!=null)menu.item("Close Nth Nota","close",nota::closeWindow);ContextMenus.show(menu,tenNotaButton,x,y);});
+        tenNotaButton=taskButton("@nota","Nth Nota AI",false);tenNotaButton.setTag(R.id.taskbar_order_key,"@nota");tenNotaButton.setContentDescription("Open Nth Nota AI");tenNotaButton.setTooltipText("Nth Nota AI");tenNotaButton.setOnClickListener(v->{boolean overview=(tenTasks!=null&&tenTasks.overlay!=null)||startMenu.getVisibility()==View.VISIBLE;if(tenTasks!=null)tenTasks.dismiss();startMenu.hide();previews.dismiss();if(tray!=null)tray.dismiss();if(tenNews!=null)tenNews.dismiss();DesktopWindow nota=notaTaskWindow();if(!overview&&nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing())nota.minimize();else open("@nota");});taskbar.addView(tenNotaButton,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        ContextMenus.bind(tenNotaButton,(x,y)->{DesktopContextMenu menu=new DesktopContextMenu(this,"Nth Nota taskbar menu");menu.item("Open Nth Nota AI","notes",()->open("@nota"));DesktopWindow nota=notaTaskWindow();if(nota!=null)menu.item("Close Nth Nota AI","close",nota::closeWindow);ContextMenus.show(menu,tenNotaButton,x,y);});
 
         HorizontalScrollView strip=new HorizontalScrollView(this){
             private float downX,downY;
@@ -253,17 +253,28 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     }
     private void newsMenu(View anchor,float x,float y){DesktopContextMenu menu=new DesktopContextMenu(this,"News and interests options");for(String mode:new String[]{"Auto","Icon","Hidden"})menu.item((mode.equals(store.prefs.getString("ten_news_mode","Auto"))?"✓  ":"")+(mode.equals("Auto")?"Show icon and text":mode.equals("Icon")?"Show icon only":"Turn off"),"news",()->{store.prefs.edit().putString("ten_news_mode",mode).apply();updateNewsChip();});menu.separator();menu.item((store.prefs.getBoolean("ten_news_hover",false)?"✓  ":"")+"Open on hover","news",()->store.prefs.edit().putBoolean("ten_news_hover",!store.prefs.getBoolean("ten_news_hover",false)).apply());menu.item("Open news and interests","news",()->open("@news"));ContextMenus.show(menu,anchor,x,y);}
     private android.graphics.PointF taskAnchor(String id){int[] host=new int[2];workspace.getLocationOnScreen(host);if(id.equals("@nota")&&tenNotaButton!=null){int[] p=new int[2];tenNotaButton.getLocationOnScreen(p);return new android.graphics.PointF(p[0]-host[0]+tenNotaButton.getWidth()/2f,p[1]-host[1]+tenNotaButton.getHeight()/2f);}for(int i=0;i<taskItems.getChildCount();i++){View button=taskItems.getChildAt(i);String key=TaskbarReorder.key(button);if(id.equals(key)||(folderTask(id,windows.get(id))&&"@files".equals(key))){int[] point=new int[2];button.getLocationOnScreen(point);if(point[0]>=host[0]&&point[0]<host[0]+workspace.getWidth())return new android.graphics.PointF(point[0]-host[0]+button.getWidth()/2f,point[1]-host[1]+button.getHeight()/2f);}}return new android.graphics.PointF(dp(40),workspace.getHeight()+dp(24));}
+    private void notaQuestion(String text) {
+        open("@nota");
+        TenNotaPanel panel = (TenNotaPanel) windows.get("@nota").body;
+        panel.showWriting(false);
+        panel.chat.offerDraft(text, true);
+    }
     void nota(TenNotaContext context){
-        if(context.text.isEmpty()){open("@nota");return;}DesktopWindow existing=windows.get("@nota");Runnable load=()->{open("@nota");DesktopWindow tool=windows.get("@nota");if(tool!=null&&tool.body instanceof TenNotaPanel)((TenNotaPanel)tool.body).context(context);};
-        if(existing!=null&&existing.getParent()!=null&&existing.body instanceof TenNotaPanel&&!((TenNotaPanel)existing.body).input.getText().toString().isEmpty())Aero.dialog(this).setTitle("Bring text into Nth Nota?").setMessage("Replace the current composer with the passage from "+context.title+"? Your source is kept.").setPositiveButton("Use passage",(d,w)->load.run()).setNegativeButton("Cancel",null).show();else load.run();
+        open("@nota");
+        if(context.text.isEmpty()) return;
+        TenNotaPanel panel = (TenNotaPanel) windows.get("@nota").body;
+        if(panel.input.length()==0) panel.context(context);
+        else Aero.dialog(this).setTitle("Bring text into Nth Nota?")
+                .setMessage("Replace the writing draft with the passage from "+context.title+"? Your source is kept.")
+                .setPositiveButton("Use passage",(d,w)->panel.context(context)).setNegativeButton("Cancel",null).show();
     }
     private void askNota(DesktopWindow source){
         if(source.body instanceof BrowserPanel){((BrowserPanel)source.body).askNota();return;}
         if(source.body instanceof VistaExplorer){((VistaExplorer)source.body).askNota();return;}
         View focus=source.findFocus();EditText editor=focus instanceof EditText?(EditText)focus:findEditor(source.body);
         if(editor!=null&&!(source.body instanceof TenSettings)){nota(TenNotaContext.editor(source.caption(),editor));return;}
-        if(source.body instanceof TenSettings){TenSettingsCatalog.Page page=TenSettingsCatalog.page(((TenSettings)source.body).page);nota(new TenNotaContext("Settings",page==null?"Help me organize my Android desktop.":"Explain this Nth Desktop Ten setting in simple terms: "+page.title+". "+page.detail,false));return;}
-        nota(new TenNotaContext(source.caption(),"Help me use "+source.caption()+" in Nth Desktop Ten, an Android launcher. Ask me what I want to do if needed.",false));
+        if(source.body instanceof TenSettings){TenSettingsCatalog.Page page=TenSettingsCatalog.page(((TenSettings)source.body).page);notaQuestion(page==null?"Help me organize my Android desktop.":"Explain this Nth Desktop Ten setting in simple terms: "+page.title+". "+page.detail);return;}
+        notaQuestion("Help me use "+source.caption()+" in Nth Desktop Ten, an Android launcher. Ask me what I want to do if needed.");
     }
     private EditText findEditor(View view){if(view instanceof EditText)return (EditText)view;if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++){EditText found=findEditor(group.getChildAt(i));if(found!=null)return found;}}return null;}
     private void scanApps(){
@@ -422,7 +433,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             if(taskStrip.getScrollX()!=0)taskStrip.scrollTo(0,0);
         }
 
-        if(tenNotaButton!=null){DesktopWindow nota=notaTaskWindow();boolean active=nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing();AeroGlass surface=new AeroGlass(wallpaper,AeroGlass.TASKBUTTON);surface.active(active);surface.idle(nota==null);tenNotaButton.setBackground(surface);tenNotaButton.setSelected(active);tenNotaButton.setContentDescription(nota==null?"Open Nth Nota":(active?"Minimize ":"Restore ")+"Nth Nota");}
+        if(tenNotaButton!=null){DesktopWindow nota=notaTaskWindow();boolean active=nota!=null&&nota.active()&&nota.getVisibility()==View.VISIBLE&&!nota.minimizing();AeroGlass surface=new AeroGlass(wallpaper,AeroGlass.TASKBUTTON);surface.active(active);surface.idle(nota==null);tenNotaButton.setBackground(surface);tenNotaButton.setSelected(active);tenNotaButton.setContentDescription(nota==null?"Open Nth Nota AI":(active?"Minimize ":"Restore ")+"Nth Nota AI");}
         desktopHidden.entrySet().removeIf(item->item.getValue().getParent()==null||windows.get(item.getKey())!=item.getValue());if(desktopToggle!=null){String hint=desktopHidden.isEmpty()?"Show desktop":"Restore desktop windows";desktopToggle.setContentDescription(hint);desktopToggle.setTooltipText(hint+". Hold to peek.");}
         main.removeCallbacks(taskProgressTick);
         if(!taskProgressSurfaces.isEmpty())main.post(taskProgressTick);
@@ -706,7 +717,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(TenSystemTools.tool(id))return TenSystemTools.title(id);
         JSONObject location=FolderLinks.get(store,id);if(location!=null)return location.optString("title","Folder");
         if(id.startsWith("@gadget:")&&GadgetCatalog.extra(id.substring(8)))return GadgetCatalog.title(id.substring(8));
-        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@run":return "Run";case "@nota":return "Nth Nota";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "News and interests";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "File Explorer";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
+        switch(id){case MediaLibrary.PLAYER:return MediaLibrary.PLAYER_TITLE;case MediaLibrary.CENTER:return MediaLibrary.CENTER_TITLE;case "@run":return "Run";case "@nota":return "Nth Nota AI";case "@settings":return "Settings";case "@news":return "News and interests";case "@battery":return "Battery";case "@taskview":return "Task View";case "@recycle":return "Recycle Bin";case "@workspaces":return "Saved Workspaces";case "@recent":return "Recent Items";case "@taskmanager":return "Task Manager";case "@actioncenter":return "Action Center";case "@welcome":return "Welcome Center";case "@organize":return "Desktop Organization";case "@quicklaunch":return "Quick Launch";case "@backup":return "Backup and Restore";case "@control":return "Settings";case "@system":return "System";case "@filemanagers":return "File Managers";case "@weather":return "Weather";case "@clock":return "Clock";case "@gadgets":return "News and interests";case "@sticky":return "Notes";case "@calendar":return "Calendar";case "@computer":return "Computer";case "@browser":return BrowserPanel.NAME;case "@photos":return "Photo Gallery";case "@files":return "File Explorer";case "@documents":return "Documents";case "@pictures":return "Pictures";case "@music":return "Music";case "@flip3d":return "Task View";case "@notes":return "Notepad";case "@appearance":return "Personalize";default:AppCatalog.Entry app=entries.get(id);return app==null?"Unavailable app":app.label;}
     }
     @Override public void open(String id){
         if((id.equals("@taskview")||id.equals("@flip3d"))&&tenTasks!=null&&tenTasks.overlay!=null){tenTasks.dismiss();return;}
@@ -725,7 +736,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         startMenu.hide();if(tray!=null)tray.dismiss();
         TenSystemTools.record(id);
         if(id.startsWith("@")&&DesktopBackup.shortcut(id,new JSONObject(),false)&&!Arrays.asList("@news","@taskview").contains(id))store.launched(id);
-        if(id.startsWith("nota-query:")){nota(new TenNotaContext("Start search",Uri.decode(id.substring(11)),false));return;}
+        if(id.startsWith("nota-query:")){notaQuestion(Uri.decode(id.substring(11)));return;}
         if(id.startsWith("ten-setting:")){open("@settings");DesktopWindow settings=windows.get("@settings");if(settings!=null&&settings.body instanceof TenSettings)((TenSettings)settings.body).navigate(id.substring(12));return;}
         if(FolderLinks.id(id)){JSONObject link=FolderLinks.get(store,id);if(link==null){toast("This folder shortcut is unavailable.");return;}explorer(id,link.optString("page","home"));return;}
         if(validExplorerId(id)){explorer(id,"home");return;}
@@ -743,7 +754,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             case "@run":TenRun.show(this,store,this::runCommand);return;
             case "@power":Aero.dialog(this).setTitle("Power").setItems(new String[]{"Show desktop","Restart Nth Desktop","Android power settings"},(d,w)->{if(w==0)showDesktop();else if(w==1)vistaAction("restart-desktop");else vistaAction("android:battery");}).show();return;
             case "@settings":if(!restoreTool(id))window(id,"Settings",new TenSettings(this,store,this::open));return;
-            case "@nota":if(!restoreTool(id))window(id,"Nth Nota",new TenNotaPanel(this,store));return;
+            case "@nota":if(!restoreTool(id))window(id,"Nth Nota AI",new TenNotaPanel(this,store));return;
             case "@news":if(previews!=null)previews.dismiss();tenNews.show();return;
             case "@tenactions":tenActions.show();return;
             case "@taskview":case "@flip3d":showTenTasks();return;
@@ -797,11 +808,11 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
             Aero.dialog(this).setTitle("App unavailable").setMessage("This app may have been removed or disabled.").setPositiveButton("Remove shortcut",(d,w)->{List<String> ids=store.desktop();ids.remove(component.flattenToString());store.desktop(ids);renderDesktop();}).setNegativeButton("Keep",null).show();scanApps();return false;
         }
     }
-    View notaActionIcon(TenNotaActions.Action action){
+    public View notaActionIcon(TenNotaActions.Action action){
         switch(action.kind){case OPEN:return action.value.startsWith("setting:")||action.value.startsWith("ten-setting:")?new AeroIcon(this,"settings"):icon(action.value,32);case WEB_SEARCH:case WEBSITE:return new AeroIcon(this,"browser");case FILE_SEARCH:return new AeroIcon(this,"files");default:return new TenStyle.Glyph(this,"taskview",TenAppearance.ink(this));}
     }
-    List<TenNotaActions.Target> notaAppTargets(){List<TenNotaActions.Target> apps=new ArrayList<>();for(AppCatalog.Entry app:entries.values())apps.add(new TenNotaActions.Target(store.name(app.id,app.label),app.id,app.label));return apps;}
-    String performNotaAction(TenNotaActions.Action action){
+    public List<TenNotaActions.Target> notaAppTargets(){List<TenNotaActions.Target> apps=new ArrayList<>();for(AppCatalog.Entry app:entries.values())apps.add(new TenNotaActions.Target(store.name(app.id,app.label),app.id,app.label));return apps;}
+    public String performNotaAction(TenNotaActions.Action action){
         switch(action.kind){
             case WEB_SEARCH:open("web-search:"+Uri.encode(action.value));return "Opening web search";
             case FILE_SEARCH:open("start-search:"+Uri.encode(action.value));return "Searching linked files";
@@ -928,7 +939,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
     private void taskbarMenu(View anchor,float x,float y){
         previews.dismiss();
         if(desktopMenu!=null)desktopMenu.dismiss();startMenu.hide();if(tray!=null)tray.dismiss();desktopMenu=new DesktopContextMenu(this,"Taskbar context menu");
-        desktopMenu.item("News and interests","news",()->open("@news"));desktopMenu.item("Nth Nota","notes",()->open("@nota"));desktopMenu.item("Pinned taskbar apps…","programs",()->open("@quicklaunch"));desktopMenu.separator();
+        desktopMenu.item("News and interests","news",()->open("@news"));desktopMenu.item("Nth Nota AI","notes",()->open("@nota"));desktopMenu.item("Pinned taskbar apps…","programs",()->open("@quicklaunch"));desktopMenu.separator();
         boolean fit=store.prefs.getBoolean("taskbar_static",false);
         desktopMenu.checked("Scrollable",!fit,()->setTaskbarStatic(false));
         desktopMenu.checked("Static",fit,()->setTaskbarStatic(true));
@@ -1739,7 +1750,7 @@ public final class MainActivity extends Activity implements StartMenu.Actions {
         if(taskbarReorder!=null)taskbarReorder.cancel();taskProgressActive=false;main.removeCallbacks(taskProgressTick);if(jumpMenu!=null)jumpMenu.dismiss();if(wallpaper!=null)wallpaper.pauseSlides();if(workspaceDialog!=null)workspaceDialog.dismiss();DesktopSounds.stop();if(previews!=null)previews.dismiss();for(DesktopWindow tool:windows.values()){if(tool.body instanceof PhotoGallery)((PhotoGallery)tool.body).active(false);if(tool.body instanceof BrowserPanel){((BrowserPanel)tool.body).save();((BrowserPanel)tool.body).active(false);}if(tool.body instanceof TaskManagerPanel)((TaskManagerPanel)tool.body).active(false);tool.dismissSystemMenu();tool.cancelCaptionDrag();tool.cancelResize();if(tool.body instanceof GadgetPanel)((GadgetPanel)tool.body).active(false);if(tool.body instanceof VistaExplorer)((VistaExplorer)tool.body).dismissMenus();}if(tray!=null)tray.stop();if(startup!=null)startup.pause();pausedSession=restoringBackup?null:captureSession();if(desktopMenu!=null)desktopMenu.dismiss();super.onPause();main.removeCallbacks(clockTick);if(services!=null)services.setActive(false);if(weatherLocation!=null)weatherLocation.pause();if(startMenu!=null)startMenu.hide();}
     @Override public void onConfigurationChanged(android.content.res.Configuration config){
         super.onConfigurationChanged(config);if(tenTasks!=null)tenTasks.dismiss();if(tenActions!=null)tenActions.dismiss();if(tenNews!=null)tenNews.dismiss();if(previews!=null)previews.dismiss();String next=config.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE?"landscape":"portrait";
-        if(!next.equals(layoutKey)){arrangementUndo.clear();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null){tool.dismissSystemMenu();tool.settle();tool.orientation(next);}layoutKey=next;desktop.orientation(next);}
+        if(!next.equals(layoutKey)){arrangementUndo.clear();for(DesktopWindow tool:windows.values())if(tool.getParent()!=null){if(tool.body instanceof TenNotaPanel)((TenNotaPanel)tool.body).chat.stop();tool.dismissSystemMenu();tool.settle();tool.orientation(next);}layoutKey=next;desktop.orientation(next);}
         rebuildTenTaskbar();if(startup!=null){startup.pause();startup.resume();}if(desktopMenu!=null)desktopMenu.dismiss();if(tray!=null)tray.dismiss();pausedSession=null;applySystemChrome();workspace.post(()->{layoutWorkspace();renderTaskbar();});
     }
     @Override protected void onSaveInstanceState(Bundle state){super.onSaveInstanceState(state);if(taskItems instanceof TenTaskbarItems)state.putIntArray("taskbar_row_scroll",((TenTaskbarItems)taskItems).scrollPositions());state.putBoolean("storage_setup_open",storageSetup!=null&&storageSetup.showing());state.putBoolean("home_request_in_flight",homeRequestInFlight);state.putInt("usage_settings_request",usageSettingsRequest);state.putBoolean("usage_settings_left",usageSettingsLeft);state.putString("pending_theme_export",pendingThemeExport);state.putString("folder_window",pendingFolderWindow);if(!restoringBackup)state.putString("desktop_session",(pausedSession==null?captureSession():pausedSession).toString());}
