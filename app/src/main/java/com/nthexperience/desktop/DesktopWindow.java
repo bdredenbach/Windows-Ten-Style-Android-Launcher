@@ -51,6 +51,7 @@ final class DesktopWindow extends LinearLayout {
     private final int touchSlop, snapEdge, snapMinWidth, snapMinHeight;
     private final AeroGlass glass;
     private final TextView minimizeButton,closeButton;
+    private TextView notaMenu;
     private boolean active=true,minimizing,peeking;private int beforePeekAccessibility;
     private int transition;private Runnable askNota=()->{};private java.util.function.Supplier<android.graphics.PointF> taskAnchor;
     private DesktopContextMenu systemMenu;
@@ -77,9 +78,9 @@ final class DesktopWindow extends LinearLayout {
         bar.addView(label,new LayoutParams(0,Aero.dp(context,44),1));
         if(!toolId.equals("@nota")){TenStyle.Glyph nota=new TenStyle.Glyph(context,"nota",TenStyle.ACCENT);nota.setContentDescription("Ask Nth Nota about this window");nota.setTooltipText("Ask Nth Nota");nota.setFocusable(true);nota.setBackground(TenStyle.hover(context,Color.TRANSPARENT));nota.setOnClickListener(v->askNota.run());bar.addView(nota,new LayoutParams(Aero.dp(context,32),Aero.dp(context,40)));}
         if (body instanceof TenNotaPanel) {
-            TextView menu = chrome("⋯", ((TenNotaPanel)body)::conversationMenu);
-            menu.setContentDescription("Nth Nota AI menu");
-            bar.addView(menu);
+            notaMenu = chrome("⋯", ((TenNotaPanel)body)::conversationMenu);
+            notaMenu.setContentDescription("Nth Nota AI menu");
+            bar.addView(notaMenu);
         }
         TextView minimize=chrome("—",this::minimize);minimizeButton=minimize;
         maximizeButton=chrome("□",this::toggleMaximize);
@@ -168,7 +169,12 @@ final class DesktopWindow extends LinearLayout {
     void caption(String title){titleLabel.setText(title);titleLabel.setContentDescription(title+". Drag to move window.");}
     boolean minimizing(){return minimizing;}
     boolean active(){return active;}
-    void active(boolean value){active=value;glass.active(value);titleLabel.setTextColor(TenStyle.titleText(getContext(),value));titleLabel.setShadowLayer(0,0,0,0);minimizeButton.setTextColor(TenStyle.titleText(getContext(),value));maximizeButton.setTextColor(TenStyle.titleText(getContext(),value));int fill=TenStyle.captionSurface(getContext(),value);minimizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));maximizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));closeButton.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{android.R.attr.state_pressed},new int[]{android.R.attr.state_hovered},new int[]{android.R.attr.state_focused},new int[]{}},new int[]{Color.WHITE,Color.WHITE,Color.WHITE,TenStyle.titleText(getContext(),value)}));minimizeButton.setAlpha(1);maximizeButton.setAlpha(1);closeButton.setAlpha(1);}
+    void active(boolean value){active=value;glass.active(value);titleLabel.setTextColor(TenStyle.titleText(getContext(),value));titleLabel.setShadowLayer(0,0,0,0);minimizeButton.setTextColor(TenStyle.titleText(getContext(),value));maximizeButton.setTextColor(TenStyle.titleText(getContext(),value));int fill=TenStyle.captionSurface(getContext(),value);
+        if (notaMenu!=null) {
+            notaMenu.setTextColor(TenStyle.titleText(getContext(),value));
+            notaMenu.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));
+        }
+        minimizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));maximizeButton.setBackground(TenStyle.hover(getContext(),Color.TRANSPARENT,fill));closeButton.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{android.R.attr.state_pressed},new int[]{android.R.attr.state_hovered},new int[]{android.R.attr.state_focused},new int[]{}},new int[]{Color.WHITE,Color.WHITE,Color.WHITE,TenStyle.titleText(getContext(),value)}));minimizeButton.setAlpha(1);maximizeButton.setAlpha(1);closeButton.setAlpha(1);}
     @Override public boolean dispatchTouchEvent(MotionEvent e){if(peeking)return true;if(e.getActionMasked()==MotionEvent.ACTION_DOWN&&!minimizing){bringToFront();changed.run();}return super.dispatchTouchEvent(e);}
     private int cornerReach(){return Aero.dp(getContext(),22);}
     private int resizeCornerAt(float x,float y){
@@ -314,6 +320,18 @@ final class DesktopWindow extends LinearLayout {
         view.setTextSize(16);view.setMinHeight(0);view.setPadding(0,0,0,0);LayoutParams lp=new LayoutParams(Aero.dp(getContext(),44),Aero.dp(getContext(),44));lp.leftMargin=Aero.dp(getContext(),1);view.setLayoutParams(lp);
         view.setContentDescription(symbol.equals("×")?"Close window":symbol.equals("—")?"Minimize window":"Maximize or restore window");
         return view;
+    }
+    @Override protected void onMeasure(int widthSpec, int heightSpec) {
+        if (body instanceof TenNotaPanel && getChildCount()>0
+                && MeasureSpec.getMode(heightSpec)==MeasureSpec.EXACTLY) {
+            int height = MeasureSpec.getSize(heightSpec);
+            View caption = getChildAt(0);
+            // Give the composer the space left by the landscape IME and extended taskbar.
+            caption.setVisibility(height<Aero.dp(getContext(),82) ? GONE : VISIBLE);
+            int captionHeight = Aero.dp(getContext(),height<Aero.dp(getContext(),146) ? 32 : 44);
+            if (caption.getLayoutParams().height!=captionHeight) caption.getLayoutParams().height=captionHeight;
+        }
+        super.onMeasure(widthSpec,heightSpec);
     }
     void open(){
         int margin=Aero.dp(getContext(),12);

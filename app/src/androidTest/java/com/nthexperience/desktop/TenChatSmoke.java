@@ -134,7 +134,13 @@ public final class TenChatSmoke extends TenThemeSmoke {
         shot("ten-chat-dark");
         ui(()->{chat().web.performClick();chat().question.requestFocus();home.getSystemService(InputMethodManager.class).showSoftInput(chat().question,InputMethodManager.SHOW_IMPLICIT);});
         await(()->root.getRootWindowInsets().isVisible(WindowInsets.Type.ime()),"Keyboard open");
-        ui(()->{Rect r=new Rect();check(chat().send.getGlobalVisibleRect(r)&&r.height()==chat().send.getHeight(),"Send above keyboard");});
+        await(()->{
+            for(View control:new View[]{chat().send,chat().cloud,chat().web}){
+                Rect visible=new Rect();
+                if(!control.getGlobalVisibleRect(visible)||visible.height()!=control.getHeight()) return false;
+            }
+            return true;
+        },"Send, Cloud questions and web mode above the keyboard");
         shot("ten-chat-keyboard");
         ui(()->home.getSystemService(InputMethodManager.class).hideSoftInputFromWindow(chat().question.getWindowToken(),0));
         sendChat("Explain that more simply.");

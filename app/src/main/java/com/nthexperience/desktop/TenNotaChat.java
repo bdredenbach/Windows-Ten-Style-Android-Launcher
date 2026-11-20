@@ -28,6 +28,9 @@ final class TenNotaChat extends LinearLayout {
     final Switch cloud;
     final LinearLayout transcript;
     final ScrollView scroll;
+    private final LinearLayout footer, field, modes;
+    private final View underline;
+    private boolean singleRow;
     private final SharedPreferences consent;
     private final NotaSettingsClient client;
     private final Map<LiveAnswer, TenNotaActions.Plan> localChoices = new WeakHashMap<>();
@@ -56,15 +59,15 @@ final class TenNotaChat extends LinearLayout {
         transcript = Aero.column(c);
         scroll.addView(transcript);
         addView(scroll, new LayoutParams(-1, 0, 1));
-        LinearLayout footer = Aero.column(c);
+        footer = Aero.column(c);
         footer.setPadding(dp(8), dp(4), dp(8), 0);
         addView(footer, new LayoutParams(-1, -2));
-        LinearLayout field = new LinearLayout(c);
+        field = new LinearLayout(c);
         field.setGravity(Gravity.CENTER_VERTICAL);
         field.setBackground(NotaDesign.surface(c,0xffffffff));
         footer.setBackgroundColor(0xfff3f3f3);
         footer.addView(field, new LayoutParams(-1,-2));
-        View underline = new View(c) {
+        underline = new View(c) {
             @Override protected void onDraw(android.graphics.Canvas canvas) {
                 canvas.drawColor(TenStyle.accent(getContext()));
             }
@@ -86,7 +89,7 @@ final class TenNotaChat extends LinearLayout {
         send = button("↑", this::sendOrStop);
         send.setTextSize(22);
         field.addView(send, new LayoutParams(dp(44),dp(44)));
-        LinearLayout modes = new LinearLayout(c);
+        modes = new LinearLayout(c);
         modes.setGravity(Gravity.CENTER_VERTICAL);
         cloud = TenChatConsent.control(c);
         modes.addView(cloud, new LayoutParams(0,-2,1));
@@ -150,7 +153,8 @@ final class TenNotaChat extends LinearLayout {
         send.setEnabled(busy || !question.getText().toString().trim().isEmpty());
         send.setText(busy?"■":"↑");
         send.setContentDescription(busy?"Stop reply":"Send to Nth Nota AI");
-        web.setText(store.web()?"Web · Always":"Web · Auto");
+        String webMode = store.web() ? "Always" : "Auto";
+        web.setText(singleRow ? webMode : "Web · "+webMode);
         web.setContentDescription(store.web()?"Web search always. Switch to automatic":"Web search automatic. Switch to always");
     }
     private void sendOrStop() {
@@ -352,11 +356,30 @@ final class TenNotaChat extends LinearLayout {
             Toast.makeText(c,"A browser is unavailable.",Toast.LENGTH_SHORT).show();
         }
     }
+    @Override protected void onMeasure(int widthSpec, int heightSpec) {
+        int width = MeasureSpec.getSize(widthSpec);
+        int height = MeasureSpec.getSize(heightSpec);
+        boolean compact = MeasureSpec.getMode(heightSpec)!=MeasureSpec.UNSPECIFIED && height<dp(132);
+        if (compact != singleRow) {
+            singleRow = compact;
+            footer.setPadding(dp(8),compact ? 0 : dp(4),dp(8),0);
+            footer.setOrientation(compact ? HORIZONTAL : VERTICAL);
+            footer.setGravity(Gravity.CENTER_VERTICAL);
+            field.setLayoutParams(compact ? new LayoutParams(0,-2,1) : new LayoutParams(-1,-2));
+            modes.setLayoutParams(new LayoutParams(compact ? -2 : -1,-2));
+            cloud.setLayoutParams(compact ? new LayoutParams(-2,-2) : new LayoutParams(0,-2,1));
+            underline.setVisibility(compact ? GONE : VISIBLE);
+            updateControls();
+        }
+        String cloudLabel = compact && width<dp(300) ? "" : (compact || width<dp(250) ? "Cloud" : "Cloud questions");
+        if (!cloudLabel.contentEquals(cloud.getText())) cloud.setText(cloudLabel);
+        super.onMeasure(widthSpec,heightSpec);
+    }
     @Override protected void onSizeChanged(int w,int h,int oldW,int oldH) {
         super.onSizeChanged(w,h,oldW,oldH);
         int margin=dp(w<dp(320)?10:20);
         transcript.setPadding(margin,dp(12),margin,dp(8));
         question.setMaxLines(h<dp(280)?1:3);
-        cloud.setText(w<dp(250)?"Cloud":"Cloud questions");
+
     }
 }
