@@ -10,7 +10,7 @@ final class TenStartCatalog {
   App(String id,String title,String icon,int category,String size,int color,boolean live){this.id=id;this.title=title;this.icon=icon;this.group=GROUPS[category];this.size=size;this.color=color;this.live=live;}
  }
  static final List<App> APPS=Collections.unmodifiableList(Arrays.asList(
-  a("@nota","Nth Nota","notes",0,"Large",0xff744da9,false),
+  a("@nota","Nth Nota AI","notes",0,"Large",0xff744da9,false),
   a("@notes","Notepad","notes",0,"Wide",0xff0063b1,true),
   a("@sticky","Sticky Notes","sticky",0,"Normal",0xffffb900,true),
   a("@calendar","Calendar","calendar",0,"Large",0xff0078d7,true),

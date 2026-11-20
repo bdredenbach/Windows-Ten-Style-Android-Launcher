@@ -34,7 +34,7 @@ public final class TenNotaSmoke extends TenThemeSmoke {
     }catch(Throwable e){try{shot("ten20-nota-failure");}catch(Exception ignored){}out.putString("stream","FAIL: "+android.util.Log.getStackTraceString(e));finish(Activity.RESULT_CANCELED,out);}}
     TenDesktops desks(){try{Field f=MainActivity.class.getDeclaredField("tenDesktops");f.setAccessible(true);return(TenDesktops)f.get(home);}catch(Exception e){throw new RuntimeException(e);}}
     TenNotaPanel panel(){return(TenNotaPanel)windows().get("@nota").body;}
-    void fresh(){TenSmoke.description(panel(),"New command").performClick();}
+    void fresh(){panel().showWriting(true);TenSmoke.description(panel(),"New command").performClick();}
     void migration()throws Exception{
         ui(()->{first=desks().current();home.open("@nota");TenNotaPanel p=panel();check(p.importedDraft&&p.input.getText().toString().equals("open Audible"),"Legacy draft defaults to writing");p.task.setSelection(5);p.send.performClick();check(p.pending.isEmpty()&&p.actionChoices.getChildCount()==0,"Legacy draft cannot execute");second=desks().create();desks().select(second);home.open("@nota");check(panel().input.length()==0&&panel().lastReply.isEmpty(),"Migration does not clone the global draft");desks().select(first);fresh();});
     }

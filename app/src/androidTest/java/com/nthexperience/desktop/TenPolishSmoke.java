@@ -47,17 +47,17 @@ public final class TenPolishSmoke extends Instrumentation {
    TenStartData data=new TenStartData(store);check(data.rename("Productivity","My work"),"Rename group");check(data.add("Reading"),"New group");
    store.prefs.edit().putBoolean("ten_full_start",true).apply();home.refreshTen();StartMenu start=TenSmoke.find(root,StartMenu.class);start.hide();start.show(false);
   });
-  await(()->{View tile=TenSmoke.description(TenSmoke.find(root,StartMenu.class),"Nth Nota, Normal Start tile");return tile!=null&&tile.isShown()&&tile.getWidth()>0;},"Start tiles laid out");
+  await(()->{View tile=TenSmoke.description(TenSmoke.find(root,StartMenu.class),"Nth Nota AI, Normal Start tile");return tile!=null&&tile.isShown()&&tile.getWidth()>0;},"Start tiles laid out");
   AtomicInteger old=new AtomicInteger();
   ui(()->{
    StartMenu start=TenSmoke.find(root,StartMenu.class);check(TenSmoke.description(start,"Rename tile group My work")!=null,"Renamed group shown");
-   View tile=TenSmoke.description(start,"Nth Nota, Normal Start tile");old.set(store.startPins().indexOf("@nota"));int next=store.startPins().indexOf("@files");
+   View tile=TenSmoke.description(start,"Nth Nota AI, Normal Start tile");old.set(store.startPins().indexOf("@nota"));int next=store.startPins().indexOf("@files");
    check(tile.requestFocusFromTouch(),"Keyboard tile focus: "+focusState(tile));tile.dispatchKeyEvent(new KeyEvent(0,0,KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_RIGHT,0,KeyEvent.META_CTRL_ON));
    check(store.startPins().indexOf("@nota")==next,"Keyboard tile reorder stays in its group");
   });
-  await(()->{View moved=TenSmoke.description(TenSmoke.find(root,StartMenu.class),"Nth Nota, Normal Start tile");return moved!=null&&moved.hasFocus();},"Keyboard focus survives reorder");
+  await(()->{View moved=TenSmoke.description(TenSmoke.find(root,StartMenu.class),"Nth Nota AI, Normal Start tile");return moved!=null&&moved.hasFocus();},"Keyboard focus survives reorder");
   ui(()->{
-   StartMenu start=TenSmoke.find(root,StartMenu.class);View moved=TenSmoke.description(start,"Nth Nota, Normal Start tile");moved.performAccessibilityAction(0x01020051,Bundle.EMPTY);
+   StartMenu start=TenSmoke.find(root,StartMenu.class);View moved=TenSmoke.description(start,"Nth Nota AI, Normal Start tile");moved.performAccessibilityAction(0x01020051,Bundle.EMPTY);
    check(store.startPins().indexOf("@nota")==old.get(),"Accessible tile reorder");
    try{DesktopBackup.Plan plan=DesktopBackup.parse(DesktopBackup.snapshot(store).toString());check(TenStartData.parse(plan.string(TenStartData.KEY,"[]")).contains("My work"),"Group backup roundtrip");TenDesktops.validate(new JSONObject(plan.string(TenDesktops.KEY,"{}")));}catch(JSONException e){throw new RuntimeException(e);}
   });
