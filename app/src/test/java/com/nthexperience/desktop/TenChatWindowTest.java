@@ -89,6 +89,7 @@ public class TenChatWindowTest {
         assertFalse(startedTransport.get());
     }
     @Test public void backupCannotCarryCloudConsentOrChatHistory() throws Exception {
+        new TenDesktops(panel.store, new java.util.LinkedHashMap<>(), () -> {});
         TenChatConsent.preferences(activity).edit().putBoolean(TenChatConsent.KEY,true).commit();
         panel.chat.store.conversations.append("TRANSCRIPT_MARKER",LiveAnswer.plain("Answer","AI answer"),true);
         panel.chat.store.save();
